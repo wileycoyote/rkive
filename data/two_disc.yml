@@ -1,0 +1,20 @@
+album: A Lazy Summers Day
+albumartist: Herb Alpert
+disctotal: 2
+discs:
+ - discnumber: 1
+   tracks:
+   - tracknumber: 1	
+     title: Mexico
+     filename: a.flac
+   - tracknumber: 2
+     title: America
+     filename: b.flac
+ - discnumber: 2
+   tracks:
+   - tracknumber: 1
+     title: Canada
+     filename: c.flac
+   - tracknumber: 2
+     title: Australia
+     filename: d.flac

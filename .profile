@@ -1,0 +1,2 @@
+export PATH=$PATH:$RKIVE_HOME/bin
+export PYTHONPATH=$RKIVE_HOME/lib/
