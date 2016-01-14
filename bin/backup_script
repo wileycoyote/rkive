@@ -1,0 +1,4 @@
+#!/bin/bash -x
+
+rsync -rvv --log-file=$HOME/logs/backup/music.log /media/roger/Music/Collections/* /media/azure/Multimedia/Music
+rsync -rvv --log-file=${HOME}/logs/backup/wallpaper.log /home/roger/Pictures/Wallpaper/ /media/azure/Multimedia2/Wallpaper

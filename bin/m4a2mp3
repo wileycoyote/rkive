@@ -1,0 +1,10 @@
+#!/bin/bash -x
+p=`pwd`
+echo $k
+for name in *.m4a; do 
+    fn="${p}/${name}"
+    echo "$name"
+    mp3="${p}/${name/.m4a/.mp3}"
+    echo "Converting ${fn} to $mp3"
+    ffmpeg -i "$fn" -acodec libmp3lame -ab 128k -map_metadata 0:s:0 "${mp3}"
+done

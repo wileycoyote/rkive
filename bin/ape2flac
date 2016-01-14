@@ -1,0 +1,2 @@
+#!/bin/sh
+cuebreakpoints *.cue | shnsplit -O always -o flac *.ape
