@@ -1,6 +1,6 @@
 import rkive.clients.log
 import rkive.clients.cl.opts
-import rkive.distribution.manager import Distributer
+from rkive.distribution.manager import Distributer
 import os.path
 import argparse
 from logging import getLogger

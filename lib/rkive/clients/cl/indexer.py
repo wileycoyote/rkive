@@ -1,9 +1,9 @@
 from rkive.clients.cl.opts import GetOpts, BaseAction
-import clients.log
+import rkive.clients.log
 import os.path
 import argparse
 from logging import getLogger
-import clients.files
+import rkive.clients.files
 
 class Indexer(Index):
 
