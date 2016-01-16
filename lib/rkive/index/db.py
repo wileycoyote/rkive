@@ -7,26 +7,41 @@ from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
 
 Base = declarative_base()
      
-class MusicAlbum(Base):
-    __tablename__ = 'MusicAlbum'
-    idMusicAlbum = Column('idMusicAlbum', Integer)
+class MusicCollection(Base):
+    __tablename__ = 'MusicCollection'
+    idMusicAlbum = Column('idMusicCollection', Integer)
+    Column('Name', String)
+    Column('Folder', String)
     
 class MusicTrack(Base):
     __tablename__ = 'MusicTrack'
     idMusicTrack = Column('idMusicTrack', Integer)
-    idMusicAlbum = Column(Integer, ForeignKey('MusicAlbum.idMusicAlbum',  onupdate="CASCADE", ondelete="CASCADE"))
+    cd = Column('CD', Integer)   
+    idMusicAlbum = Column(Integer, ForeignKey('MusicCollection.idMusicCollection',  onupdate="CASCADE", ondelete="CASCADE"))
+    Column('Name', String)
+    column('Filename', String)
+    column('FullFilepath', String)
 
-class MusicAttr(Base):
+class MusicArtist(Base):
     __tablename__ = 'MusicTag'
-    idMusicTrack = Column(String, ForeignKey('MusicTrack.idMusicTrack',  onupdate="CASCADE", ondelete="CASCADE"))
+    idMusicArtist = Column(String, ForeignKey('MusicTrack.idMusicTrack',  onupdate="CASCADE", ondelete="CASCADE"))
+    name = Column('name', String)
+
+class MusicGenre(Base):
+    __tablename__ = 'MusicTag'
+    idMusicArtist = Column(String, ForeignKey('MusicTrack.idMusicTrack',  onupdate="CASCADE", ondelete="CASCADE"))
     idMusicAttr = Column('idMusicAttr', Integer)
     name = Column('name', String)
-    value = Column('value', String)
-    category = Column('category', String)
+
+class Composer(Base):
+    idMusicArtist = Column(String, ForeignKey('MusicTrack.idMusicTrack',  onupdate="CASCADE", ondelete="CASCADE"))
+    __tablename__ = 'Composer'
+    Column('Name', String)
+
 
 # Create an engine that stores data in the local directory's
 # sqlalchemy_example.db file.
-engine = create_engine('postgresql://postgres:postgres@192.168.2.6/magpie')
+engine = create_engine('postgresql://postgres:postgres@192.168.1.155/index')
  
 # Create all tables in the engine. This is equivalent to "Create Table"
 # statements in raw SQL.
