@@ -1,8 +1,19 @@
+import os
 import rkive.index.mediaindex
-import rkive.index.musicfile
-import rkive.clients.cl.files
+from rkive.clients.cl.files import visit
 
 class Indexer(object):
-    base = ''
-    def run(self):
-        pass
+
+    def run(self, base='.'):
+        visit(base=base, funcs=[self.add_file_to_index], exclude=self.exclude)
+
+    def add_file_to_index(self, path, filename):
+        full_path = os.path.join(path, filename)
+        m = rkive.index.mediaindex.MusicTrack(full_path)
+        rkive.index.mediaindex.DBSession.add(m)
+
+    def exclude(self, path, file_name):
+        for t in rkive.index.musicfile.MusicFile.types:
+            if (file_name.endswith(t)):
+                return False
+        return True

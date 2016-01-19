@@ -116,7 +116,7 @@ class Media(object):
             tags[t] = v
         return tags
 
-class MP4(Media):
+class mp4(Media):
 
     def set_media(self, filename):
         try:
@@ -224,11 +224,12 @@ class TypeNotSupported(Exception):
 class MusicFile(object):
 
     Types = {
+        'mp4'  : mp4,
         'mp3'  : MP3,
         'flac' : Flac
     }
 
-    def set_media(self, filename):
+    def __init__(self, filename):
         log = getLogger('Rkive.MusicFiles')
         if (not os.path.exists(filename)):
             log.warn("Path {0}".format(filename))

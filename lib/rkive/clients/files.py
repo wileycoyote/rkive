@@ -7,9 +7,8 @@ class Files(object):
                 print(os.path.join(root, name))
                 if (exclude and exclude(root, name)):
                     continue
-                fp = os.path.join(root, name)
                 for func in funcs:
-                    func(fp)
+                    func(root, name)
             for name in dirs:
                 print(os.path.join(root, name))
                 base = os.path.join(root, name)
