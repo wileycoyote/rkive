@@ -1,0 +1,8 @@
+#!/bin/bash -x
+echo "Run"
+for name in *.ogg; do 
+    if [[ ! -z "$name" ]] ; then
+      echo "Converting ${name}"
+      ffmpeg -i "$name" -ab 128k -map_metadata 0:s:0 "${name/.ogg/.flac}"
+    fi    
+done

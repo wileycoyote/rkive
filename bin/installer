@@ -1,12 +1,27 @@
 #!/usr/bin/env python
 import os
 import os.path
-files = ['rk_report', 'rk_index', 'rk_tag', 'rk_upload']
+runner_files = [
+    'rk_report', 
+    'rk_index', 
+    'rk_tag', 
+    'rk_upload'
+]
+scripts = [
+    'convert_file']
 root = os.path.realpath(__file__)
 root, leaf = os.path.split(root)
 src = os.path.join(root, 'runner.py')
-for f in files:
-    tgt = os.path.join('/usr/local/bin', f)
+bin_folder=os.path.join(os.environ['HOME'], 'bin')
+for f in runner_files:
+    tgt = os.path.join(bin_folder, f)
+    if (os.path.islink(tgt)):
+        os.remove(tgt)
+    print ("Installing {0} as {1}".format(src, tgt))
+    os.symlink(src, tgt)
+for s in scripts:
+    src = os.path.join(root, s)
+    tgt = os.path.join(bin_folder, s)
     if (os.path.islink(tgt)):
         os.remove(tgt)
     print ("Installing {0} as {1}".format(src, tgt))

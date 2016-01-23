@@ -1,14 +1,8 @@
 #!/usr/bin/env python
 import os.path
 import sys
-
-actual_folder, script = os.path.split(sys.argv[0])
-root_folder, leaf = os.path.split(os.path.realpath(__file__))
-root_folder,leaf = os.path.split(root_folder)
-log = os.path.join(root_folder, 'logs')
-lib = os.path.join(root_folder, 'lib')
-sys.path.append(lib)
-
+script =  os.path.basename(sys.argv[0])
+log = os.path.join(os.path.expanduser('~'), 'logs')
 if (script == 'rk_tag'):
     from rkive.clients.cl.tagger import Tagger
     Tagger().run(log=log)
