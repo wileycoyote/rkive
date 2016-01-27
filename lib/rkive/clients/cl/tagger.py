@@ -161,54 +161,23 @@ class Tagger(object):
 
     def modify_from_json(self, sheet):
         log = getLogger('Rkive.MusicFiles')        
-        import re
-        cue = self.load_json(sheet)
-        (folder, base) = os.path.split(sheet)
-        if (folder ==''):
-            folder = os.getcwd()
-        log.info("Using cuesheet {0} in folder {1}".format(base, folder))
-        os.chdir(folder)
-        files = glob.glob('*.flac') 
-        log.info("modify from cue sheet")
-        for filename in files:
-            # shntool gives us this nice %t-%name filename
-            m = re.match('^(\d\d)', filename)
-            if (not m):
-                continue
-            log.info("Setting attributes from cuesheet for file {0}".format(filename))
-            tracknumber = int(m.group(0))
+        json = self.load_json(sheet)
+        for record in json:
             # build the tag list
-            tags = {}
-            # standard tags
-            album_fields = cue.get_metadata().filled_fields()
-            for a in album_fields:
-                tags[a[0]] = a[1]
-            # tags unique to track
-            for f in cue.track(tracknumber).get_metadata().filled_fields():
-                tags[f[0]] = f[1]
-            log.info("Found these attributes from cuesheet")
-            for t,v in tags.iteritems():
-                log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
-            # direct map from cuesheet to standard tags
-            if not 'artist_name' in tags:
-                tags['artist'] = tags['performer_name'] 
-            if not 'track_number' in tags:
-                tags['tracknumber'] = str(tracknumber)
-            # now map from cuesheet tags to standard via the CueMap
-            for t,v in Media.CueMap.iteritems():
-                if (t in tags):
-                    tags[v] = tags[t]
-                    del tags[t]
+            filename = record['filename']
+            del record['filename']
             # set the file
-            fp = os.path.join(folder, filename)
+            fp = os.path.join(self.base, filename)
+            log.info("modify: {0}".format(fp))
             m = MusicFile(fp)
-            m.set_tags_from_list(tags)
+            m.set_tags_from_list(record)
             m.save()
             log.info("======================================")
     
     def load_json(self, f):
         import json
-        j = json.load(f)
+        fh = open(f)
+        return json.load(fh)
 
     def modify_file_tags(self, fp):
         log = getLogger('Rkive')

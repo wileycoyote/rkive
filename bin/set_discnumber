@@ -3,6 +3,9 @@ echo "Directories must be in the form CD01"
 for d in *;
     do n=$(echo ${d:2} | sed 's/^0*//'); 
     cd "$d";
-    rk_tag --discnumber="$n"; 
+    echo "Add disc number"
+    rk_tag --discnumber="$n";
+    echo "Add gain" 
+    metaflac --add-replay-gain *.flac
     cd ..; 
 done

@@ -11,8 +11,13 @@ import rkive.clients.cl.opts
 # allowed types
 class ConvertFile(object):
 
-    from_file_types = {'wav': 'flac', 'wma':'mp3', 'm4a':'mp3', 'ogg':'mp3', 'dsf':'flac'}
-    cmd_line = ['ffmpeg', '-i', 'from_name', '-ab', '128k', '-map_metadata', '0:s:0','to_name']
+    cmd_line  = ['pacpl', '-i', 'from_name', '-t', 'mp3', '--outfile','to_name']
+    from_file_types = {
+            'wav': 'flac', 
+            'wma':'mp3', 
+            'm4a':'mp3', 
+            'ogg':'mp3', 
+            'dsf':'flac'}
 
     def run(self):
         base = '.'
@@ -54,7 +59,7 @@ class ConvertFile(object):
         to_fp = fp[:rind+1]+self.from_file_types[ext]
         print("Convert {0} to {1}".format(fp,to_fp))
         self.cmd_line[2] = fp 
-        self.cmd_line[7] = to_fp
+        self.cmd_line[6] = to_fp
         subprocess.call(self.cmd_line)
 
 if __name__ == "__main__":

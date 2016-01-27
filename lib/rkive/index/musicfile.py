@@ -211,8 +211,8 @@ class Flac(Media):
                 if (v != None):
 		    print "t: "+t
 		    print "v: "+v
-                    log.info("{0}: {1}".format(t, v))
-                    self.media[t] = v.decode('utf-8')
+                    log.info("{0}: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
+                    self.media[t] = v
         self.media.save()
 
 class FileNotFound(Exception):
@@ -230,11 +230,13 @@ class MusicFile(object):
     }
 
     def __init__(self, filename):
-        log = getLogger('Rkive.MusicFiles')
+        log = getLogger('Rkive.MusicFile')
+        log.info("XXXXXXX Filename: {0}".format(filename))
         if (not os.path.exists(filename)):
-            log.warn("Path {0}".format(filename))
+            log.warn("Path not found {0}".format(filename))
             raise FileNotFound
         ext = filename.rsplit('.', 1)[1]
+        log.info("Ext: {0}".format(ext))
         if (not ext in self.Types):
             raise TypeNotSupported 
         if ('.AppleDouble' in filename):
