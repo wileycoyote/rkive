@@ -1,4 +1,4 @@
-from rkive.clients.cl.opts import GetOpts, BaseAction
+from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
 import rkive.clients.files
 import rkive.clients.log
 import os.path
@@ -7,17 +7,6 @@ from logging import getLogger
 import glob
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
 
-class FileValidation(argparse.Action):
-
-    def __init__(self, option_strings, dest, nargs=None, **kwargs):
-        super(FileValidation, self).__init__(option_strings, dest, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        p = os.path.expanduser(values)
-        values = p
-        if not os.path.exists(values): 
-            raise Exception("File {0} does not exist".format(values))
-        setattr(namespace, self.dest, values)
 
 class ParsePattern(argparse.Action):
 

@@ -5,10 +5,12 @@ runner_files = [
     'rk_report', 
     'rk_index', 
     'rk_tag', 
-    'rk_upload'
+    'rk_upload',
+    'markup'
 ]
 scripts = [
-    'convert_file']
+    'convert_file'
+    ]
 root = os.path.realpath(__file__)
 root, leaf = os.path.split(root)
 src = os.path.join(root, 'runner.py')

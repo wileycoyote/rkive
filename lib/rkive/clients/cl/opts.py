@@ -13,6 +13,18 @@ class BaseAction(argparse.Action):
             raise Exception("No valid base folder")
         setattr(namespace, self.dest, values)
 
+class FileValidation(argparse.Action):
+
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        super(FileValidation, self).__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        p = os.path.expanduser(values)
+        values = p
+        if not os.path.exists(values): 
+            raise Exception("File {0} does not exist".format(values))
+        setattr(namespace, self.dest, values)
+
 class GetOpts(object):
     
     def __init__(self, parent=None):

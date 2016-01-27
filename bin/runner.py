@@ -15,3 +15,6 @@ if (script == 'rk_index'):
 if (script == 'rk_report'):
     from rkive.clients.cl.reporter import ReportClient
     ReportClient().run(log=log)
+if (script == 'markup'):
+    from rkive.clients.cl.markup import MarkupClient
+    MarkupClient().run(log=log)
