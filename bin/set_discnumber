@@ -1,11 +1,12 @@
-#!/usr/bin/bash
+#!/bin/bash
 echo "Directories must be in the form CD01"
-for d in *;
+for d in CD*
     do n=$(echo ${d:2} | sed 's/^0*//'); 
     cd "$d";
     echo "Add disc number"
     rk_tag --discnumber="$n";
     echo "Add gain" 
-    metaflac --add-replay-gain *.flac
+   # metaflac --add-replay-gain *.flac
+    mp3gain *.mp3
     cd ..; 
 done

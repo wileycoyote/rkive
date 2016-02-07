@@ -4,8 +4,9 @@ from logging import getLogger
 import mutagen.id3
 from mutagen.id3 import ID3
 from mutagen.mp4 import MP4
-from mutagen.flac import FLAC
-from mutagen.id3 import TIT1, TIT2, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM
+from mutagen.flac import FLAC, Picture
+from mutagen.id3 import TIT1, TIT2, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM, APIC
+from PIL import Image
 
 class InvalidTag(Exception): pass
 
@@ -65,6 +66,9 @@ class Media(object):
             'mp3' : ['TCON',TCON],
             'mp4' :  '\xA9gen',
             'comment' : 'Only one genre'
+        },
+        'picture'     : {
+            'mp3' : ['APIC', APIC]
         },
         'title'       : {
             'mp3' : ['TIT2', TIT2],
@@ -205,12 +209,27 @@ class Flac(Media):
     def save(self):
         log = getLogger('Rkive')
         log.info("save file")
+        if hasattr(self,'picture'):
+            self.media.clear_pictures()
+            pic = Picture()
+            v = getattr(self, 'picture')
+            with open(v, "rb") as f:
+                pic.data = f.read()
+            im = Image.open(v)
+            pic.type = 3
+            if v.endswith('jpg'):
+                pic.mime = u"image/jpeg"
+            if v.endswith('png'):
+                pic.mime = u"image/png"
+            pic.width = im.size[0] 
+            pic.height = im.size[1]
+            self.media.add_picture(pic)
+            self.save()
+            delattr(self, 'picture')
         for t in self.TagMap:
             if hasattr(self, t):
                 v = getattr(self, t)
-                if (v != None):
-		    print "t: "+t
-		    print "v: "+v
+                if v:
                     log.info("{0}: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
                     self.media[t] = v
         self.media.save()
@@ -231,7 +250,7 @@ class MusicFile(object):
 
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
-        log.info("XXXXXXX Filename: {0}".format(filename))
+        log.info("Filename: {0}".format(filename))
         if (not os.path.exists(filename)):
             log.warn("Path not found {0}".format(filename))
             raise FileNotFound

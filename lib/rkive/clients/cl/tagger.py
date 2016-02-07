@@ -1,11 +1,12 @@
-from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
-import rkive.clients.files
-import rkive.clients.log
 import os.path
 import argparse
 from logging import getLogger
 import glob
+import re
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
+from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
+import rkive.clients.files
+import rkive.clients.log
 
 
 class ParsePattern(argparse.Action):
@@ -38,44 +39,43 @@ class Tagger(object):
             self.console = True
             rkive.clients.log.LogInit().set_logging(location=log, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
-            if (not self.base):
+            if not self.base:
                 self.base = '.'
-            if (self.printtags):
-                if (self.file):
+            if self.printtags:
+                if self.file:
                     self.print_file_tags(self.file)
                     return
-                if (self.base):
+                if self.base:
                     self.search_and_print_folder()
                     return
                 self.search_and_print_folder()
                 return
-            if (not self.printtags):
-                if (self.cue_index):
-                    self.modify_from_cuesheet(self.cue_index)
-                    return
-                if self.json_index:
-                    self.modify_from_json(self.json_index)
-                    return
-                # check arguments for something to add tags/to
-                hasargs = False
-                for t,v in tags.iteritems():
-                    if (getattr(self, t)):
-                        hasargs = True
-                        break
-                if (not hasargs):
-                    if (self.tokens):
-                        hasargs = True
-                if (not hasargs):
-                    log.info("no attributes to apply")
-                    return
-                if (self.file):
-                    self.modify_file_tags(self.file)
-                    return
-                if (self.base):
-                    self.search_and_modify_files()
-                    return
+            if self.cue_index:
+                self.modify_from_cuesheet(self.cue_index)
+                return
+            if self.json_index:
+                self.modify_from_json(self.json_index)
+                return
+            if self.tokens:
+                self.modify_from_tokens(self.tokens)
+                return
+            # check arguments for something to add tags/to
+            hasargs = False
+            for t,v in tags.iteritems():
+                if (getattr(self, t)):
+                    hasargs = True
+                    break
+            if (not hasargs):
+                log.info("no attributes to apply")
+                return
+            if (self.file):
+                self.modify_file_tags(self.file)
+                return
+            if (self.base):
                 self.search_and_modify_files()
-                return 
+                return
+            self.search_and_modify_files()
+            return 
         except SystemExit:
             pass
         except TypeNotSupported as e:
@@ -99,6 +99,42 @@ class Tagger(object):
         log = getLogger('Rkive')
         log.info("print tags of music files in {0}".format(self.base))        
         self.visit_files(folder=self.base, funcs=[self.print_file_tags])
+
+    def modify_from_tokens(self, tokens):
+        token_examplars = [
+            '%track%', 
+            '%title%',
+            '%discnumber%'
+            ]
+        expr = ''
+        self.token_index = []
+        token_count = 0
+        token_regexp = tokens
+        for token in token_examplars:
+            if token in tokens:
+                token_regexp.replace(token, '(.*?)')
+                tl = len(token) -2
+                self.token_index.append(token[1:tl])
+        self.token_regexp = re.compile(token_regexp)
+        self.visit_files(folder=self.base, funcs=[self.mod_file_tags])
+
+    def mod_filetags_from_regexp(self, fp):
+        log = getLogger('Rkive.MusicFiles')        
+        basename = os.path.basename(fp)
+        if (not '.mp3' in basename or not '.flac' in basename):
+            log.warn("Not processing {0}".format(fp))
+            return
+        matches = self.token_regexp.match(basename)
+        if matches.groups < 1:
+            log.warn("no matches in {0} for pattern {1}".format(basename,self.token_regexp))
+            return
+        i = 0
+        for match in matches.groups:
+            attr_name = self.token_index[i]
+            attr_val = match
+            setattr(self, attr_name, attr_val)
+            i = i + 1
+        self.modify_file_tags(fp)
 
     def modify_from_cuesheet(self, sheet):
         log = getLogger('Rkive.MusicFiles')        
