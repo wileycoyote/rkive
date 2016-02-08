@@ -68,7 +68,8 @@ class Media(object):
             'comment' : 'Only one genre'
         },
         'picture'     : {
-            'mp3' : ['APIC', APIC]
+            'mp3' : ['APIC', APIC],
+            'comment' : 'The filename for a image associated with file'
         },
         'title'       : {
             'mp3' : ['TIT2', TIT2],

@@ -33,6 +33,7 @@ class Tagger(object):
             tags = Media.TagMap
             for t,v in tags.iteritems():
                 option = '--'+t
+                print t
                 comment = v['comment']
                 go.p.add_argument(option, help=comment, type=str)
             go.get_opts()
@@ -170,7 +171,7 @@ class Tagger(object):
 
     def modify_from_markdown(self, sheet):
         log = getLogger('Rkive.MusicFiles')        
-        with m as open(self.markdown):
+        with open(self.markdown) as m:
             header = m.readline().split(',')
             nrrecords = header.pop()
             recordlen = header.pop()
