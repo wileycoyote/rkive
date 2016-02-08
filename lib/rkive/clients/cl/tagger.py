@@ -29,7 +29,7 @@ class Tagger(object):
             go.p.add_argument('--recursive', help='used in conjunction with folder', action='store_true')
             go.p.add_argument('--tokens', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             go.p.add_argument('--cue-index', type=str, help="give a cue file for entering metadata", action=FileValidation)
-            go.p.add_argument('--json-index', type=str, help="give a json file for entering metadata", action=FileValidation)
+            go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
             tags = Media.TagMap
             for t,v in tags.iteritems():
                 option = '--'+t
@@ -53,8 +53,8 @@ class Tagger(object):
             if self.cue_index:
                 self.modify_from_cuesheet(self.cue_index)
                 return
-            if self.json_index:
-                self.modify_from_json(self.json_index)
+            if self.markdown:
+                self.modify_from_markdown(self.markdown)
                 return
             if self.tokens:
                 self.modify_from_tokens(self.tokens)
@@ -100,23 +100,23 @@ class Tagger(object):
         log.info("print tags of music files in {0}".format(self.base))        
         self.visit_files(folder=self.base, funcs=[self.print_file_tags])
 
+    # assume that one pattern matches all the files under examination
     def modify_from_tokens(self, tokens):
-        token_examplars = [
-            '%track%', 
-            '%title%',
-            '%discnumber%'
-            ]
-        expr = ''
+        token_examplars = {
+            '%track%' : '(\d+?)', 
+            '%title%' : '(.+?)',
+            '%discnumber%' : '(\d+?)'
+            }
         self.token_index = []
         token_count = 0
         token_regexp = tokens
-        for token in token_examplars:
+        for token, regexp in token_examplars:
             if token in tokens:
-                token_regexp.replace(token, '(.*?)')
+                token_regexp.replace(token, regexp)
                 tl = len(token) -2
                 self.token_index.append(token[1:tl])
         self.token_regexp = re.compile(token_regexp)
-        self.visit_files(folder=self.base, funcs=[self.mod_file_tags])
+        self.visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp])
 
     def mod_filetags_from_regexp(self, fp):
         log = getLogger('Rkive.MusicFiles')        
@@ -156,56 +156,64 @@ class Tagger(object):
             log.info("Setting attributes from cuesheet for file {0}".format(filename))
             tracknumber = int(m.group(0))
             # build the tag list
-            tags = {}
             # standard tags
             album_fields = cue.get_metadata().filled_fields()
+            self.clear_tag_attrs()
             for a in album_fields:
-                tags[a[0]] = a[1]
+                self.set_tag_attr(self, a[0], a[1])
             # tags unique to track
             for f in cue.track(tracknumber).get_metadata().filled_fields():
-                tags[f[0]] = f[1]
-            log.info("Found these attributes from cuesheet")
-            for t,v in tags.iteritems():
-                log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
-            # direct map from cuesheet to standard tags
-            if not 'artist_name' in tags:
-                tags['artist'] = tags['performer_name'] 
-            if not 'track_number' in tags:
-                tags['tracknumber'] = str(tracknumber)
-            # now map from cuesheet tags to standard via the CueMap
-            for t,v in Media.CueMap.iteritems():
-                if (t in tags):
-                    tags[v] = tags[t]
-                    del tags[t]
-            # set the file
-            fp = os.path.join(folder, filename)
-            m = MusicFile(fp)
-            m.set_tags_from_list(tags)
-            m.save()
-            log.info("======================================")
-
-    def modify_from_json(self, sheet):
-        log = getLogger('Rkive.MusicFiles')        
-        json = self.load_json(sheet)
-        for record in json:
-            # build the tag list
-            filename = record['filename']
-            del record['filename']
-            # set the file
+                self.set_tag_attr(self, f[0], f[1])
+            self.set_tag_attr(self, 'tracknumber', str(tracknumber))
             fp = os.path.join(self.base, filename)
-            log.info("modify: {0}".format(fp))
-            m = MusicFile(fp)
-            m.set_tags_from_list(record)
-            m.save()
-            log.info("======================================")
-    
-    def load_json(self, f):
-        import json
-        fh = open(f)
-        return json.load(fh)
+            self.modify_file_tags(fp)
+
+    def modify_from_markdown(self, sheet):
+        log = getLogger('Rkive.MusicFiles')        
+        with m as open(self.markdown):
+            header = m.readline().split(',')
+            nrrecords = header.pop()
+            recordlen = header.pop()
+            line_counter = 0
+            record = []
+            for l in m:
+                line_counter = line_counter + 1
+                record.append(l.strip())
+                if line_counter%recordlen == 0:
+                    reccnt = 0
+                    filename = ''
+                    for val in records:
+                        name = header[reccnt]
+                        if name == 'filename':
+                            filename = name
+                        reccnt = reccnt + 1
+                        self.set_tag_attr(self, name, val)
+                    self.clear_tag_attrs()
+                    fp = os.path.join(self.base, filename)
+                    self.modify_file_tags(fp)
+
+    def clear_tag_attrs(self):
+        for t,v in Media.TagMap.iteritems():
+            delattr(self, t, v)
+
+    def set_tag_attr(self, n, v):
+        for t,v in Media.TagMap.iteritems:
+            if n == v:
+                log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
+                setattr(self, n, v)
+                return True
+        log.warn("Set setting tag {0} for value {0}".format(n,v))
+        return False
 
     def modify_file_tags(self, fp):
         log = getLogger('Rkive')
+        if self.dryrun:
+            log.info("Proposed tags to modify on file {0}".format(fp))
+            for t in Media.TagMap.iteritems():
+                v = getattr(self, t)
+                if v:
+                    log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
+            return
         log.info("modifying tags of file {0}".format(fp))
         try:
             m = MusicFile(fp)
