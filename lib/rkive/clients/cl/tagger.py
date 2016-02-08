@@ -103,37 +103,43 @@ class Tagger(object):
 
     # assume that one pattern matches all the files under examination
     def modify_from_tokens(self, tokens):
-        token_examplars = {
-            '%track%' : '(\d+?)', 
-            '%title%' : '(.+?)',
+        log = getLogger('Rkive.MusicFiles')        
+        token_exemplars = {
+            '%tracknumber%' : '(\d+?)', 
+            '%title%' : '(.+)',
             '%discnumber%' : '(\d+?)'
             }
         self.token_index = []
         token_count = 0
         token_regexp = tokens
-        for token, regexp in token_examplars:
+        for token, regexp in token_exemplars.iteritems():
+            log.info("token: {0}".format(token))
             if token in tokens:
-                token_regexp.replace(token, regexp)
-                tl = len(token) -2
+                token_regexp = token_regexp.replace(token, regexp)
+                tl = len(token) -1
                 self.token_index.append(token[1:tl])
+        log.info("regxp {0}".format(token_regexp))
         self.token_regexp = re.compile(token_regexp)
         self.visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp])
 
     def mod_filetags_from_regexp(self, fp):
         log = getLogger('Rkive.MusicFiles')        
         basename = os.path.basename(fp)
-        if (not '.mp3' in basename or not '.flac' in basename):
+        (fn, ext) = os.path.splitext(basename)
+        if (ext != '.mp3' and ext != '.flac'):
             log.warn("Not processing {0}".format(fp))
             return
-        matches = self.token_regexp.match(basename)
+        matches = self.token_regexp.match(fn)
         if matches.groups < 1:
-            log.warn("no matches in {0} for pattern {1}".format(basename,self.token_regexp))
+            log.warn("no matches in {0} for pattern {1}".format(fp,self.token_regexp))
             return
         i = 0
-        for match in matches.groups:
-            attr_name = self.token_index[i]
-            attr_val = match
-            setattr(self, attr_name, attr_val)
+        log.debug("groups: {0}".format(matches.groups()))
+        for match in matches.groups():
+            t = self.token_index[i]
+            v = match
+            log.debug("t: {0} v: {1}".format(t,v))
+            setattr(self, t, v)
             i = i + 1
         self.modify_file_tags(fp)
 
@@ -210,8 +216,9 @@ class Tagger(object):
         log = getLogger('Rkive')
         if self.dryrun:
             log.info("Proposed tags to modify on file {0}".format(fp))
-            for t in Media.TagMap.iteritems():
+            for t,v in Media.TagMap.iteritems():
                 v = getattr(self, t)
+                log.debug("t {0} v {1}".format(t,v))
                 if v:
                     log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
             return
