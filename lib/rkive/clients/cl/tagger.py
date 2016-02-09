@@ -126,7 +126,7 @@ class Tagger(object):
         log = getLogger('Rkive.MusicFiles')        
         basename = os.path.basename(fp)
         (fn, ext) = os.path.splitext(basename)
-        if (ext != '.mp3' and ext != '.flac'):
+        if (not ext in MusicFile.Types):
             log.warn("Not processing {0}".format(fp))
             return
         matches = self.token_regexp.match(fn)
@@ -179,8 +179,8 @@ class Tagger(object):
         log = getLogger('Rkive.MusicFiles')        
         with open(self.markdown) as m:
             header = m.readline().split(',')
-            nrrecords = header.pop()
-            recordlen = header.pop()
+            nrrecords = header.pop(0)
+            recordlen = int(header.pop(0))
             line_counter = 0
             record = []
             for l in m:
@@ -189,33 +189,41 @@ class Tagger(object):
                 if line_counter%recordlen == 0:
                     reccnt = 0
                     filename = ''
-                    for val in records:
+                    log.debug("size of array: {0}".format(len(record)))
+                    for val in record:
+                        log.debug("reccnt {0}".format(reccnt))
                         name = header[reccnt]
                         if name == 'filename':
-                            filename = name
+                            filename = val
+                        else:
+                            log.info("name: {0} val: {1}".format(name, val))
+                            self.set_tag_attr(name, val)
                         reccnt = reccnt + 1
-                        self.set_tag_attr(self, name, val)
-                    self.clear_tag_attrs()
-                    fp = os.path.join(self.base, filename)
-                    self.modify_file_tags(fp)
+                    if filename:
+                        fp = os.path.join(self.base, filename)
+                        self.modify_file_tags(fp)
+                    else:
+                        log.fatal("No filename to save tags")
+                    record = []
 
     def clear_tag_attrs(self):
         for t,v in Media.TagMap.iteritems():
-            delattr(self, t, v)
+            setattr(self, t, "")
 
-    def set_tag_attr(self, n, v):
-        for t,v in Media.TagMap.iteritems:
-            if n == v:
-                log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
-                setattr(self, n, v)
-                return True
-        log.warn("Set setting tag {0} for value {0}".format(n,v))
+    def set_tag_attr(self, name, val):
+        log = getLogger('Rkive')
+        log.info(Media.TagMap['artist'])
+        if name in Media.TagMap:
+            log.info("{0}: {1}".format(name,val))
+            setattr(self, name, val)
+            return True
+        log.warn("Not setting tag {0} for value {1}".format(name,val))
         return False
 
     def modify_file_tags(self, fp):
         log = getLogger('Rkive')
         if self.dryrun:
-            log.info("Proposed tags to modify on file {0}".format(fp))
+            log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
             for t,v in Media.TagMap.iteritems():
                 v = getattr(self, t)
                 log.debug("t {0} v {1}".format(t,v))
@@ -228,7 +236,7 @@ class Tagger(object):
             m.set_tags(self)
             m.save()
         except TypeNotSupported:
-            log.debug("Type {0} not supported".format(fp))
+            log.warn("Type {0} not supported".format(fp))
             return
         except AttributeError as e:
             log.warn("Attribute error {0} with {1}".format(e, fp))
