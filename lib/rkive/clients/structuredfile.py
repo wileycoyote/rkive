@@ -1,14 +1,15 @@
+from logging import getLogger
+
 class Markdown:    
 
     def read_file(self, inf, funcs=[]):
         log = getLogger('Rkive')
-        log.info("input {0} output {1}".format(inf, out))
+        log.info("input file {0}".format(inf))
         with open(inf,'r') as i:
             line_counter = 0
             record = []
             header = i.readline().strip().split(',')
-            nrrecs = int(header.pop(0))
-            size_record = len(header)
+            size_record = len(int(header[1]))
             for l in i:
                 line_counter = line_counter + 1
                 record.append(l.strip())
