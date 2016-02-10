@@ -5,6 +5,7 @@ import glob
 import re
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
 from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
+from rkive.clients.regex import tx_tokens_to_regex
 import rkive.clients.files
 import rkive.clients.log
 
@@ -33,7 +34,6 @@ class Tagger(object):
             tags = Media.TagMap
             for t,v in tags.iteritems():
                 option = '--'+t
-                print t
                 comment = v['comment']
                 go.p.add_argument(option, help=comment, type=str)
             go.get_opts()
@@ -93,7 +93,7 @@ class Tagger(object):
             log.info("report filetags for {0}".format(fp))
             m.pprint()
         except TypeNotSupported:
-            log.debug("Type {0} not supported".format(fp))
+            log.warn("Type {0} not supported".format(fp))
             return
    
     def search_and_print_folder(self):
@@ -104,22 +104,7 @@ class Tagger(object):
     # assume that one pattern matches all the files under examination
     def modify_from_tokens(self, tokens):
         log = getLogger('Rkive.MusicFiles')        
-        token_exemplars = {
-            '%tracknumber%' : '(\d+?)', 
-            '%title%' : '(.+)',
-            '%discnumber%' : '(\d+?)'
-            }
-        self.token_index = []
-        token_count = 0
-        token_regexp = tokens
-        for token, regexp in token_exemplars.iteritems():
-            log.info("token: {0}".format(token))
-            if token in tokens:
-                token_regexp = token_regexp.replace(token, regexp)
-                tl = len(token) -1
-                self.token_index.append(token[1:tl])
-        log.info("regxp {0}".format(token_regexp))
-        self.token_regexp = re.compile(token_regexp)
+        self.token_tx = rkive.clients.regexp.Tokens(tokens)
         self.visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp])
 
     def mod_filetags_from_regexp(self, fp):
@@ -129,18 +114,7 @@ class Tagger(object):
         if (not ext in MusicFile.Types):
             log.warn("Not processing {0}".format(fp))
             return
-        matches = self.token_regexp.match(fn)
-        if matches.groups < 1:
-            log.warn("no matches in {0} for pattern {1}".format(fp,self.token_regexp))
-            return
-        i = 0
-        log.debug("groups: {0}".format(matches.groups()))
-        for match in matches.groups():
-            t = self.token_index[i]
-            v = match
-            log.debug("t: {0} v: {1}".format(t,v))
-            setattr(self, t, v)
-            i = i + 1
+        self.token_tx.match(self, fn)
         self.modify_file_tags(fp)
 
     def modify_from_cuesheet(self, sheet):
@@ -154,7 +128,6 @@ class Tagger(object):
         log.info("Using cuesheet {0} in folder {1}".format(base, folder))
         os.chdir(folder)
         files = glob.glob('*.flac') 
-        log.info("modify from cue sheet")
         for filename in files:
             # shntool gives us this nice %t-%name filename
             m = re.search('(\d\d)', filename)
@@ -178,7 +151,7 @@ class Tagger(object):
     def modify_from_markdown(self, sheet):
         log = getLogger('Rkive.MusicFiles')        
         with open(self.markdown) as m:
-            header = m.readline().split(',')
+            header = m.readline().strip().split(',')
             nrrecords = header.pop(0)
             recordlen = int(header.pop(0))
             line_counter = 0
@@ -212,9 +185,8 @@ class Tagger(object):
 
     def set_tag_attr(self, name, val):
         log = getLogger('Rkive')
-        log.info(Media.TagMap['artist'])
         if name in Media.TagMap:
-            log.info("{0}: {1}".format(name,val))
+            log.debug("{0}: {1}".format(name,val))
             setattr(self, name, val)
             return True
         log.warn("Not setting tag {0} for value {1}".format(name,val))
