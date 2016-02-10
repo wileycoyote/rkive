@@ -9,11 +9,12 @@ class Markdown:
             line_counter = 0
             record = []
             header = i.readline().strip().split(',')
-            size_record = len(int(header[1]))
+            size_record = int(header[1])
             for l in i:
                 line_counter = line_counter + 1
                 record.append(l.strip())
-                if (line_counter%size_record == 0):
-                    func(header, record)
+                header.insert(1, line_counter)
+                if line_counter%size_record == 0:
+                    for func in funcs:
+                        func(header, record)
                     record = []
-
