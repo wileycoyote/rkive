@@ -192,7 +192,7 @@ class MP3(Media):
                 k, f = self.TagMap[t]['mp3']
                 log.info("modifying real_t "+k)
                 self.media.delall(k)
-                v = v.decode('utf-8')
+                v = v.encode('utf-8')
                 self.media.add(f(encoding=3, text=unicode(v)))
         self.media.save()
         
@@ -225,14 +225,13 @@ class Flac(Media):
             pic.width = im.size[0] 
             pic.height = im.size[1]
             self.media.add_picture(pic)
-            self.save()
             delattr(self, 'picture')
         for t in self.TagMap:
             if hasattr(self, t):
                 v = getattr(self, t)
                 if v:
-                    log.info("{0}: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
-                    self.media[t] = v
+                    log.info("{0}: {1}".format(t, v))
+                    self.media[t] = v.decode('utf-8')
         self.media.save()
 
 class FileNotFound(Exception):

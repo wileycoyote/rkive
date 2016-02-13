@@ -13,7 +13,6 @@ class Markdown:
             for l in i:
                 line_counter = line_counter + 1
                 record.append(l.strip())
-                header.insert(1, line_counter)
                 if line_counter%size_record == 0:
                     for func in funcs:
                         func(header, record)

@@ -5,7 +5,7 @@ import glob
 import re
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
 from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
-from rkive.clients.regex import tx_tokens_to_regex
+import rkive.clients.regexp
 import rkive.clients.files
 import rkive.clients.log
 
@@ -104,7 +104,7 @@ class Tagger(object):
     # assume that one pattern matches all the files under examination
     def modify_from_tokens(self, tokens):
         log = getLogger('Rkive.MusicFiles')        
-        self.token_tx = rkive.clients.regexp.Tokens(tokens)
+        self.token_tx = rkive.clients.regexp.Regexp(tokens)
         self.visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp])
 
     def mod_filetags_from_regexp(self, fp):
@@ -225,11 +225,12 @@ class Tagger(object):
             if (f.startswith('.')):
                 next
             fp = os.path.join(folder, f)
-            if (self.recursive):
-                if (os.path.isdir(fp)):
+            if (os.path.isdir(fp)):
+                if (self.recursive):
                     self.visit_files(folder=fp, funcs=funcs)
-            for func in funcs:
-                func(fp)
+            else:
+                for func in funcs:
+                    func(fp)
 
 if __name__ == '__main__':
     Tagger().run()
