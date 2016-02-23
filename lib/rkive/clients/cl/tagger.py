@@ -111,10 +111,10 @@ class Tagger(object):
         log = getLogger('Rkive.MusicFiles')        
         basename = os.path.basename(fp)
         (fn, ext) = os.path.splitext(basename)
-        if (not ext in MusicFile.Types):
-            log.warn("Not processing {0}".format(fp))
+        if (not ext[1:] in MusicFile.Types):
+            log.warn("Not processing type {0} for {1}".format(ext, fp))
             return
-        self.token_tx.match(self, fn)
+        self.token_tx.match(fn, self)
         self.modify_file_tags(fp)
 
     def modify_from_cuesheet(self, sheet):

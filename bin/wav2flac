@@ -1,0 +1,6 @@
+#!/bin/bash -x
+for w in *.wav; do
+    echo "${w:6:-4}"
+    t=${w:6:-4}
+    pacpl --to flac "$w" --track $t
+done

@@ -143,7 +143,7 @@ class MP3(Media):
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
-        log.info("save file")
+        log.info("save file {0}".format(self.filename))
         discnumber = None
         disctotal = None
         if (hasattr(self, 'discnumber')):
@@ -187,13 +187,12 @@ class MP3(Media):
             if (not hasattr(self, t)):
                 continue
             v = getattr(self, t)
-            log.info("real_t "+t)
+            log.debug("loop through tag values")
             if (v):
                 k, f = self.TagMap[t]['mp3']
-                log.info("modifying real_t "+k)
+                log.debug("modifying tag {0} with value {1} ".format(k, v))
                 self.media.delall(k)
-                v = v.encode('utf-8')
-                self.media.add(f(encoding=3, text=unicode(v)))
+                self.media.add(f(encoding=3, text=unicode(v.decode('utf-8'))))
         self.media.save()
         
 
@@ -255,7 +254,6 @@ class MusicFile(object):
             log.warn("Path not found {0}".format(filename))
             raise FileNotFound
         ext = filename.rsplit('.', 1)[1]
-        log.info("Ext: {0}".format(ext))
         if (not ext in self.Types):
             raise TypeNotSupported 
         if ('.AppleDouble' in filename):

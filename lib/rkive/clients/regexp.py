@@ -26,7 +26,7 @@ class Regexp:
         self.regexp = re.compile(token_regexp)
         return token_regexp
 
-    def match(self, s):
+    def match(self, s, parent):
         log = getLogger('Rkive.MusicFiles')
         matches = self.regexp.match(s)
         if not matches:
@@ -40,4 +40,7 @@ class Regexp:
             token_name = self.token_index[i]
             tokens[token_name] = group
             i = i + 1
+        if parent:
+            for n, v in tokens.iteritems():
+                setattr(parent, n,v)
         return tokens
