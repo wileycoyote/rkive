@@ -6,7 +6,7 @@ import argparse
 
 import rkive.clients.cl.opts
 
-class Convert(object):
+class ConverterClient(object):
     split = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],    
     ffmpeg_mp3 =  ['ffmpeg', '-i', '"[infile]"', '-acodec','libmp3lame', '-ab', '128k', '-map_metadata 0:s:0','"[outfile]"']
     convert = {

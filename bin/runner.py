@@ -18,3 +18,6 @@ if (script == 'rk_report'):
 if (script == 'markup'):
     from rkive.clients.cl.markup import MarkupClient
     MarkupClient().run(log=log)
+if (script == 'rk_convert'):
+    from rkive.clients.cl.converter import ConvertClient
+    ConvertClient().run(log=log)
