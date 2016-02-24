@@ -6,9 +6,8 @@ import re
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
 from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
 import rkive.clients.regexp
-import rkive.clients.files
+from rkive.clients.files import visit_files
 import rkive.clients.log
-
 
 class ParsePattern(argparse.Action):
 
@@ -20,16 +19,17 @@ class ParsePattern(argparse.Action):
 
 class Tagger(object):
 
-    def run(self, log=None):
+    def run(self, logloc=None):
         try:
             self.recursive = False
+            self.base = '.'
             go = GetOpts(parent=self)
             go.p.add_argument('--printtags', help="print files in current folder", action='store_true')
             go.p.add_argument('--file',  type=str, help="file to print out", action=FileValidation)
             go.p.add_argument('--base', type=str, help="folder in which look for files", action=BaseAction)
             go.p.add_argument('--recursive', help='used in conjunction with folder', action='store_true')
-            go.p.add_argument('--tokens', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
-            go.p.add_argument('--cue-index', type=str, help="give a cue file for entering metadata", action=FileValidation)
+            go.p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
+            go.p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
             tags = Media.TagMap
             for t,v in tags.iteritems():
@@ -38,27 +38,25 @@ class Tagger(object):
                 go.p.add_argument(option, help=comment, type=str)
             go.get_opts()
             self.console = True
-            rkive.clients.log.LogInit().set_logging(location=log, filename='tagger.log', debug=self.debug, console=self.console)
+            rkive.clients.log.LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
-            if not self.base:
-                self.base = '.'
             if self.printtags:
                 if self.file:
-                    self.print_file_tags(self.file)
+                    self.print_file_tags()
                     return
                 if self.base:
                     self.search_and_print_folder()
                     return
                 self.search_and_print_folder()
                 return
-            if self.cue_index:
-                self.modify_from_cuesheet(self.cue_index)
+            if self.cuesheet:
+                self.modify_from_cuesheet()
                 return
             if self.markdown:
-                self.modify_from_markdown(self.markdown)
+                self.modify_from_markdown()
                 return
-            if self.tokens:
-                self.modify_from_tokens(self.tokens)
+            if self.pattern:
+                self.modify_from_pattern()
                 return
             # check arguments for something to add tags/to
             hasargs = False
@@ -86,42 +84,39 @@ class Tagger(object):
             log = getLogger('Rkive.Tagger')
             log.fatal("Type not supported")
 
-    def print_file_tags(self, fp):
+    def print_file_tags(self):
         log = getLogger('Rkive')
         try:
-            m = MusicFile(fp)
-            log.info("report filetags for {0}".format(fp))
+            m = MusicFile(self.file)
+            log.info("report filetags for {0}".format(self.file))
             m.pprint()
         except TypeNotSupported:
-            log.warn("Type {0} not supported".format(fp))
+            log.warn("Type {0} not supported".format(self.file))
             return
    
     def search_and_print_folder(self):
         log = getLogger('Rkive')
         log.info("print tags of music files in {0}".format(self.base))        
-        self.visit_files(folder=self.base, funcs=[self.print_file_tags])
+        visit_files(folder=self.base, funcs=[self.print_file_tags], include=['.mp3','.flac'])
 
     # assume that one pattern matches all the files under examination
-    def modify_from_tokens(self, tokens):
+    def modify_from_pattern(self):
         log = getLogger('Rkive.MusicFiles')        
-        self.token_tx = rkive.clients.regexp.Regexp(tokens)
-        self.visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp])
+        self.tx_pattern = rkive.clients.regexp.Regexp(self.pattern)
+        visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp], include=['.mp3','.flac'])
 
     def mod_filetags_from_regexp(self, fp):
         log = getLogger('Rkive.MusicFiles')        
         basename = os.path.basename(fp)
         (fn, ext) = os.path.splitext(basename)
-        if (not ext[1:] in MusicFile.Types):
-            log.warn("Not processing type {0} for {1}".format(ext, fp))
-            return
-        self.token_tx.match(fn, self)
+        self.tx_pattern.match(fn, self)
         self.modify_file_tags(fp)
 
-    def modify_from_cuesheet(self, sheet):
+    def modify_from_cuesheet(self):
         log = getLogger('Rkive.MusicFiles')        
         import audiotools.cue 
         import re
-        cue = audiotools.cue.read_cuesheet(sheet)
+        cue = audiotools.cue.read_cuesheet(self.cuesheet)
         (folder, base) = os.path.split(sheet)
         if (folder ==''):
             folder = os.getcwd()
@@ -148,7 +143,7 @@ class Tagger(object):
             fp = os.path.join(self.base, filename)
             self.modify_file_tags(fp)
 
-    def modify_from_markdown(self, sheet):
+    def modify_from_markdown(self):
         log = getLogger('Rkive.MusicFiles')        
         with open(self.markdown) as m:
             header = m.readline().strip().split(',')
@@ -217,20 +212,7 @@ class Tagger(object):
     def search_and_modify_files(self):
         log = getLogger('Rkive')
         log.info("print tags of music files in {0}".format(self.base))        
-        self.visit_files(folder=self.base, funcs=[self.modify_file_tags])
+        visit_files(folder=self.base, funcs=[self.modify_file_tags], include=['.mp3', '.flac'])
    
-    def visit_files(self, folder='', funcs=[]):
-        files = os.listdir(folder)
-        for f in files:
-            if (f.startswith('.')):
-                next
-            fp = os.path.join(folder, f)
-            if (os.path.isdir(fp)):
-                if (self.recursive):
-                    self.visit_files(folder=fp, funcs=funcs)
-            else:
-                for func in funcs:
-                    func(fp)
-
 if __name__ == '__main__':
     Tagger().run()

@@ -6,7 +6,7 @@ for d in CD*
     echo "Add disc number"
     rk_tag --discnumber="$n";
     echo "Add gain" 
-   # metaflac --add-replay-gain *.flac
-    mp3gain *.mp3
+    metaflac --add-replay-gain *.flac
+#    mp3gain *.mp3
     cd ..; 
 done
