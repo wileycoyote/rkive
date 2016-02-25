@@ -7,17 +7,23 @@ import sys
 from rkive.index.musicfile import MusicFile
 from rkive.index.indexer import Indexer
 
-class IndexClient(Indexer):
+class Indexer:
 
-    def run(self, log=None):
+    def run(self, logloc=None):
         try:
+            self.base = '.'
             go = rkive.clients.cl.opts.GetOpts(parent=self)
             go.p.add_argument('--base', required=True, nargs=1, help="full path to base of files", action=rkive.clients.cl.opts.BaseAction)
-            go.p.add_argument('--dry-run', required=False, help="Do not add to database")
-            go.p.add_argument('--debug', required=False, help="lots of logs")
             go.get_opts()
             rkive.clients.log.LogInit().set_logging(location=log,filename='index.log', debug=self.debug, console=self.console)
+            visit_files(base=self.base, funcs=[self.add_file_to_index], include=['.mp3','.flac'])            
         except SystemExit:
             pass
 
-          
+    def add_file_to_index(self, fp):
+        log = getLogger('Rkive')
+        if self.dryrun:
+            log.info('would index {0}'.format(fp))
+            return
+        m = rkive.index.mediaindex.MusicTrack(fp)
+        rkive.index.mediaindex.DBSession.add(m)
