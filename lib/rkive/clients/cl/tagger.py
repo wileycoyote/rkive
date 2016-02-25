@@ -8,6 +8,7 @@ from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
 import rkive.clients.log
+import subprocess
 
 class ParsePattern(argparse.Action):
 
@@ -31,6 +32,7 @@ class Tagger(object):
             go.p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             go.p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
+            go.p.add_argument('--gain', help="add gain to music files", action='store_true')
             tags = Media.TagMap
             for t,v in tags.iteritems():
                 option = '--'+t
@@ -57,6 +59,9 @@ class Tagger(object):
                 return
             if self.pattern:
                 self.modify_from_pattern()
+                return
+            if self.gain:
+                self.search_and_modify_gain()
                 return
             # check arguments for something to add tags/to
             hasargs = False
@@ -98,6 +103,17 @@ class Tagger(object):
         log = getLogger('Rkive')
         log.info("print tags of music files in {0}".format(self.base))        
         visit_files(folder=self.base, funcs=[self.print_file_tags], include=['.mp3','.flac'])
+
+    def search_and_modify_gain(self):
+        visit_files(folder=self.base, funcs=[self.modify_gain], include=['.mp3','.flac'])
+
+    def modify_gain(self, fp):
+        log = getLogger('Rkive.MusicFiles')
+        cwd, basename = os.path.basename(fp)
+        cmd = ['metaflac','--add-replaygain', 'filename']
+        if fp.endswith('.mp3'):
+            cmd = ['mp3gain', '-r', 'filename']
+        subprocess.call(cmd, cwd=cwd)
 
     # assume that one pattern matches all the files under examination
     def modify_from_pattern(self):
