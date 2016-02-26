@@ -1,8 +1,11 @@
 import os
+from logging import getLogger
 
 def visit_files(folder='.', funcs=[], exclude=None, include=None):
+    log = getLogger('Rkive.Files')
     for root, dirs, files in os.walk(folder, topdown=False):
         for name in files:
+            log.debug(name)
             if (exclude and exclude(root, name)):
                 continue
             for func in funcs:

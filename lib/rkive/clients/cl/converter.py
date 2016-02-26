@@ -44,9 +44,9 @@ class ConvertClient(object):
                 nargs=1,
                 help="name of cue file to be split",
                 action=FileValidation)
-            rkive.clients.log.LogInit().set_logging(location=logloc, filename='converter.log', debug=self.debug, console=self.console)
-            log = getLogger('Rkive.Tagger')
             go.get_opts()
+            rkive.clients.log.LogInit().set_logging(location=logloc, filename='converter.log', debug=self.debug, console=self.console)
+            log = getLogger('Rkive.Converter')
             if self.convert:
                 visit_files(folder=self.base, funcs=[self.convert_file], include=self.include_convert)
                 sys.exit()
@@ -69,20 +69,23 @@ class ConvertClient(object):
         return False
 
     def split_file(self, root, filename):
-        log = getLogger('Rkive')
+        log = getLogger('Rkive.Converter')
         fp = os.path.join(root, filename)
         path, cuefn = os.path.split(fp)
         cue,ext = os.path.splitext(cuefn)
         file_to_split = glob.glob(cue+'.*')
-        cmd = copy.copy(self.split_cmd)
+        cmd = copy.copy(self.split_cmd)[0]
+        print file_to_split
         cmd[1] = cmd[1].replace('[cuefile]',cuefn)
         cmd[7] = cmd[7].replace('[type]', 'flac')
-        cmd[8] = cmd[8].replace('[infile]', file_to_split)
+        cmd[8] = cmd[8].replace('[infile]', file_to_split[0])
         if self.dryrun:
             c = ' '.join(cmd)
             log.info("Command line to use for split {0}".format(c))
             return
-        subprocess.call(cmd)
+        c = ' '.join(cmd)
+        o = subprocess.check_output(c,cwd=root, shell=True)
+        print o
 
     def convert_file(self, root, filename):
         log = getLogger('Rkive')

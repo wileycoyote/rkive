@@ -15,7 +15,7 @@ class Indexer:
             go = rkive.clients.cl.opts.GetOpts(parent=self)
             go.p.add_argument('--base', required=True, nargs=1, help="full path to base of files", action=rkive.clients.cl.opts.BaseAction)
             go.get_opts()
-            rkive.clients.log.LogInit().set_logging(location=log,filename='index.log', debug=self.debug, console=self.console)
+            rkive.clients.log.LogInit().set_logging(location=logloc,filename='index.log', debug=self.debug, console=self.console)
             visit_files(base=self.base, funcs=[self.add_file_to_index], include=['.mp3','.flac'])            
         except SystemExit:
             pass
