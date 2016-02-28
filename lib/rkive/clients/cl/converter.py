@@ -20,7 +20,6 @@ class ConvertClient(object):
         '.m4a' : ffmpeg_mp3
     }
     def run(self, logloc=""):
-        base = '.'
         try:
             go = rkive.clients.cl.opts.GetOpts(parent=self)
             go.p.add_argument(
@@ -33,13 +32,23 @@ class ConvertClient(object):
                 help="name of cue file to be split",
                 action=FileValidation)
             go.get_opts()
-            rkive.clients.log.LogInit().set_logging(location=logloc, filename='converter.log', debug=self.debug, console=self.console)
+            rkive.clients.log.LogInit().set_logging(
+                    location=logloc, 
+                    filename='converter.log', 
+                    debug=self.debug, 
+                    console=self.console)
             log = getLogger('Rkive.Converter')
             if self.convert:
-                visit_files(folder=self.base, funcs=[self.convert_file], include=self.include_convert)
+                visit_files(
+                    folder=self.base, 
+                    funcs=[self.convert_file], 
+                    include=self.include_convert)
                 sys.exit()
             if self.split:
-                visit_files(folder=self.base, funcs=[self.split_file], include=self.include_split)
+                visit_files(
+                    folder=self.base, 
+                    funcs=[self.split_file], 
+                    include=self.include_split)
                 sys.exit()
         except SystemExit:
             pass
@@ -63,7 +72,6 @@ class ConvertClient(object):
         cue,ext = os.path.splitext(cuefn)
         file_to_split = glob.glob(cue+'.*')
         cmd = copy.copy(self.split_cmd)[0]
-        print file_to_split
         cmd[1] = cmd[1].replace('[cuefile]',cuefn)
         cmd[7] = cmd[7].replace('[type]', 'flac')
         cmd[8] = cmd[8].replace('[infile]', file_to_split[0])
@@ -73,7 +81,6 @@ class ConvertClient(object):
             return
         c = ' '.join(cmd)
         o = subprocess.check_output(c,cwd=root, shell=True)
-        print o
 
     def convert_file(self, root, filename):
         log = getLogger('Rkive')

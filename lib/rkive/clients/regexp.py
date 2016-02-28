@@ -17,7 +17,7 @@ class Regexp:
         token_count = 0
         token_regexp = tokens
         log.info("tokens: {0}".format(tokens))
-        for token, regexp in self.token_exemplars.iteritems():
+        for token, regexp in self.token_exemplars.items():
             if token in token_regexp:
                 token_regexp = token_regexp.replace(token, regexp)
                 tl = len(token) -1 
@@ -41,6 +41,6 @@ class Regexp:
             tokens[token_name] = group
             i = i + 1
         if parent:
-            for n, v in tokens.iteritems():
+            for n, v in tokens.items():
                 setattr(parent, n,v)
         return tokens

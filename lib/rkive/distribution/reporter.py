@@ -35,7 +35,7 @@ class Report(Distributer):
         log.info("Possible flac/cue pairs {0}".format(self.flac_cue_pair_count))
         log.info("Number of files with no genre {0}".format(self.no_genre_count))
         log.info("Summary of file types")
-        for k,v in self.file_types.iteritems():
+        for k,v in self.file_types.items():
             log.info("Type: {0} Count: {1}".format(k,v))
         log.info('End Summary')
 

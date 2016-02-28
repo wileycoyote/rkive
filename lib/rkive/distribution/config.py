@@ -20,7 +20,6 @@ class Sender(Base):
         self.base = base
         self.relative_key = relative_key
 
-
 class Receiver(Base):
     __tablename__='receiver'
     id = Column('id', Integer, primary_key=True)
@@ -39,7 +38,6 @@ class Receiver(Base):
 # sqlalchemy_example.db file.
 # postgresql://scott:tiger@localhost:5432/mydatabase
 db = 'postgresql://admin:admin@192.168.1.172/distribution'
-print "ENGINE: "+db 
 engine = create_engine(db)
 # Create all tables in the engine. This is equivalent to "Create Table"
 # statements in raw SQL.

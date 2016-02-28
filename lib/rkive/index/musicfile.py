@@ -117,7 +117,7 @@ class Media(object):
     
     def get_tags(self):
         tags = {}
-        for t,v in self.media.iteritems():
+        for t,v in self.media.items():
             tags[t] = v
         return tags
 
@@ -264,18 +264,18 @@ class MusicFile(object):
     def set_tags(self, parent):
         log = getLogger('Rkive.MusicFiles')
         for m in Media.TagMap:
-	    try:
+            try:
             	v = getattr(parent, m)
             	if (v != None):
                     log.info("attribute to modify: {0} {1}".format(m,v))
                     setattr(self.media, m, v)
- 	    except AttributeError as e:
+            except AttributeError as e:
                 log.info("Attribute error {0} ".format(e))
     
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
-        for t,v in l.iteritems():
+        for t,v in l.items():
             if (t in Media.TagMap):
                 log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
                 setattr(self.media, t, v)

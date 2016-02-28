@@ -27,7 +27,6 @@ class Log(Base):
 # Create an engine that stores data in the local directory's
 # sqlalchemy_example.db file.
 db = 'sqlite:///'+os.environ['HOME']+'/Uploads/uploads.db'
-print "ENGINE: "+db 
 engine = create_engine(db)
 # Create all tables in the engine. This is equivalent to "Create Table"
 # statements in raw SQL.

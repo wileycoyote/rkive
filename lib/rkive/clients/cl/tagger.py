@@ -31,7 +31,7 @@ class Tagger(object):
             go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
             go.p.add_argument('--gain', help="add gain to music files", action='store_true')
             tags = Media.TagMap
-            for t,v in tags.iteritems():
+            for t,v in tags.items():
                 option = '--'+t
                 comment = v['comment']
                 go.p.add_argument(option, help=comment, type=str)
@@ -63,7 +63,7 @@ class Tagger(object):
                 return
             # check arguments for something to add tags/to
             hasargs = False
-            for t,v in tags.iteritems():
+            for t,v in tags.items():
                 if (getattr(self, t)):
                     hasargs = True
                     break
@@ -186,7 +186,7 @@ class Tagger(object):
                     record = []
 
     def clear_tag_attrs(self):
-        for t,v in Media.TagMap.iteritems():
+        for t,v in Media.TagMap.items():
             setattr(self, t, "")
 
     def set_tag_attr(self, name, val):
@@ -203,7 +203,7 @@ class Tagger(object):
         fp = os.path.join(root, filename)
         if self.dryrun:
             log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
-            for t,v in Media.TagMap.iteritems():
+            for t,v in Media.TagMap.items():
                 v = getattr(self, t)
                 log.debug("t {0} v {1}".format(t,v))
                 if v:
