@@ -32,6 +32,12 @@ class GetOpts(object):
         self.parent=parent
     
     def get_opts(self):
+        self.base = '.'
+        self.debug = False
+        self.quiet = False
+        self.dryrun = False
+        self.console = True
+        self.p.add_argument('--base',  nargs=1, help="Base at which to start searching for files", action=BaseAction)
         self.p.add_argument('--debug',  help="More output", action='store_true')
         self.p.add_argument('--dryrun', help="Print out actions that would have been performed", action='store_true')
         self.p.add_argument('--quiet', help="Do not print logs to stdout", action='store_true')

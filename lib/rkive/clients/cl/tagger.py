@@ -16,20 +16,16 @@ class ParsePattern(argparse.Action):
         super(ParsePattern, self).__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
+        values = rkive.clients.regexp.Regexp(self.pattern)        
         setattr(namespace, self.dest, values)
 
 class Tagger(object):
 
     def run(self, logloc=None):
         try:
-            self.recursive = False
-            self.base = '.'
-            self.debug = False
             go = GetOpts(parent=self)
             go.p.add_argument('--printtags', help="print files in current folder", action='store_true')
             go.p.add_argument('--file',  type=str, help="file to print out", action=FileValidation)
-            go.p.add_argument('--base', type=str, help="folder in which look for files", action=BaseAction)
-            go.p.add_argument('--recursive', help='used in conjunction with folder', action='store_true')
             go.p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             go.p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
@@ -110,21 +106,21 @@ class Tagger(object):
 
     def modify_gain(self, root, filename):
         log = getLogger('Rkive.MusicFiles')
-        cmd = ['metaflac','--add-replaygain', 'filename']
+        cmd = ['metaflac','--add-replay-gain', filename]
         if filename.endswith('.mp3'):
-            cmd = ['mp3gain', '-r', 'filename']
+            cmd = ['mp3gain', '-r', filename]
         subprocess.call(cmd, cwd=root)
 
     # assume that one pattern matches all the files under examination
     def modify_from_pattern(self):
         log = getLogger('Rkive.MusicFiles')        
-        self.tx_pattern = rkive.clients.regexp.Regexp(self.pattern)
+
         visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp], include=self.include)
 
     def mod_filetags_from_regexp(self, root, filename):
         log = getLogger('Rkive.MusicFiles')        
         (fn, ext) = os.path.splitext(filename)
-        self.tx_pattern.match(fn, self)
+        self.pattern.match(fn, self)
         self.modify_file_tags(root, filename)
 
     def modify_from_cuesheet(self):
@@ -182,8 +178,9 @@ class Tagger(object):
                             self.set_tag_attr(name, val)
                         reccnt = reccnt + 1
                     if filename:
-                        fp = os.path.join(self.base, filename)
-                        self.modify_file_tags(fp)
+                        folder, basename = os.path.split(filename)
+                        root = os.path.join(self.base,folder)
+                        self.modify_file_tags(root, filename)
                     else:
                         log.fatal("No filename to save tags")
                     record = []

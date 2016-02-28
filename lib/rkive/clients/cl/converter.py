@@ -6,7 +6,7 @@ import argparse
 from logging import getLogger
 import glob
 import copy
-from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
+from rkive.clients.cl.opts import GetOpts
 import rkive.clients.cl.opts
 from rkive.clients.files import visit_files
 import rkive.clients.log
@@ -22,19 +22,7 @@ class ConvertClient(object):
     def run(self, logloc=""):
         base = '.'
         try:
-            self.recursive = False
-            self.debug = False
-            self.console = True
             go = rkive.clients.cl.opts.GetOpts(parent=self)
-            go.p.add_argument(
-                    '--base', 
-                    nargs=1, 
-                    help="full path to base of files", 
-                    action=rkive.clients.cl.opts.BaseAction)
-            go.p.add_argument(
-                '--recursive', 
-                help="recurse through folders", 
-                action='store_true')
             go.p.add_argument(
                 '--convert',  
                 help="", 

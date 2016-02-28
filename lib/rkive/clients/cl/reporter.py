@@ -13,7 +13,6 @@ class ReportClient(Report, FileSanitiser):
     def run(self, log=None):
         try:
             go = rkive.clients.cl.opts.GetOpts(parent=self)
-            go.p.add_argument('--base', required=True, nargs=1, help="full path to base of files", action=rkive.clients.cl.opts.BaseAction)
             go.p.add_argument('--sanitize', help="Sanitize filenames", action='store_true')           
             go.p.add_argument('--genre', help="Report on genre in music files in upload area", action='store_true')
             go.p.add_argument('--no-genre', help="Report on music files with no genre in upload area", action='store_true')
