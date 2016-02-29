@@ -6,7 +6,7 @@ import argparse
 from logging import getLogger
 import glob
 import copy
-from rkive.clients.cl.opts import GetOpts
+from rkive.clients.cl.opts import GetOpts,FileValidation
 import rkive.clients.cl.opts
 from rkive.clients.files import visit_files
 import rkive.clients.log
@@ -45,6 +45,7 @@ class ConvertClient(object):
                     include=self.include_convert)
                 sys.exit()
             if self.split:
+                print("Folder: "+self.base)
                 visit_files(
                     folder=self.base, 
                     funcs=[self.split_file], 

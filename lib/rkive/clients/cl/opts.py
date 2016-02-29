@@ -1,10 +1,10 @@
 import argparse
 import os.path
 
-class BaseAction(argparse.Action):
+class FolderValidation(argparse.Action):
 
     def __init__(self, option_strings, dest, nargs=None, **kwargs):
-        super(BaseAction, self).__init__(option_strings, dest, **kwargs)
+        super(FolderValidation, self).__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         p = os.path.expanduser(values)
@@ -32,14 +32,9 @@ class GetOpts(object):
         self.parent=parent
     
     def get_opts(self):
-        self.base = '.'
-        self.debug = False
-        self.quiet = False
-        self.dryrun = False
-        self.console = True
-        self.p.add_argument('--base',  nargs=1, help="Base at which to start searching for files", action=BaseAction)
-        self.p.add_argument('--debug',  help="More output", action='store_true')
-        self.p.add_argument('--dryrun', help="Print out actions that would have been performed", action='store_true')
-        self.p.add_argument('--quiet', help="Do not print logs to stdout", action='store_true')
-        self.p.add_argument('--console', help="log to console", action='store_true')
+        self.p.add_argument('--base',  nargs=1, default='.', help="Base at which to start searching for files", action=FolderValidation)
+        self.p.add_argument('--debug',  default=False, help="More output", action='store_true')
+        self.p.add_argument('--dryrun', default=False, help="Print out actions that would have been performed", action='store_true')
+        self.p.add_argument('--quiet', default=False, help="Do not print logs to stdout", action='store_true')
+        self.p.add_argument('--console', default=False, help="log to console", action='store_true')
         self.p.parse_args(namespace=self.parent)
