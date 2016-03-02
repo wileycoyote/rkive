@@ -4,7 +4,7 @@ import os
 
 class LogInit(object):
     def __init__(self):
-        self.formatter = ''
+        self.formatter = '%(filename)s %(lineno)d %(messsage)s'
         self.level = logging.INFO
         self.handlers = {}
         self.root = {}
@@ -15,7 +15,8 @@ class LogInit(object):
             'version' : 1,
             'handlers' : self.__dict__['handlers'],
             'root' : self.__dict__['root'],
-            'loggers' : self.__dict__['loggers']
+            'loggers' : self.__dict__['loggers'],
+            'formatter' : self.__dict__['formatter']
         }
 
     def set_debug(self):
@@ -44,7 +45,8 @@ class LogInit(object):
         self.loggers['Rkive'] = {
             'handlers' : h,
             'propagate' : True,
-            'level' : self.level
+            'level' : self.level,
+            'formatter' : self.formatter
         }
         self.loggers['paramiko.transport'] = {        
             'handlers' : h,

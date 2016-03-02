@@ -6,9 +6,10 @@ from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
 Base = declarative_base()
      
 class FilePath(Base):
-    __tablename__ = ''
+    __tablename__ = 'files'
     id_track = Column('id', Integer, primary_key=True)
-    Column('filepath', String)   
+    Column('folder', String)   
+    Column('file', String)   
     Column('modtime', String)
         
 # Create an engine that stores data in the local directory's

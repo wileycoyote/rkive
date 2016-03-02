@@ -208,7 +208,6 @@ class Flac(Media):
 
     def save(self):
         log = getLogger('Rkive')
-        log.info("save file")
         if hasattr(self,'picture'):
             self.media.clear_pictures()
             pic = Picture()
@@ -229,7 +228,8 @@ class Flac(Media):
             if hasattr(self, t):
                 v = getattr(self, t)
                 if v:
-                    log.info("{0}: {1}".format(t, v))
+                    log.debug("{0}: {1}".format(t, v))
+                    v = v.encode('utf-8')
                     self.media[t] = v.decode('utf-8')
         self.media.save()
 

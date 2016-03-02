@@ -4,7 +4,7 @@ from logging import getLogger
 import glob
 import re
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
-from rkive.clients.cl.opts import GetOpts, BaseAction, FileValidation
+from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
 import rkive.clients.log
