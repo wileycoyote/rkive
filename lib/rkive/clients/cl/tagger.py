@@ -224,7 +224,11 @@ class Tagger(object):
     def search_and_modify_files(self):
         log = getLogger('Rkive')
         log.info("modify tags of music files in {0}".format(self.base))        
-        visit_files(folder=self.base, funcs=[self.modify_file_tags], include=self.include)
+        visit_files(
+            folder=self.base, 
+            funcs=[self.modify_file_tags], 
+            include=self.include, 
+            recursive=self.recursive)
   
     def include(self, root, fn):
         log = getLogger('Rkive.MusicFiles')        

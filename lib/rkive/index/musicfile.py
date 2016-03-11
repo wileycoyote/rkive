@@ -7,6 +7,7 @@ from mutagen.mp4 import MP4
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import TIT1, TIT2, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM, APIC
 from PIL import Image
+import weakref
 
 class InvalidTag(Exception): pass
 
@@ -92,6 +93,9 @@ class Media(object):
         }
     } 
 
+    def __init__(self,parent):
+        self.parent = weakref.ref(parent) 
+
     def set_media(self):
         pass
     
@@ -101,38 +105,29 @@ class Media(object):
     def set_media(self):
         pass
 
-    def pprint(self):
+    def print_media(self):
         log = getLogger('Rkive.Music')
         tags = self.media.pprint()
+        log.info("Tags for {0}".format(self.filename))
         log.info(tags)
 
     def save(self):
         self.media.save()
 
-    def set_tag(self, t, v):
-        setattr(self, t, v)
-
-    def get_tag_names(self):
+    def get_media_tag_names(self):
         return self.media.keys()
     
     def get_tags(self):
         tags = {}
-        for t,v in self.media.items():
+        for t,v in self.items():
             tags[t] = v
         return tags
 
-class mp4(Media):
-
-    def set_media(self, filename):
-        try:
-       	    self.media = MP4(filename)
-        except mutagen.mp4.error:
-            self.media = MP4()
-            self.media.save(filename)
-        self.filename = filename
-
 class MP3(Media):
-    
+   
+    def __init__(self, parent):
+        Media.__init__(parent)
+
     def set_media(self, filename):
         try:
             self.media = ID3(filename)
@@ -146,13 +141,14 @@ class MP3(Media):
         log.info("save file {0}".format(self.filename))
         discnumber = None
         disctotal = None
-        if (hasattr(self, 'discnumber')):
-            discnumber = getattr(self, 'discnumber') 
-        if (hasattr(self, 'disctotal')):
-            disctotal = getattr(self, 'disctotal')
+        parent = self.parent
+        if (hasattr(parent, 'discnumber')):
+            discnumber = getattr(parent, 'discnumber') 
+        if (hasattr(parent, 'disctotal')):
+            disctotal = getattr(parent, 'disctotal')
         v = None
         k, f = self.TagMap['discnumber']['mp3']
-        if (k in self.media):
+        if hasattr(self.media, k):
             c = self.media[k]
             self.media.delall(k)
             if ('/' in c):
@@ -184,9 +180,9 @@ class MP3(Media):
                 continue
             if t == 'disctotal':
                 continue
-            if (not hasattr(self, t)):
+            if (not hasattr(parent, t)):
                 continue
-            v = getattr(self, t)
+            v = getattr(parent, t)
             log.debug("loop through tag values")
             if (v):
                 k, f = self.TagMap[t]['mp3']
@@ -194,10 +190,12 @@ class MP3(Media):
                 self.media.delall(k)
                 self.media.add(f(encoding=3, text=unicode(v.decode('utf-8'))))
         self.media.save()
-        
 
 class Flac(Media):
    
+    def __init__(self, parent):
+        Media.__init__(self, parent)
+
     def set_media(self, filename):
         try:
             self.media = FLAC(filename)
@@ -208,10 +206,11 @@ class Flac(Media):
 
     def save(self):
         log = getLogger('Rkive')
-        if hasattr(self,'picture'):
+        parent = self.parent
+        if hasattr(parent,'picture'):
             self.media.clear_pictures()
             pic = Picture()
-            v = getattr(self, 'picture')
+            v = getattr(parent, 'picture')
             with open(v, "rb") as f:
                 pic.data = f.read()
             im = Image.open(v)
@@ -223,10 +222,11 @@ class Flac(Media):
             pic.width = im.size[0] 
             pic.height = im.size[1]
             self.media.add_picture(pic)
-            delattr(self, 'picture')
+            delattr(parent, 'picture')
         for t in self.TagMap:
-            if hasattr(self, t):
-                v = getattr(self, t)
+            if hasattr(parent, t):
+                v = getattr(parent, t)
+                log.debug("{0}: {1}".format(t,v))
                 if v:
                     log.debug("{0}: {1}".format(t, v))
                     v = v.encode('utf-8')
@@ -245,7 +245,7 @@ class MusicFile(object):
         'mp4'  : mp4,
         'mp3'  : MP3,
         'flac' : Flac
-    }
+    } 
 
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
@@ -258,19 +258,24 @@ class MusicFile(object):
             raise TypeNotSupported 
         if ('.AppleDouble' in filename):
             raise TypeNotSupported
-        self.media = self.Types[ext]()
+        self.media = self.Types[ext](self)
+        self.filetype = ext
         self.media.set_media(filename)
+        self.set_tags()
 
-    def set_tags(self, parent):
-        log = getLogger('Rkive.MusicFiles')
-        for m in Media.TagMap:
-            try:
-            	v = getattr(parent, m)
-            	if (v != None):
-                    log.info("attribute to modify: {0} {1}".format(m,v))
-                    setattr(self.media, m, v)
-            except AttributeError as e:
-                log.info("Attribute error {0} ".format(e))
+    def set_tag(self, t, v):
+        log = getLogger('Rkive.MusicFile')
+        if t in Media.TagMap:
+            setattr(self,t,v)
+        else:
+            log.warn("No such tag {0} in Media.TagMap".format(t))
+
+    def set_tags(self):
+        for t in Media.TagMap:
+            actual_tag = Media.TagMap[self.filetype] 
+            if hasattr(self.media, actual_tag):
+                v = getattr(self.media, actual_tag)
+                setattr(self, t, v)
     
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
@@ -278,19 +283,17 @@ class MusicFile(object):
         for t,v in l.items():
             if (t in Media.TagMap):
                 log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
-                setattr(self.media, t, v)
-
-    def get_tag_names(self):
-        return self.media.get_tag_names()
-
-    def get_number_of_tags(self):
-        return len(self.media.get_tags())
-
-    def get_tags(self):
-        return self.media.get_tags()
+                setattr(self, t, v)
 
     def pprint(self):
+        log = getLogger('Rkive.MusicFiles')
+        for m in Media.TagMap:
+            v = getattr(self, m)
+            if v:
+                log.info("Tag: {0} Value: {1}".format(m, v))
+
+    def dump_media(self):
         self.media.pprint()
-             
+
     def save(self):
         self.media.save() 
