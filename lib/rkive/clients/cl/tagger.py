@@ -24,7 +24,7 @@ class Tagger(object):
     def run(self, logloc=None):
         try:
             go = GetOpts(parent=self)
-            go.p.add_argument('--printtags', help="print files in current folder", action='store_true')
+            go.p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
             go.p.add_argument('--file',  type=str, help="file to print out", action=FileValidation)
             go.p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             go.p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
@@ -35,6 +35,7 @@ class Tagger(object):
                 option = '--'+t
                 comment = v['comment']
                 go.p.add_argument(option, help=comment, type=str)
+            go.p.parse_args()
             go.get_opts()
             self.console = True
             rkive.clients.log.LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)

@@ -3,7 +3,6 @@ import os.path
 from logging import getLogger
 import mutagen.id3
 from mutagen.id3 import ID3
-from mutagen.mp4 import MP4
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import TIT1, TIT2, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM, APIC
 from PIL import Image
@@ -22,50 +21,41 @@ class Media(object):
 
     TagMap = {
         'grouping' : {
-            'mp4' : '\xA9grp',
             'mp3' : ['TIT1', TIT1],
             'comment' : 'Grouping'
         },
         'album'    : {
-            'mp4' : '\xA9alb',
             'mp3' : ['TALB', TALB],
             'comment' : 'Album Name'
         },
         'albumartist' : {
             'mp3' : ['TPE2', TPE2],
-            'mp4' : 'aArt',
             'comment' : 'Album artist set to "Various Artists" for multiple artists'
         },
         'artist'      : {
             'mp3' : ['TPE1', TPE1],
-            'mp4' : '\xA9art',
             'comment' : 'Artist, seperate by ; if multiple'
         },
         'comment'     : {
             'mp3' : ['COMM', COMM],
-            'mp4' : '\xA9cmt',
             'comment' : 'Comment'
         },
         'composer'    : {
             'mp3' : ['TCOM', TCOM],
-            'mp4' : '\xA9wrt',
             'comment' : 'composer'
         },
         'discnumber'  : {
             'mp3' : ['TPOS', TPOS],
-            'mp4' : 'disk',
             'comment' : 'disc number',
             'default' : 1
         },
         'disctotal'   : {
             'default' : 1,
             'mp3' : ['TPOS', TPOS],
-            'mp4' : 'disk',
             'comment' : 'Number of discs'
         },
         'genre'       : {
             'mp3' : ['TCON',TCON],
-            'mp4' :  '\xA9gen',
             'comment' : 'Only one genre'
         },
         'picture'     : {
@@ -74,12 +64,10 @@ class Media(object):
         },
         'title'       : {
             'mp3' : ['TIT2', TIT2],
-            'mp4' :  '\xA9nam',
             'comment' : 'title'
         },
         'tracknumber' : {
             'mp3' : ['TRCK', TRCK],
-            'mp4' : 'trkn',
             'comment' : 'tracknumber - start from 1'
         },
         'tracktotal'  : {
@@ -88,13 +76,17 @@ class Media(object):
         },
         'year'        : {
             'mp3' : ['TDRC', TDRC],
-            'mp4' :  '\xA9day',
             'comment' : 'Year of original recording, remaster dates go in comment'
         }
     } 
 
     def __init__(self,parent):
         self.parent = weakref.ref(parent) 
+        for t in self.TagMap:
+            g = lambda: getattr(self.media,t)
+            s = lambda x,y: setattr(self.media, t, y)
+            d = lambda: delattr(self.media, t) 
+            property(g, s, d, t)
 
     def set_media(self):
         pass
@@ -242,7 +234,6 @@ class TypeNotSupported(Exception):
 class MusicFile(object):
 
     Types = {
-        'mp4'  : mp4,
         'mp3'  : MP3,
         'flac' : Flac
     } 
