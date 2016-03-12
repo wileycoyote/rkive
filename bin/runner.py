@@ -12,6 +12,9 @@ if (script == 'rk_upload'):
 if (script == 'rk_index'):
     from rkive.clients.cl.indexer import Indexer
     Indexer().run(logloc=log)
+if (script == 'rk_backup'):
+    from rkive.clients.cl.backup import Backup
+    Backup().run(logloc=log)
 if (script == 'rk_report'):
     from rkive.clients.cl.reporter import ReportClient
     ReportClient().run(logloc=log)
