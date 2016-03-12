@@ -8,7 +8,8 @@ runner_files = [
     'rk_upload',
     'rk_convert',
     'rk_markup',
-    'rk_backup'
+    'rk_backup',
+    'rk_backupindex'
 ]
 root = os.path.realpath(__file__)
 root, leaf = os.path.split(root)
