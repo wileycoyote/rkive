@@ -15,6 +15,9 @@ if (script == 'rk_index'):
 if (script == 'rk_backup'):
     from rkive.clients.cl.backup import Backup
     Backup().run(logloc=log)
+if (script == 'rk_backupindex'):
+    from rkive.clients.cl.backupindex import BackupIndex
+    BackupIndex().run(logloc=log)
 if (script == 'rk_report'):
     from rkive.clients.cl.reporter import ReportClient
     ReportClient().run(logloc=log)
