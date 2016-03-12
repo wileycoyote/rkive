@@ -19,13 +19,13 @@ class ParsePattern(argparse.Action):
         values = rkive.clients.regexp.Regexp(self.pattern)        
         setattr(namespace, self.dest, values)
 
-class Tagger(object):
+class Tagger(MusicFile):
 
     def run(self, logloc=None):
         try:
             go = GetOpts(parent=self)
             go.p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
-            go.p.add_argument('--file',  type=str, help="file to print out", action=FileValidation)
+            go.p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             go.p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             go.p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
@@ -64,14 +64,14 @@ class Tagger(object):
                 return
             # check arguments for something to add tags/to
             hasargs = False
-            for t,v in tags.items():
+            for t in tags:
                 if (getattr(self, t)):
                     hasargs = True
                     break
             if (not hasargs):
                 log.info("no attributes to apply")
                 return
-            if (self.file):
+            if (self.filename):
                 folder, filename = os.path.split(self.file)
                 self.modify_file_tags(folder, filename)
                 return
@@ -87,16 +87,8 @@ class Tagger(object):
             log.fatal("Type not supported")
 
     def print_file_tags(self, root, fn):
-        log = getLogger('Rkive')
-        fp = os.path.join(root, fn)
-        try:
-            m = MusicFile(fp)
-            log.info("report filetags for {0}".format(fp))
-            m.pprint()
-        except TypeNotSupported:
-            log.warn("Type {0} not supported".format(fp))
-            return
-   
+        pass
+
     def search_and_print_folder(self):
         log = getLogger('Rkive')
         log.info("print tags of music files in {0}".format(self.base))        
@@ -115,7 +107,6 @@ class Tagger(object):
     # assume that one pattern matches all the files under examination
     def modify_from_pattern(self):
         log = getLogger('Rkive.MusicFiles')        
-
         visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp], include=self.include)
 
     def mod_filetags_from_regexp(self, root, filename):
@@ -147,11 +138,11 @@ class Tagger(object):
             album_fields = cue.get_metadata().filled_fields()
             self.clear_tag_attrs()
             for a in album_fields:
-                self.set_tag_attr(self, a[0], a[1])
+                setattr(self, a[0], a[1])
             # tags unique to track
             for f in cue.track(tracknumber).get_metadata().filled_fields():
-                self.set_tag_attr(self, f[0], f[1])
-            self.set_tag_attr(self, 'tracknumber', str(tracknumber))
+                setattr(self, f[0], f[1])
+            setattr(self, 'tracknumber', str(tracknumber))
             self.modify_file_tags(folder, filename)
 
     def modify_from_markdown(self):
@@ -188,16 +179,7 @@ class Tagger(object):
 
     def clear_tag_attrs(self):
         for t,v in Media.TagMap.items():
-            setattr(self, t, "")
-
-    def set_tag_attr(self, name, val):
-        log = getLogger('Rkive')
-        if name in Media.TagMap:
-            log.debug("{0}: {1}".format(name,val))
-            setattr(self, name, val)
-            return True
-        log.warn("Not setting tag {0} for value {1}".format(name,val))
-        return False
+            delattr(self, t)
 
     def modify_file_tags(self, root, filename):
         log = getLogger('Rkive')
@@ -212,9 +194,8 @@ class Tagger(object):
             return
         log.info("modifying tags of file {0}".format(fp))
         try:
-            m = MusicFile(fp)
-            m.set_tags(self)
-            m.save()
+            self.filename = filename
+            self.save()
         except TypeNotSupported:
             log.warn("Type {0} not supported".format(fp))
             return

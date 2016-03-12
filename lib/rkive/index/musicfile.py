@@ -77,72 +77,48 @@ class Media(object):
         'year'        : {
             'mp3' : ['TDRC', TDRC],
             'comment' : 'Year of original recording, remaster dates go in comment'
+        },
+        'picture'   : {
+            'mp3' : ['',''],
+            'comment' : 'Path to picture for file'
         }
     } 
 
-    def __init__(self,parent):
-        self.parent = weakref.ref(parent) 
-        for t in self.TagMap:
-            g = lambda: getattr(self.media,t)
-            s = lambda x,y: setattr(self.media, t, y)
-            d = lambda: delattr(self.media, t) 
-            property(g, s, d, t)
-
-    def set_media(self):
-        pass
-    
-    def read(self):
-        self.set_media()
-
-    def set_media(self):
-        pass
-
-    def print_media(self):
-        log = getLogger('Rkive.Music')
-        tags = self.media.pprint()
-        log.info("Tags for {0}".format(self.filename))
-        log.info(tags)
+    def get_class(self):
+        log = getLogger('Rkive.MusicFile')
+        log.warn("Class object not instanciated")
+        return None
 
     def save(self):
-        self.media.save()
-
-    def get_media_tag_names(self):
-        return self.media.keys()
-    
-    def get_tags(self):
-        tags = {}
-        for t,v in self.items():
-            tags[t] = v
-        return tags
+        log = getLogger('Rkive.MusicFile')
+        log.warn("Save method not instanciated")
+        return None
 
 class MP3(Media):
-   
-    def __init__(self, parent):
-        Media.__init__(parent)
-
-    def set_media(self, filename):
+  
+    def get_class(self):
         try:
-            self.media = ID3(filename)
+            return ID3(self.filename)
         except mutagen.id3.error:
-            self.media = ID3()
-            self.media.save(filename)
-        self.filename = filename
+            id3 = ID3()
+            id3.save(self.filename)
+            return id3
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
+        id3 = self.get_class()
         discnumber = None
         disctotal = None
-        parent = self.parent
-        if (hasattr(parent, 'discnumber')):
-            discnumber = getattr(parent, 'discnumber') 
-        if (hasattr(parent, 'disctotal')):
-            disctotal = getattr(parent, 'disctotal')
+        if (hasattr(self, 'discnumber')):
+            discnumber = getattr(self, 'discnumber') 
+        if (hasattr(self, 'disctotal')):
+            disctotal = getattr(self, 'disctotal')
         v = None
         k, f = self.TagMap['discnumber']['mp3']
-        if hasattr(self.media, k):
-            c = self.media[k]
-            self.media.delall(k)
+        if hasattr(id3, k):
+            c = id3[k]
+            id3.delall(k)
             if ('/' in c):
                 dn, dt = '/'.split(c)
                 if (discnumber):
@@ -166,46 +142,43 @@ class MP3(Media):
                     v = '1'
                 v = v+'/'+disctotal
         if (v):
-            self.media.add(f(encoding=1, text=unicode(v)))
+            id3.add(f(encoding=1, text=unicode(v)))
         for t in self.TagMap:
             if t == 'discnumber':
                 continue
             if t == 'disctotal':
                 continue
-            if (not hasattr(parent, t)):
+            if (not hasattr(self, t)):
                 continue
-            v = getattr(parent, t)
+            v = getattr(self, t)
             log.debug("loop through tag values")
             if (v):
-                k, f = self.TagMap[t]['mp3']
-                log.debug("modifying tag {0} with value {1} ".format(k, v))
-                self.media.delall(k)
-                self.media.add(f(encoding=3, text=unicode(v.decode('utf-8'))))
-        self.media.save()
+                key, func = self.TagMap[t]['mp3']
+                log.debug("modifying tag {0} with value {1} ".format(key, v))
+                id3.delall(key)
+                id3.add(func(encoding=3, text=unicode(v.decode('utf-8'))))
+        id3.save()
 
 class Flac(Media):
    
-    def __init__(self, parent):
-        Media.__init__(self, parent)
-
-    def set_media(self, filename):
+    def get_class(self):
         try:
-            self.media = FLAC(filename)
+            return FLAC(self.filename)
         except mutagen.flac.error:
-            self.media = FLAC()
-            self.media.save(filename)
-        self.filename = filename
+            flac = FLAC()
+            flac.save(self.filename)
+            return flac
 
     def save(self):
-        log = getLogger('Rkive')
-        parent = self.parent
-        if hasattr(parent,'picture'):
-            self.media.clear_pictures()
+        log = getLogger('Rkive.MusicFile')
+        log.info("save file {0}".format(self.filename))
+        flac = self.get_class()
+        if hasattr(self,'picture'):
+            flac.clear_pictures()
             pic = Picture()
-            v = getattr(parent, 'picture')
-            with open(v, "rb") as f:
+            with open(self.picture, "rb") as f:
                 pic.data = f.read()
-            im = Image.open(v)
+            im = Image.open(self.picture)
             pic.type = 3
             if v.endswith('jpg'):
                 pic.mime = u"image/jpeg"
@@ -213,24 +186,25 @@ class Flac(Media):
                 pic.mime = u"image/png"
             pic.width = im.size[0] 
             pic.height = im.size[1]
-            self.media.add_picture(pic)
-            delattr(parent, 'picture')
+            flac.add_picture(pic)
+            delattr(self, 'picture')
         for t in self.TagMap:
-            if hasattr(parent, t):
-                v = getattr(parent, t)
+            if hasattr(self, t):
+                v = getattr(self, t)
                 log.debug("{0}: {1}".format(t,v))
                 if v:
                     log.debug("{0}: {1}".format(t, v))
                     v = v.encode('utf-8')
-                    self.media[t] = v.decode('utf-8')
-        self.media.save()
+                    flac[t] = v.decode('utf-8')
+        flac.save()
 
 class FileNotFound(Exception):
     pass
 
 class TypeNotSupported(Exception):
     pass
-
+#
+# Proxy Object
 class MusicFile(object):
 
     Types = {
@@ -250,24 +224,17 @@ class MusicFile(object):
         if ('.AppleDouble' in filename):
             raise TypeNotSupported
         self.media = self.Types[ext](self)
-        self.filetype = ext
-        self.media.set_media(filename)
-        self.set_tags()
+        for t in self.TagMap:
+            g = lambda: getattr(self.media,t)
+            s = lambda x,y: setattr(self.media, t, y)
+            d = lambda: delattr(self.media, t) 
+            property(g, s, d, t)
+        g = lambda: getattr(self.media,'filename')
+        s = lambda x,y: setattr(self.media, 'filename', y)
+        d = lambda: delattr(self.media, 'filename')
+        property(g,s,d,'filename')
+        self.filename = filename
 
-    def set_tag(self, t, v):
-        log = getLogger('Rkive.MusicFile')
-        if t in Media.TagMap:
-            setattr(self,t,v)
-        else:
-            log.warn("No such tag {0} in Media.TagMap".format(t))
-
-    def set_tags(self):
-        for t in Media.TagMap:
-            actual_tag = Media.TagMap[self.filetype] 
-            if hasattr(self.media, actual_tag):
-                v = getattr(self.media, actual_tag)
-                setattr(self, t, v)
-    
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
@@ -276,15 +243,16 @@ class MusicFile(object):
                 log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
                 setattr(self, t, v)
 
-    def pprint(self):
+    def print_attr(self):
         log = getLogger('Rkive.MusicFiles')
         for m in Media.TagMap:
             v = getattr(self, m)
             if v:
                 log.info("Tag: {0} Value: {1}".format(m, v))
 
-    def dump_media(self):
-        self.media.pprint()
+    def pprint(self):
+        c = self.media.get_class()
+        c.pprint()
 
     def save(self):
-        self.media.save() 
+        self.media.save()
