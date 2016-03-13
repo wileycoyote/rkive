@@ -24,4 +24,5 @@ def visit_files(folder='.', funcs=[], exclude=None, include=None, recursive=Fals
                 folder=base, 
                 funcs=funcs, 
                 exclude=exclude, 
-                include=include)
+                include=include,
+                recursive=recursive)

@@ -30,7 +30,7 @@ class GetOpts(object):
     
     def __init__(self, parent=None):
         self.p = argparse.ArgumentParser()
-        self.parent=weakref.ref(parent)
+        self.parent=parent
     
     def get_opts(self):
         self.p.add_argument(
