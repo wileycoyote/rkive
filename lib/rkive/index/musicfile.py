@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os.path
 from logging import getLogger
-import mutagen.id3
 from mutagen.id3 import ID3
+from mutagen.id3 import error as id3_error
 from mutagen.flac import FLAC, Picture
 from mutagen.id3 import TIT1, TIT2, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM, APIC
 from PIL import Image
@@ -21,52 +21,64 @@ class Media(object):
 
     TagMap = {
         'grouping' : {
+            'flac' : ['grouping'],
             'mp3' : ['TIT1', TIT1],
             'comment' : 'Grouping'
         },
         'album'    : {
+            'flac' : ['album'],
             'mp3' : ['TALB', TALB],
             'comment' : 'Album Name'
         },
         'albumartist' : {
+            'flac' : ['albumartist'],
             'mp3' : ['TPE2', TPE2],
             'comment' : 'Album artist set to "Various Artists" for multiple artists'
         },
         'artist'      : {
+            'flac' : ['artist'],
             'mp3' : ['TPE1', TPE1],
             'comment' : 'Artist, seperate by ; if multiple'
         },
         'comment'     : {
+            'flac' : ['comment'],
             'mp3' : ['COMM', COMM],
             'comment' : 'Comment'
         },
         'composer'    : {
+            'flac' : ['composer'],
             'mp3' : ['TCOM', TCOM],
             'comment' : 'composer'
         },
         'discnumber'  : {
+            'flac' : ['discnumber'],
             'mp3' : ['TPOS', TPOS],
             'comment' : 'disc number',
             'default' : 1
         },
         'disctotal'   : {
+            'flac' : ['disctotal'],
             'default' : 1,
             'mp3' : ['TPOS', TPOS],
             'comment' : 'Number of discs'
         },
         'genre'       : {
+            'flac' : ['genre'],
             'mp3' : ['TCON',TCON],
             'comment' : 'Only one genre'
         },
         'picture'     : {
             'mp3' : ['APIC', APIC],
+            'flac' : ['picture'],
             'comment' : 'The filename for a image associated with file'
         },
         'title'       : {
+            'flac' : ['title'],
             'mp3' : ['TIT2', TIT2],
             'comment' : 'title'
         },
         'tracknumber' : {
+            'flac' : ['tracknumber'],
             'mp3' : ['TRCK', TRCK],
             'comment' : 'tracknumber - start from 1'
         },
@@ -75,13 +87,10 @@ class Media(object):
             'comment' : 'total number of tracks'
         },
         'year'        : {
+            'flac' : ['year'],
             'mp3' : ['TDRC', TDRC],
             'comment' : 'Year of original recording, remaster dates go in comment'
         },
-        'picture'   : {
-            'mp3' : ['',''],
-            'comment' : 'Path to picture for file'
-        }
     } 
 
     def get_class(self):
@@ -96,13 +105,17 @@ class Media(object):
 
 class MP3(Media):
   
+    def __init__(self):
+        self.t = 'mp3'
+
     def get_class(self):
         try:
-            return ID3(self.filename)
-        except mutagen.id3.error:
-            id3 = ID3()
-            id3.save(self.filename)
-            return id3
+            mp3 = ID3(self.filename)
+            return mp3
+        except id3_error:
+            mp3 = ID3()
+            mp3.save(self.filename)
+            return mp3
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
@@ -205,12 +218,17 @@ class TypeNotSupported(Exception):
     pass
 #
 # Proxy Object
+
 class MusicFile(object):
 
     Types = {
         'mp3'  : MP3,
         'flac' : Flac
     } 
+    g = lambda x: getattr(x.media,'filename')
+    s = lambda x,y: setattr(x.media, 'filename', y)
+    d = lambda x: delattr(x.media, 'filename')
+    filename=property(g,s,d,'filename')
 
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
@@ -218,21 +236,12 @@ class MusicFile(object):
         if (not os.path.exists(filename)):
             log.warn("Path not found {0}".format(filename))
             raise FileNotFound
-        ext = filename.rsplit('.', 1)[1]
-        if (not ext in self.Types):
+        self.mediatype = filename.rsplit('.', 1)[1]
+        if (not self.mediatype in self.Types):
             raise TypeNotSupported 
         if ('.AppleDouble' in filename):
             raise TypeNotSupported
-        self.media = self.Types[ext](self)
-        for t in self.TagMap:
-            g = lambda: getattr(self.media,t)
-            s = lambda x,y: setattr(self.media, t, y)
-            d = lambda: delattr(self.media, t) 
-            property(g, s, d, t)
-        g = lambda: getattr(self.media,'filename')
-        s = lambda x,y: setattr(self.media, 'filename', y)
-        d = lambda: delattr(self.media, 'filename')
-        property(g,s,d,'filename')
+        self.media = self.Types[self.mediatype]()
         self.filename = filename
 
     def set_tags_from_list(self, l):
@@ -252,7 +261,16 @@ class MusicFile(object):
 
     def pprint(self):
         c = self.media.get_class()
-        c.pprint()
+        print(c.pprint())
 
     def save(self):
         self.media.save()
+
+for t,v in Media.TagMap.items():
+    print(t)
+    #g = lambda x,y='': getattr(x.media,Media.TagMap[y][x.mediatype][0]) if y else None
+    g = lambda x: getattr(x.media, 'album')
+    s = lambda x,y: setattr(x.media,'album', y)
+    d = lambda x: delattr(x.media, t) 
+    setattr(MusicFile, t, property(g,s,d))
+
