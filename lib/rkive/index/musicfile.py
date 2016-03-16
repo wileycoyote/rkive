@@ -83,6 +83,8 @@ class Media(object):
             'comment' : 'tracknumber - start from 1'
         },
         'tracktotal'  : {
+            'flac' : ['tracktotal'],
+            'mp3': ['tracktotal'],
             'default' : 1,
             'comment' : 'total number of tracks'
         },
@@ -103,19 +105,41 @@ class Media(object):
         log.warn("Save method not instanciated")
         return None
 
+    def set_obj(self):
+        log = getLogger('Rkive.MusicFile')
+        log.warn("Save method not instanciated")
+
+    def get_obj(self):
+        log = getLogger('Rkive.MusicFile')
+        if self.obj is None:
+            log.warn("No object set")
+            return None
+        return self.obj
+
 class MP3(Media):
   
-    def __init__(self):
-        self.t = 'mp3'
+    def __init__(self, filename):
+        self.filename = filename
+        self.set_object()
 
-    def get_class(self):
+    def set_object(self):
         try:
             mp3 = ID3(self.filename)
-            return mp3
+            self.obj = mp3
         except id3_error:
             mp3 = ID3()
             mp3.save(self.filename)
-            return mp3
+            self.obj = mp3
+
+    def get_attr(self, name):
+        if not name in self.TagMap:
+            return ""
+        realname = self.TagMap[name]['mp3'][0]
+        print("Realname: "+realname)
+        if realname in self.obj:
+            return self.obj[realname].text[0]
+        else:
+            return ""
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
@@ -173,26 +197,39 @@ class MP3(Media):
         id3.save()
 
 class Flac(Media):
-   
-    def get_class(self):
+
+    def __init__(self, filename):
+        self.filename = filename
+
+    def set_obj(self):
         try:
-            return FLAC(self.filename)
+            self.obj = FLAC(self.filename)
         except mutagen.flac.error:
             flac = FLAC()
             flac.save(self.filename)
-            return flac
+            self.obj = flac 
 
-    def save(self):
-        log = getLogger('Rkive.MusicFile')
-        log.info("save file {0}".format(self.filename))
-        flac = self.get_class()
-        if hasattr(self,'picture'):
+    def get_attr(self, name):
+        if not name in self.TagMap:
+            return ""
+        realname = self.TagMap[name]['flac'][0]
+        if realname in self.obj:
+            return self.obj[name].text[0]
+        else:
+            return ""
+
+    def set_attr(self, name, value):
+        if not name in self.TagMap:
+            return
+        if name == 'picture':
+            flac = self.obj
             flac.clear_pictures()
             pic = Picture()
             with open(self.picture, "rb") as f:
                 pic.data = f.read()
             im = Image.open(self.picture)
             pic.type = 3
+            v = getattr('picture')
             if v.endswith('jpg'):
                 pic.mime = u"image/jpeg"
             if v.endswith('png'):
@@ -200,16 +237,16 @@ class Flac(Media):
             pic.width = im.size[0] 
             pic.height = im.size[1]
             flac.add_picture(pic)
-            delattr(self, 'picture')
-        for t in self.TagMap:
-            if hasattr(self, t):
-                v = getattr(self, t)
-                log.debug("{0}: {1}".format(t,v))
-                if v:
-                    log.debug("{0}: {1}".format(t, v))
-                    v = v.encode('utf-8')
-                    flac[t] = v.decode('utf-8')
-        flac.save()
+            return
+        log.debug("{0}: {1}".format(t, v))
+        v = v.encode('utf-8')
+        self.obj[t] = v.decode('utf-8')
+
+    def save(self):
+        log = getLogger('Rkive.MusicFile')
+        log.info("save file {0}".format(self.filename))
+        self.obj.save()
+
 
 class FileNotFound(Exception):
     pass
@@ -225,10 +262,6 @@ class MusicFile(object):
         'mp3'  : MP3,
         'flac' : Flac
     } 
-    g = lambda x: getattr(x.media,'filename')
-    s = lambda x,y: setattr(x.media, 'filename', y)
-    d = lambda x: delattr(x.media, 'filename')
-    filename=property(g,s,d,'filename')
 
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
@@ -241,8 +274,8 @@ class MusicFile(object):
             raise TypeNotSupported 
         if ('.AppleDouble' in filename):
             raise TypeNotSupported
-        self.media = self.Types[self.mediatype]()
-        self.filename = filename
+        self.media = self.Types[self.mediatype](filename)
+        self.set_attrs()
 
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
@@ -252,25 +285,29 @@ class MusicFile(object):
                 log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
                 setattr(self, t, v)
 
-    def print_attr(self):
+    def print_attrs(self):
         log = getLogger('Rkive.MusicFiles')
         for m in Media.TagMap:
+            if not hasattr(self, m): 
+                continue
             v = getattr(self, m)
             if v:
                 log.info("Tag: {0} Value: {1}".format(m, v))
 
     def pprint(self):
-        c = self.media.get_class()
+        c = self.media.get_obj()
         print(c.pprint())
 
     def save(self):
+        for t in self.TagMap:
+            if hasattr(self, t):
+                v = getattr(self, t)
+                log.debug("{0}: {1}".format(t,v))
+                self.media.set_attr(t,v)
         self.media.save()
 
-for t,v in Media.TagMap.items():
-    print(t)
-    #g = lambda x,y='': getattr(x.media,Media.TagMap[y][x.mediatype][0]) if y else None
-    g = lambda x: getattr(x.media, 'album')
-    s = lambda x,y: setattr(x.media,'album', y)
-    d = lambda x: delattr(x.media, t) 
-    setattr(MusicFile, t, property(g,s,d))
-
+    def set_attrs(self):
+        for t,v in Media.TagMap.items():
+            value = self.media.get_attr(t)
+            if value:
+                setattr(self, t, value)
