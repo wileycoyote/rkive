@@ -19,34 +19,29 @@ class ParsePattern(argparse.Action):
         values = rkive.clients.regexp.Regexp(self.pattern)        
         setattr(namespace, self.dest, values)
 
-class Tagger(MusicFile):
+class Tagger(MusicFile, GetOpts):
 
     def run(self, logloc=None):
         try:
-            go = GetOpts(parent=self)
-            go.p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
-            go.p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
-            go.p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
-            go.p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
-            go.p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
-            go.p.add_argument('--gain', help="add gain to music files", action='store_true')
+            p = self.get_parser()
+            p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
+            p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
+            p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
+            p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
+            p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
+            p.add_argument('--gain', help="add gain to music files", action='store_true')
             tags = Media.TagMap
             for t,v in tags.items():
                 option = '--'+t
                 comment = v['comment']
-                go.p.add_argument(option, help=comment, type=str)
-            go.p.parse_args()
-            go.get_opts()
-            self.console = True
+                p.add_argument(option, help=comment, type=str)
+            p.parse_args(namespace=self)
             rkive.clients.log.LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
                 if hasattr(self, 'file'):
                     folder, filename = os.path.split(self.file)
                     self.print_file_tags(folder, filename)
-                    return
-                if self.base:
-                    self.search_and_print_folder()
                     return
                 self.search_and_print_folder()
                 return
@@ -65,7 +60,7 @@ class Tagger(MusicFile):
             # check arguments for something to add tags/to
             hasargs = False
             for t in tags:
-                if (getattr(self, t)):
+                if getattr(self, t):
                     hasargs = True
                     break
             if (not hasargs):
@@ -96,10 +91,17 @@ class Tagger(MusicFile):
     def search_and_print_folder(self):
         log = getLogger('Rkive')
         log.info("print tags of music files in {0}".format(self.base))        
-        visit_files(folder=self.base, funcs=[self.print_file_tags], include=self.include)
+        visit_files(
+            folder=self.base, 
+            funcs=[self.print_file_tags], 
+            include=self.include, 
+            recursive=self.recursive)
 
     def search_and_modify_gain(self):
-        visit_files(folder=self.base, funcs=[self.modify_gain], include=self.include)
+        visit_files(
+            folder=self.base, 
+            funcs=[self.modify_gain], 
+            include=self.include)
 
     def modify_gain(self, root, filename):
         log = getLogger('Rkive.MusicFiles')
