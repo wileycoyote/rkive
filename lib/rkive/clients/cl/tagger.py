@@ -41,7 +41,7 @@ class Tagger(MusicFile):
             rkive.clients.log.LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
-                if self.file:
+                if hasattr(self, 'file'):
                     folder, filename = os.path.split(self.file)
                     self.print_file_tags(folder, filename)
                     return
@@ -87,7 +87,11 @@ class Tagger(MusicFile):
             log.fatal("Type not supported")
 
     def print_file_tags(self, root, fn):
-        pass
+        log = getLogger('Rkive')
+        fp = os.path.join(root, fn)
+        log.info("Music Attributes for {0}".format(fp))
+        self.set_filename(fp)
+        self.pprint()
 
     def search_and_print_folder(self):
         log = getLogger('Rkive')
@@ -194,7 +198,7 @@ class Tagger(MusicFile):
             return
         log.info("modifying tags of file {0}".format(fp))
         try:
-            self.filename = filename
+            self.set_filename(filename)
             self.save()
         except TypeNotSupported:
             log.warn("Type {0} not supported".format(fp))

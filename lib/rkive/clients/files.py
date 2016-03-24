@@ -15,7 +15,7 @@ def visit_files(folder='.', funcs=[], exclude=None, include=None, recursive=Fals
                     continue
                 func(root, name)
         if not recursive:
-            log.info("recursive set to false - do not follow folders down")
+            log.debug("recursive set to false - do not follow folders down")
             continue
         for name in dirs:
             base = os.path.join(root, name)

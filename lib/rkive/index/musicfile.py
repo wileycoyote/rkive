@@ -135,7 +135,6 @@ class MP3(Media):
         if not name in self.TagMap:
             return ""
         realname = self.TagMap[name]['mp3'][0]
-        print("Realname: "+realname)
         if realname in self.obj:
             return self.obj[realname].text[0]
         else:
@@ -200,8 +199,9 @@ class Flac(Media):
 
     def __init__(self, filename):
         self.filename = filename
+        self.set_object()
 
-    def set_obj(self):
+    def set_object(self):
         try:
             self.obj = FLAC(self.filename)
         except mutagen.flac.error:
@@ -214,7 +214,7 @@ class Flac(Media):
             return ""
         realname = self.TagMap[name]['flac'][0]
         if realname in self.obj:
-            return self.obj[name].text[0]
+            return self.obj[name]
         else:
             return ""
 
@@ -263,7 +263,7 @@ class MusicFile(object):
         'flac' : Flac
     } 
 
-    def __init__(self, filename):
+    def set_filename(self, filename):
         log = getLogger('Rkive.MusicFile')
         log.info("Filename: {0}".format(filename))
         if (not os.path.exists(filename)):

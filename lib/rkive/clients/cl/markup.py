@@ -6,9 +6,8 @@ import sys
 
 class MarkupClient(object):
 
-    def run(self, log=None):
+    def run(self, logloc=None):
         try:
-            self.recursive = False
             go = GetOpts(parent=self)
             go.p.add_argument('--bare',  type=str, help="data with no markup", action=FileValidation)
             go.p.add_argument('--markup',  type=str, help="marked-up file")
