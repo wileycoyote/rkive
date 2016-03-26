@@ -4,7 +4,7 @@ import argparse
 from logging import getLogger
 import sys
 
-class MarkupClient(object):
+class MarkupClient(GetOpts):
 
     def run(self, logloc=None):
         try:

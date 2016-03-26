@@ -219,6 +219,7 @@ class Flac(Media):
             return ""
 
     def set_attr(self, name, value):
+        log = getLogger('Rkive.MusicFile')                
         if not name in self.TagMap:
             return
         if name == 'picture':
@@ -238,9 +239,9 @@ class Flac(Media):
             pic.height = im.size[1]
             flac.add_picture(pic)
             return
-        log.debug("{0}: {1}".format(t, v))
-        v = v.encode('utf-8')
-        self.obj[t] = v.decode('utf-8')
+        log.debug("Tag: {0}: {1}".format(name, value))
+        value = value.encode('utf-8')
+        self.obj[name] = value.decode('utf-8')
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
@@ -275,7 +276,6 @@ class MusicFile(object):
         if ('.AppleDouble' in filename):
             raise TypeNotSupported
         self.media = self.Types[self.mediatype](filename)
-        self.set_attrs()
 
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
@@ -295,15 +295,15 @@ class MusicFile(object):
                 log.info("Tag: {0} Value: {1}".format(m, v))
 
     def pprint(self):
+        log = getLogger('Rkive.MusicFiles')        
         c = self.media.get_obj()
-        print(c.pprint())
+        log.info(c.pprint())
+
+    def set_attr(self, t, v):
+        self.media.set_attr(t, v)
 
     def save(self):
-        for t in self.TagMap:
-            if hasattr(self, t):
-                v = getattr(self, t)
-                log.debug("{0}: {1}".format(t,v))
-                self.media.set_attr(t,v)
+        log = getLogger('Rkive.MusicFiles')        
         self.media.save()
 
     def set_attrs(self):

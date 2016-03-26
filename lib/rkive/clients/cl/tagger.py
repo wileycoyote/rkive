@@ -201,6 +201,12 @@ class Tagger(MusicFile, GetOpts):
         log.info("modifying tags of file {0}".format(fp))
         try:
             self.set_filename(filename)
+            for t in Media.TagMap:
+                v = getattr(self, t)
+                log.debug("t {0} v {1}".format(t,v))
+                if v:
+                    log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
+                    self.set_attr(t,v)
             self.save()
         except TypeNotSupported:
             log.warn("Type {0} not supported".format(fp))
