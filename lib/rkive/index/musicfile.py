@@ -287,12 +287,8 @@ class MusicFile(object):
 
     def print_attrs(self):
         log = getLogger('Rkive.MusicFiles')
-        for m in Media.TagMap:
-            if not hasattr(self, m): 
-                continue
-            v = getattr(self, m)
-            if v:
-                log.info("Tag: {0} Value: {1}".format(m, v))
+        for t,v in self.__dict__.items():
+            log.info("Tag: {0} Value: {1}".format(t, v))
 
     def pprint(self):
         log = getLogger('Rkive.MusicFiles')        
@@ -304,6 +300,8 @@ class MusicFile(object):
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')        
+        if not self.media:
+            self.set_filename(self.filename)
         self.media.save()
 
     def set_attrs(self):

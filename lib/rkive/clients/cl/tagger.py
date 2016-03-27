@@ -19,7 +19,7 @@ class ParsePattern(argparse.Action):
         values = rkive.clients.regexp.Regexp(self.pattern)        
         setattr(namespace, self.dest, values)
 
-class Tagger(MusicFile, GetOpts):
+class Tagger(GetOpts):
 
     def run(self, logloc=None):
         try:
@@ -28,14 +28,17 @@ class Tagger(MusicFile, GetOpts):
             p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
-            p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
+            p.add_argument('--markup', type=str, help="give file containing metadata", action=FileValidation)
             p.add_argument('--gain', help="add gain to music files", action='store_true')
-            tags = Media.TagMap
-            for t,v in tags.items():
+            # need to construct a second 
+            media_parser = argparse.ArgumentParser(parents=[p])
+            self.media = MusicFile()
+            for t,v in Media.TagMap.items():
                 option = '--'+t
                 comment = v['comment']
-                p.add_argument(option, help=comment, type=str)
+                media_parser.add_argument(option, help=comment, type=str)
             p.parse_args(namespace=self)
+            media_parser.parse_args(namespace=self.media)
             rkive.clients.log.LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
@@ -48,8 +51,8 @@ class Tagger(MusicFile, GetOpts):
             if self.cuesheet:
                 self.modify_from_cuesheet()
                 return
-            if self.markdown:
-                self.modify_from_markdown()
+            if self.markup:
+                self.modify_from_markup()
                 return
             if self.pattern:
                 self.modify_from_pattern()
@@ -85,8 +88,9 @@ class Tagger(MusicFile, GetOpts):
         log = getLogger('Rkive')
         fp = os.path.join(root, fn)
         log.info("Music Attributes for {0}".format(fp))
-        self.set_filename(fp)
-        self.pprint()
+        m = MusicFile()
+        m.set_filename(fp)
+        m.pprint()
 
     def search_and_print_folder(self):
         log = getLogger('Rkive')
@@ -118,7 +122,7 @@ class Tagger(MusicFile, GetOpts):
     def mod_filetags_from_regexp(self, root, filename):
         log = getLogger('Rkive.MusicFiles')        
         (fn, ext) = os.path.splitext(filename)
-        self.pattern.match(fn, self)
+        self.pattern.match(fn, self.media)
         self.modify_file_tags(root, filename)
 
     def modify_from_cuesheet(self):
@@ -142,72 +146,43 @@ class Tagger(MusicFile, GetOpts):
             # build the tag list
             # standard tags
             album_fields = cue.get_metadata().filled_fields()
-            self.clear_tag_attrs()
+            m = MusicFile()
             for a in album_fields:
-                setattr(self, a[0], a[1])
+                m.set_attr(a[0], a[1])
             # tags unique to track
             for f in cue.track(tracknumber).get_metadata().filled_fields():
-                setattr(self, f[0], f[1])
-            setattr(self, 'tracknumber', str(tracknumber))
-            self.modify_file_tags(folder, filename)
+                m.set_attr(f[0], f[1])
+            m.set_attr('tracknumber', str(tracknumber))
+            m.set_attr('filename', os.path.join(folder, filename))
+            m.save()
 
-    def modify_from_markdown(self):
+    def modify_from_markup(self):
         log = getLogger('Rkive.MusicFiles')        
-        with open(self.markdown) as m:
-            header = m.readline().strip().split(',')
-            nrrecords = header.pop(0)
-            recordlen = int(header.pop(0))
-            line_counter = 0
-            record = []
-            for l in m:
-                line_counter = line_counter + 1
-                record.append(l.strip())
-                if line_counter%recordlen == 0:
-                    reccnt = 0
-                    filename = ''
-                    log.debug("size of array: {0}".format(len(record)))
-                    for val in record:
-                        log.debug("reccnt {0}".format(reccnt))
-                        name = header[reccnt]
-                        if name == 'filename':
-                            filename = val
-                        else:
-                            log.info("name: {0} val: {1}".format(name, val))
-                            self.set_tag_attr(name, val)
-                        reccnt = reccnt + 1
-                    if filename:
-                        folder, basename = os.path.split(filename)
-                        root = os.path.join(self.base,folder)
-                        self.modify_file_tags(root, filename)
-                    else:
-                        log.fatal("No filename to save tags")
-                    record = []
-
-    def clear_tag_attrs(self):
-        for t,v in Media.TagMap.items():
-            delattr(self, t)
+        tree = ET.parse(self.markup)
+        albums = tree.getroot()
+        for album in albums:
+            for track in album:
+                m = MusicFile()
+                for attr in track:
+                    m.set_attr(attr.tag, attr.text)
+                m.save()
 
     def modify_file_tags(self, root, filename):
         log = getLogger('Rkive')
         fp = os.path.join(root, filename)
         if self.dryrun:
             log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
-            for t,v in Media.TagMap.items():
-                v = getattr(self, t)
-                log.debug("t {0} v {1}".format(t,v))
-                if v:
-                    log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
+            for t,v in self.media.__dict__.items():
+                log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
             return
         log.info("modifying tags of file {0}".format(fp))
         try:
-            self.set_filename(filename)
-            for t in Media.TagMap:
-                v = getattr(self, t)
-                log.debug("t {0} v {1}".format(t,v))
-                if v:
-                    log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
-                    self.set_attr(t,v)
-            self.save()
+            m = MusicFile()
+            m.set_attr('filename', os.path.join(root, filename))
+            for t,v in self.media.__dict__.items():
+                log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
+                m.set_attr(t,v)
+            m.save()
         except TypeNotSupported:
             log.warn("Type {0} not supported".format(fp))
             return
