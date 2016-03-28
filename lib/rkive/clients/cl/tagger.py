@@ -7,7 +7,7 @@ from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFou
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
-import rkive.clients.log
+from rkive.clients.log import LogInit
 import subprocess
 
 class ParsePattern(argparse.Action):
@@ -39,7 +39,7 @@ class Tagger(GetOpts):
                 media_parser.add_argument(option, help=comment, type=str)
             p.parse_args(namespace=self)
             media_parser.parse_args(namespace=self.media)
-            rkive.clients.log.LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
+            LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
                 if hasattr(self, 'file'):
@@ -117,7 +117,10 @@ class Tagger(GetOpts):
     # assume that one pattern matches all the files under examination
     def modify_from_pattern(self):
         log = getLogger('Rkive.MusicFiles')        
-        visit_files(folder=self.base, funcs=[self.mod_filetags_from_regexp], include=self.include)
+        visit_files(
+            folder=self.base, 
+            funcs=[self.mod_filetags_from_regexp], 
+            include=self.include)
 
     def mod_filetags_from_regexp(self, root, filename):
         log = getLogger('Rkive.MusicFiles')        
@@ -177,12 +180,8 @@ class Tagger(GetOpts):
             return
         log.info("modifying tags of file {0}".format(fp))
         try:
-            m = MusicFile()
-            m.set_attr('filename', os.path.join(root, filename))
-            for t,v in self.media.__dict__.items():
-                log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
-                m.set_attr(t,v)
-            m.save()
+            self.media.set_attr('filename', os.path.join(root, filename))
+            self.media.save()
         except TypeNotSupported:
             log.warn("Type {0} not supported".format(fp))
             return
