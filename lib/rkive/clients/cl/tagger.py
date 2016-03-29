@@ -23,26 +23,22 @@ class Tagger(GetOpts):
 
     def run(self, logloc=None):
         try:
-            p = self.get_parser()
+            p = self.get_parser(parent)
             p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
             p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             p.add_argument('--markup', type=str, help="give file containing metadata", action=FileValidation)
             p.add_argument('--gain', help="add gain to music files", action='store_true')
-            # need to construct a second 
-            media_parser = argparse.ArgumentParser(parents=[p])
-            self.media = MusicFile()
             for t,v in Media.TagMap.items():
                 option = '--'+t
                 comment = v['comment']
-                media_parser.add_argument(option, help=comment, type=str)
-            p.parse_args(namespace=self)
-            media_parser.parse_args(namespace=self.media)
+                p.add_argument(option, help=comment, type=str)
+            p.parse_args(namespace=self.media)
             LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
-                if hasattr(self, 'file'):
+                if hasattr(self, 'filename'):
                     folder, filename = os.path.split(self.file)
                     self.print_file_tags(folder, filename)
                     return
@@ -60,13 +56,14 @@ class Tagger(GetOpts):
             if self.gain:
                 self.search_and_modify_gain()
                 return
+            #now set the attributes for the media object, if any
+            self.media = MusicFile()
             # check arguments for something to add tags/to
-            hasargs = False
-            for t in tags:
-                if getattr(self, t):
-                    hasargs = True
-                    break
-            if (not hasargs):
+            for t in Media.TagMap:
+                if hasattr(self, t):
+                    v = getattr(self, t)
+                    setattr(self.media, t,v)
+            if (not self.media.__dict__):
                 log.info("no attributes to apply")
                 return
             if (self.filename):
