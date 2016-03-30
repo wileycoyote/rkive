@@ -240,7 +240,7 @@ class MusicFile(object):
         log = getLogger('Rkive.MusicFiles')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
         for t,v in l.items():
-            log.info("{0}: {1}".format(t.encode('utf-8'),v.encode('utf-8')))
+            log.info("{0}: {1}".format(t,v))
             setattr(self, t, v)
 
     def print_attrs(self):
@@ -264,9 +264,3 @@ class MusicFile(object):
     def save(self):
         log = getLogger('Rkive.MusicFiles')        
         self.media.save()
-
-    def set_attrs(self):
-        for t in Media.TagMap:
-            v = self.media.get_attr(t)
-            if v:
-                self.__dict__[t] = v
