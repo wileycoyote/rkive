@@ -223,19 +223,6 @@ class MusicFile(object):
         'flac' : Flac
     } 
 
-    def __init__(self, filename):
-        log = getLogger('Rkive.MusicFile')
-        log.info("Filename: {0}".format(filename))
-        if (not os.path.exists(filename)):
-            log.warn("Path not found {0}".format(filename))
-            raise FileNotFound
-        self.mediatype = filename.rsplit('.', 1)[1]
-        if (not self.mediatype in self.Types):
-            raise TypeNotSupported 
-        if ('.AppleDouble' in filename):
-            raise TypeNotSupported
-        self.media = self.Types[self.mediatype](filename)
-
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
@@ -248,16 +235,32 @@ class MusicFile(object):
         for t,v in self.__dict__.items():
             log.info("Tag: {0} Value: {1}".format(t, v))
 
-    def pprint(self):
+    def pprint(self, filename):
         log = getLogger('Rkive.MusicFiles')        
+        self.filename = filename
         c = self.media.get_object()
         log.info(c.pprint())
 
     def __setattr__(self, t, v):
+        log = getLogger('Rkive.MusicFile')
         if t in Media.TagMap:
             if not hasattr(self, 'media'):
                 raise MediaObjectNotFound
             setattr(self.media, t, v)
+        elif t=='filename':
+            filename = v
+            log.info("Filename: {0}".format(filename))
+            if (not os.path.exists(filename)):
+                log.warn("Path not found {0}".format(filename))
+                raise FileNotFound
+            mediatype = filename.rsplit('.', 1)[1]
+            if (not mediatype in self.Types):
+                raise TypeNotSupported 
+            if ('.AppleDouble' in filename):
+                raise TypeNotSupported
+            self.__dict__['mediatype'] = mediatype            
+            self.__dict__['media'] = self.Types[mediatype](filename)
+            self.__dict__['filename'] = filename
         else:
             self.__dict__[t] =  v
 

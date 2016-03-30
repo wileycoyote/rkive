@@ -39,8 +39,8 @@ class Tagger(GetOpts):
             LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
-                if hasattr(self, 'filename'):
-                    folder, filename = os.path.split(self.file)
+                if self.filename != None:
+                    folder, filename = os.path.split(self.filename)
                     self.print_file_tags(folder, filename)
                     return
                 self.search_and_print_folder()
@@ -86,9 +86,7 @@ class Tagger(GetOpts):
         log = getLogger('Rkive')
         fp = os.path.join(root, fn)
         log.info("Music Attributes for {0}".format(fp))
-        m = MusicFile()
-        m.set_filename(fp)
-        m.pprint()
+        MusicFile().pprint(fp)
 
     def search_and_print_folder(self):
         log = getLogger('Rkive')
@@ -164,7 +162,8 @@ class Tagger(GetOpts):
         for album in albums:
             for track in album:
                 filename = track.attrib['filename']
-                m = MusicFile(filename)
+                m = MusicFile()
+                m.filename = filename
                 for tag in track:
                     setattr(m, tag.tag, tag.text)
                 m.save()
