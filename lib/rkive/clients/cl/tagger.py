@@ -1,14 +1,15 @@
 import os.path
 import argparse
+import subprocess
 from logging import getLogger
 import glob
 import re
+import xml.etree.ElementTree as ET
 from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
 from rkive.clients.log import LogInit
-import subprocess
 
 class ParsePattern(argparse.Action):
 
@@ -23,7 +24,7 @@ class Tagger(GetOpts):
 
     def run(self, logloc=None):
         try:
-            p = self.get_parser(parent)
+            p = self.get_parser()
             p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
             p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
@@ -34,7 +35,7 @@ class Tagger(GetOpts):
                 option = '--'+t
                 comment = v['comment']
                 p.add_argument(option, help=comment, type=str)
-            p.parse_args(namespace=self.media)
+            p.parse_args(namespace=self)
             LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
             log = getLogger('Rkive.Tagger')
             if self.printtags:
@@ -138,22 +139,22 @@ class Tagger(GetOpts):
         files = glob.glob('*.flac') 
         for filename in files:
             # shntool gives us this nice %t-%name filename
-            m = re.search('(\d\d)', filename)
-            if (not m):
+            file_number = re.search('(\d\d)', filename)
+            if (not file_number):
                 continue
             log.info("Setting attributes from cuesheet for file {0}".format(filename))
-            tracknumber = int(m.group(0))
+            tracknumber = int(file_number.group(0))
             # build the tag list
             # standard tags
             album_fields = cue.get_metadata().filled_fields()
             m = MusicFile()
             for a in album_fields:
-                m.set_attr(a[0], a[1])
+                setattr(m, a[0], a[1])
             # tags unique to track
             for f in cue.track(tracknumber).get_metadata().filled_fields():
-                m.set_attr(f[0], f[1])
-            m.set_attr('tracknumber', str(tracknumber))
-            m.set_attr('filename', os.path.join(folder, filename))
+                setattr(m,f[0], f[1])
+            m.tracknumber = str(tracknumber)
+            m.filename = os.path.join(folder, filename)
             m.save()
 
     def modify_from_markup(self):
@@ -162,9 +163,10 @@ class Tagger(GetOpts):
         albums = tree.getroot()
         for album in albums:
             for track in album:
-                m = MusicFile()
-                for attr in track:
-                    m.set_attr(attr.tag, attr.text)
+                filename = track.attrib['filename']
+                m = MusicFile(filename)
+                for tag in track:
+                    setattr(m, tag.tag, tag.text)
                 m.save()
 
     def modify_file_tags(self, root, filename):
@@ -177,7 +179,7 @@ class Tagger(GetOpts):
             return
         log.info("modifying tags of file {0}".format(fp))
         try:
-            self.media.set_attr('filename', os.path.join(root, filename))
+            self.media.filename = os.path.join(root, filename)
             self.media.save()
         except TypeNotSupported:
             log.warn("Type {0} not supported".format(fp))

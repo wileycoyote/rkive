@@ -6,11 +6,7 @@ import xml.etree.ElementTree as ET
     track_pattern:
 </head>
 <album>
-    folder:
-    title:
-    artist:
-    composer:
-    <track>
+    <track filename="">
         title:
         artist:
         file:
@@ -21,7 +17,8 @@ import xml.etree.ElementTree as ET
       
 def track_decorator(func):
     def func_wrapper(self):
-        return "<track>\n{0}</track>\n".format(func(self))
+        filename, attrs=func(self)
+        return '<track filename="{0}">\n{1}</track>\n'.format(filename, attrs)
     return func_wrapper
 
 class Track(object):
@@ -35,11 +32,15 @@ class Track(object):
     @track_decorator
     def __str__(self):
         buff = ''
+        filename = ''
         for name in self.attribute_types:
             if hasattr(self, name):
                 value = getattr(self, name)
+                if name == 'filename':
+                    filename = value
+                    continue
                 buff = buff + "\t<{0}>{1}</{0}>\n".format(name, value)
-        return buff
+        return filename, buff
 
 def album_decorator(func):
     def func_wrapper(self):
