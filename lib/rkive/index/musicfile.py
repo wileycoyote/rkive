@@ -244,9 +244,7 @@ class MusicFile(object):
     def __setattr__(self, t, v):
         log = getLogger('Rkive.MusicFile')
         if t in Media.TagMap:
-            if not hasattr(self, 'media'):
-                raise MediaObjectNotFound
-            setattr(self.media, t, v)
+            self.__dict__[ t] = v
         elif t=='filename':
             filename = v
             log.info("Filename: {0}".format(filename))

@@ -59,11 +59,17 @@ class Tagger(GetOpts):
                 return
             #now set the attributes for the media object, if any
             self.media = MusicFile()
+            if not self.media:
+                log.fatal("No media object instanciated")
+                raise 
+            print(self.media)
             # check arguments for something to add tags/to
             for t in Media.TagMap:
                 if hasattr(self, t):
                     v = getattr(self, t)
-                    setattr(self.media, t,v)
+                    if v:
+                        log.debug("t: {0} v: {1}".format(t, v)) 
+                        setattr(self.media, t,v)
             if (not self.media.__dict__):
                 log.info("no attributes to apply")
                 return
