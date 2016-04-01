@@ -67,6 +67,7 @@ class Tagger(GetOpts):
             for t in Media.TagMap:
                 if hasattr(self, t):
                     v = getattr(self, t)
+                    log.debug("t: {0} v: {1}".format(t, v))                     
                     if v:
                         log.debug("t: {0} v: {1}".format(t, v)) 
                         setattr(self.media, t,v)

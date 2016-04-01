@@ -157,13 +157,12 @@ class MP3(Media):
                 delattr(self, 'disctotal')
             mp3.add(f(encoding=1, text=v))
         log.debug("loop through tag values "+str(self.__dict__))
-        for t,v in self.__dict__.items():
-            if (not t in Media.TagMap):
-                continue
-            id3_key, func = self.TagMap[t]['mp3']
-            log.debug("modifying tag {0} with value {1} ".format(id3_key, v))
-            mp3.delall(id3_key)
-            mp3.add(func(encoding=3, text=v))
+        for t, v in self.__dict__.items():
+            if t in self.TagMap:
+                id3_key, func = self.TagMap[t]['mp3']            
+                log.debug("modifying tag {0} with value {1} ".format(id3_key, v))
+                mp3.delall(id3_key)
+                mp3.add(func(encoding=3, text=v))
         mp3.save()
 
 class Flac(Media):
@@ -198,11 +197,10 @@ class Flac(Media):
             pic.height = im.size[1]
             flac.add_picture(pic)
             delattr(self, 'picture')
-        for t,v in self.__dict__.items():
-            if (not t in Media.TagMap):
-                continue
+        for t, v in self.__dict__.items():
             log.debug("Tag: {0}: {1}".format(t, v))
-            flac[t] = v
+            if t in self.TagMap:
+                flac[t] = v
         flac.save()
 
 class FileNotFound(Exception):
@@ -244,6 +242,7 @@ class MusicFile(object):
     def __setattr__(self, t, v):
         log = getLogger('Rkive.MusicFile')
         if t in Media.TagMap:
+            log.debug("{0}: {1}".format(t,v))
             self.__dict__[ t] = v
         elif t=='filename':
             filename = v
@@ -257,12 +256,16 @@ class MusicFile(object):
                 raise TypeNotSupported 
             if ('.AppleDouble' in filename):
                 raise TypeNotSupported
-            self.__dict__['mediatype'] = mediatype            
             self.__dict__['media'] = self.Types[mediatype](filename)
-            self.__dict__['filename'] = filename
         else:
             self.__dict__[t] =  v
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')        
+        if not self.media:
+            log.fatal("No media set")
+            raise MediaObjectNotFound
+        for t, v in self.__dict__.items():
+            if t in Media.TagMap and v:
+                setattr(self.media, t, v)
         self.media.save()
