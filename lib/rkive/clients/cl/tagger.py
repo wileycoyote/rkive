@@ -127,7 +127,6 @@ class Tagger(GetOpts):
     def modify_from_cuesheet(self):
         log = getLogger('Rkive.MusicFiles')        
         import audiotools.cue 
-        import re
         cue = audiotools.cue.read_cuesheet(self.cuesheet)
         (folder, base) = os.path.split(sheet)
         if (folder ==''):

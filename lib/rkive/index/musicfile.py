@@ -219,8 +219,8 @@ class MediaObjectNotFound(Exception):
 class MusicFile(object):
 
     Types = {
-        'mp3'  : MP3,
-        'flac' : Flac
+        '.mp3'  : MP3,
+        '.flac' : Flac
     } 
 
     def set_tags_from_list(self, l):
@@ -253,7 +253,8 @@ class MusicFile(object):
             if (not os.path.exists(filename)):
                 log.warn("Path not found {0}".format(filename))
                 raise FileNotFound
-            mediatype = filename.rsplit('.', 1)[1]
+            basename, mediatype = os.path.splitext(filename)
+            log.debug("Mediatype : {0}".format(mediatype))
             if (not mediatype in self.Types):
                 raise TypeNotSupported 
             if ('.AppleDouble' in filename):

@@ -49,9 +49,12 @@ def album_decorator(func):
 
 class Album(object):
     
-    def __init__(self, tracks):
-        self.tracks = tracks
-       
+    def __init__(self):
+        self.tracks = []
+
+    def append_track(self, track):
+        self.tracks.append(track)
+
     @album_decorator
     def __str__(self):
         buff = ''
@@ -61,17 +64,18 @@ class Album(object):
 
 class MarkupWriter(object):    
 
-    def create_track(self, **kwargs):
-        return Track(**kwargs)
+    def __init__(self, filename):
+        self.filename = filename
+        self.albums = []
 
-    def create_album(self, tracks):
-        return Album(tracks)
+    def add_album(self, a):
+        self.albums.append(a)
 
-    def write_file(self, fn, albums):
-        with open(fn, 'w') as fh:
+    def write(self):
+        with open(self.filename, 'w') as fh:
             fh.write('<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n')
             fh.write('<albums>\n')
-            for album in albums:
+            for album in self.albums:
                 fh.write(str(album))
             fh.write('</albums>\n')
 
