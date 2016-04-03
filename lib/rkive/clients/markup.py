@@ -52,7 +52,7 @@ class Album(object):
     def __init__(self):
         self.tracks = []
 
-    def append_track(self, track):
+    def add_track(self, track):
         self.tracks.append(track)
 
     @album_decorator
@@ -72,6 +72,9 @@ class MarkupWriter(object):
         self.albums.append(a)
 
     def write(self):
+        if not self.albums:
+            print("No albums to output")
+            return
         with open(self.filename, 'w') as fh:
             fh.write('<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>\n')
             fh.write('<albums>\n')
