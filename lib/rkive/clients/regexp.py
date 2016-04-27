@@ -36,10 +36,8 @@ class Regexp:
         tokens = {}
         i = 0
         for group in matches.groups():
-            log.debug("token_index: {0}".format(self.token_index[i]))
-            log.debug("group: {0}".format(group))
             token_name = self.token_index[i]
-            log.debug("name: {0}".format(token_name))
+            log.debug("token index: {0} name: {1} value: {2}".format(i, token_name, group))
             tokens[token_name] = group
             i = i + 1
         return tokens
