@@ -17,7 +17,7 @@ class ParsePattern(argparse.Action):
         super(ParsePattern, self).__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        values = rkive.clients.regexp.Regexp(self.pattern)        
+        values = rkive.clients.regexp.Regexp(values)        
         setattr(namespace, self.dest, values)
 
 class Tagger(GetOpts):
@@ -62,7 +62,6 @@ class Tagger(GetOpts):
             if not self.media:
                 log.fatal("No media object instanciated")
                 raise 
-            print(self.media)
             # check arguments for something to add tags/to
             for t in Media.TagMap:
                 if hasattr(self, t):
@@ -123,12 +122,15 @@ class Tagger(GetOpts):
         visit_files(
             folder=self.base, 
             funcs=[self.mod_filetags_from_regexp], 
-            include=self.include)
+            include=self.include,
+            recursive=self.recursive)
 
     def mod_filetags_from_regexp(self, root, filename):
         log = getLogger('Rkive.MusicFiles')        
         (fn, ext) = os.path.splitext(filename)
-        self.pattern.match(fn, self.media)
+        self.media = MusicFile()
+        for t,v in self.pattern.match(fn).items():
+            setattr(self.media, t, v)
         self.modify_file_tags(root, filename)
 
     def modify_from_cuesheet(self):
@@ -180,7 +182,7 @@ class Tagger(GetOpts):
         if self.dryrun:
             log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
             for t,v in self.media.__dict__.items():
-                log.info("Tag to set: {0} Value: {1}".format(t.encode('utf-8'), v.encode('utf-8')))
+                log.info("Tag to set: {0} Value: {1}".format(t, v))
             return
         log.info("modifying tags of file {0}".format(fp))
         try:

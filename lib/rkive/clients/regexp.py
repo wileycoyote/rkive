@@ -16,7 +16,7 @@ class Regexp:
         log = getLogger('Rkive.MusicFiles')
         token_count = 0
         token_regexp = tokens
-        log.info("tokens: {0}".format(tokens))
+        log.info("TOKENS: {0}".format(tokens))
         for token, regexp in self.token_exemplars.items():
             if token in token_regexp:
                 token_regexp = token_regexp.replace(token, regexp)
@@ -26,8 +26,9 @@ class Regexp:
         self.regexp = re.compile(token_regexp)
         return token_regexp
 
-    def match(self, s, parent):
+    def match(self, s):
         log = getLogger('Rkive.MusicFiles')
+        log.debug("Match: s {0}".format(s))
         matches = self.regexp.match(s)
         if not matches:
             log.warn("no matches for {0}".format(s))
@@ -38,9 +39,7 @@ class Regexp:
             log.debug("token_index: {0}".format(self.token_index[i]))
             log.debug("group: {0}".format(group))
             token_name = self.token_index[i]
+            log.debug("name: {0}".format(token_name))
             tokens[token_name] = group
             i = i + 1
-        if parent:
-            for n, v in tokens.items():
-                setattr(parent, n,v)
         return tokens
