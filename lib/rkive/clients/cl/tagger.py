@@ -17,7 +17,7 @@ class ParsePattern(argparse.Action):
         super(ParsePattern, self).__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        values = rkive.clients.regexp.Regexp(values)        
+        values = rkive.clients.regexp.Regexp(values)
         setattr(namespace, self.dest, values)
 
 class Tagger(GetOpts):

@@ -11,7 +11,7 @@ import rkive.clients.cl.opts
 from rkive.clients.files import visit_files
 import rkive.clients.log
 
-class ConvertClient(object):
+class ConvertClient(GetOpts):
     split_cmd = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],    
     ffmpeg_mp3 =  ['ffmpeg', '-i', '"[infile]"', '-acodec','libmp3lame', '-ab', '128k', '-map_metadata 0:s:0','"[outfile]"']
     convert_cmd = {
@@ -21,17 +21,17 @@ class ConvertClient(object):
     }
     def run(self, logloc=""):
         try:
-            go = rkive.clients.cl.opts.GetOpts(parent=self)
-            go.p.add_argument(
+            p = self.get_parser()
+            p.add_argument(
                 '--convert',  
                 help="", 
                 action='store_true')
-            go.p.add_argument(
+            p.add_argument(
                 '--split',
                 nargs=1,
                 help="name of cue file to be split",
                 action=FileValidation)
-            go.get_opts()
+            p.parse_args(namespace=self)
             rkive.clients.log.LogInit().set_logging(
                     location=logloc, 
                     filename='converter.log', 
@@ -42,7 +42,9 @@ class ConvertClient(object):
                 visit_files(
                     folder=self.base, 
                     funcs=[self.convert_file], 
-                    include=self.include_convert)
+                    include=self.include_convert,
+                    recursive=True
+                )
                 sys.exit()
             if self.split:
                 print("Folder: "+self.base)
