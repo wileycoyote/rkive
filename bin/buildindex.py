@@ -2,7 +2,7 @@
 from rkive.clients.files import visit_files
 import os.path
 import re
-from rkive.index.schema import Base
+from rkive.index.schema import Base, Movie
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlite3 import dbapi2 as sqlite
@@ -22,7 +22,9 @@ def index_movies(root, name):
         movie = m.group(1)
         director = m.group(2)
         year = m.group(3)
-        movies[ld] = Movie(movie, director, year)
+        directors = director.split(', ')
+        print(directors)
+        movies[ld] = Movie(movie, directors, year)
 
 # Create an engine that stores data in the local directory's
 # sqlalchemy_example.db file.
@@ -42,6 +44,9 @@ db = DBSession()
 root='/media/azure/Multimedia/Movies/'
 visit_files(folder=root, funcs=[index_movies],recursive=True)
 for m in movies.values():
-    m.set_session(db)
+    m.set_db(db)
     m.p()
     m.save()
+movies = Movie.get_movies(db)
+for movie in movies:
+    movie.p()
