@@ -1,6 +1,8 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, backref, sessionmaker
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table
+
+Base = declarative_base()
 
 association_table = Table('association', Base.metadata,
     Column('opus_id', Integer, ForeignKey('opus.id')),
@@ -10,34 +12,70 @@ association_table = Table('association', Base.metadata,
 class Opus(Base):
     __tablename__ = 'opus'
     id = Column(Integer, primary_key=True)
-    participant = relationship("Participant",
-                    secondary=association_table)
+    title = Column(String)
+    participants = relationship("Participant",
+                    secondary=association_table,
+                    back_populates="opii")
     category = Column(String)
-    children = relationship("Media")
+    mediaobjects = relationship("Media")
+
+    def __init__(self, t, c, p):
+        self.title = t
+        self.category = c
+
 
 class Participant(Base):
     __tablename__ = 'participant'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     role = Column(String)
+    opii = relationship(
+        "Opus",
+        secondary=association_table,
+        back_populates="participants")
+
+    def __init__(self, n, r):
+        self.name = n
+        self.role = r
 
 class Media(Base):
     __tablename__= 'media'
     id = Column(Integer, primary_key=True)
     parent_id = Column(Integer, ForeignKey('opus.id'))
     media = Column(String)
-    year_recorded = Column(String)
+    year_produced = Column(String)
+    year_released = Column(String)
     year_reissued = Column(String)
+    media_type = Column(String)
 
-# Create an engine that stores data in the local directory's
-# sqlalchemy_example.db file.
-engine = create_engine('postgresql://postgres:postgres@192.168.1.155/MediaIndex')
- 
-# Create all tables in the engine. This is equivalent to "Create Table"
-# statements in raw SQL.
-Base.metadata.create_all(engine)
-Base.metadata.bind = engine
-DBSession = sessionmaker()
-DBSession.bind = engine
-db = DBSession()    
-    
+    def __init__(self, mt, y):
+        self.media_type = m
+        self.year_released = y
+
+class Movie(object):
+
+    def __init__(self, title, director, year):
+        self.title = title
+        self.director = director
+        self.year = year
+        self.category = 'movie'
+        self.role = 'director'
+
+    def p(self):
+        print("{0}, ({1}, {2})".format(self.title, self.director, self.year))
+
+    def set_db(self, db):
+        self.db = db
+        
+    def save(self):
+        m = Media('mkv',self.year)
+        o = Opus(self.title, 'movie')
+        p = Participant(self.director, 'director')
+        p.opii.append(o)
+        o.participants.append(p)
+        o.mediaobjects.append(m)
+        self.db.add(p)
+        self.db.add(o)
+        self.db.add(m)
+        self.db.add(a)
+        self.db.commit()
