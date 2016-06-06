@@ -47,6 +47,3 @@ for m in movies.values():
     m.set_db(db)
     m.p()
     m.save()
-movies = Movie.get_movies(db)
-for movie in movies:
-    movie.p()
