@@ -22,19 +22,6 @@ Base.metadata.bind = engine
 DBSession = sessionmaker()
 DBSession.bind = engine
 session = DBSession()    
-category='movie'
-title='Laura'
-fmt ='mkv'
-year='1944'
-directors = ['Preminger']
-try:
-    m=session.query(Opus, Media).\
-            filter_by(category=category,title=title).\
-            filter(Media.media_format==fmt,Media.year_produced==year,Opus.id==Media.id).\
-            filter(and_(Opus.participants.any(Participant.role=='director'), Participant.name.in_(directors))).\
-            one()
-except alchemy_exceptions.SQLAlchemyError:
-    print("Not found")
-    import sys
-    sys.exit()
+f = Movie.get_movies_full(session)
+
 print(m[0].title,m[1].year_produced)
