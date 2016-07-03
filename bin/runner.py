@@ -10,11 +10,8 @@ if (script == 'rk_upload'):
     from rkive.clients.cl.uploader import Uploader
     Uploader().run(logloc=log)
 if (script == 'rk_index'):
-    from rkive.clients.cl.indexer import Indexer
-    Indexer().run(logloc=log)
-if (script == 'rk_backup'):
-    from rkive.clients.cl.backup import BackupClient
-    BackupClient().run(logloc=log)
+    from rkive.clients.cl.index import IndexClient
+    IndexClient().run(logloc=log)
 if (script == 'rk_report'):
     from rkive.clients.cl.reporter import ReportClient
     ReportClient().run(logloc=log)
@@ -24,3 +21,6 @@ if (script == 'markup'):
 if (script == 'rk_convert'):
     from rkive.clients.cl.converter import ConvertClient
     ConvertClient().run(logloc=log)
+if (script == 'rk_make_index'):
+    from rkive.clients.cl.makeindex import MakeIndexClient
+    MakeIndexClient().run(logloc=log)

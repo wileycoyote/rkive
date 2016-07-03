@@ -9,11 +9,9 @@ setup(name='Rkive',
 	      'rkive', 
 	      'rkive.clients',
 	      'rkive.clients.cl',
-	      'rkive.clients.gui', 
-	      'rkive.clients.web',
-	      'rkive.distribution',
-	      'rkive.distribution.net',
-	      'rkive.index'
+	      'rkive.clients.kivy', 
+	      'rkive.clients.web', 
+	      'rkive.index',
 	      ],
       package_dir = {
 	      'rkive' : 'lib/rkive',
@@ -21,9 +19,7 @@ setup(name='Rkive',
 	      'rkive.uploader' : 'lib/rkive/uploader',
 	      'rkive.index' : 'lib/rkive/index',
 	      'rkive.clients.cl': 'lib/rkive/clients/cl',
-	      'rkive.clients.gui' : 'lib/rkive/clients/gui',
 	      'rkive.clients.web' : 'lib/rkive/clients/web',
-	      'rkive.uploader.net' : 'lib/rkive/uploader/net'
-
+	      'rkive.clients.kivy' : 'lib/rkive/clients/kivy',
 	}
      )
