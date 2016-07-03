@@ -6,9 +6,6 @@ log = os.path.join(os.path.expanduser('~'), 'logs')
 if (script == 'rk_tag'):
     from rkive.clients.cl.tagger import Tagger
     Tagger().run(logloc=log)
-if (script == 'rk_upload'):
-    from rkive.clients.cl.uploader import Uploader
-    Uploader().run(logloc=log)
 if (script == 'rk_index'):
     from rkive.clients.cl.index import IndexClient
     IndexClient().run(logloc=log)
