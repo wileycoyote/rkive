@@ -7,9 +7,8 @@ from logging import getLogger
 import glob
 import copy
 from rkive.clients.cl.opts import GetOpts,FileValidation
-import rkive.clients.cl.opts
 from rkive.clients.files import visit_files
-import rkive.clients.log
+from rkive.clients.log import LogInit
 
 class ConvertClient(GetOpts):
     split_cmd = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],    
@@ -19,7 +18,7 @@ class ConvertClient(GetOpts):
         '.wav' : ['pacpl', '-t', 'flac', '[infile]'],
         '.m4a' : ffmpeg_mp3
     }
-    def run(self, logloc=""):
+    def __init__(self, logfolder=None):
         try:
             p = self.get_parser()
             p.add_argument(
@@ -32,11 +31,16 @@ class ConvertClient(GetOpts):
                 help="name of cue file to be split",
                 action=FileValidation)
             p.parse_args(namespace=self)
-            rkive.clients.log.LogInit().set_logging(
-                    location=logloc, 
-                    filename='converter.log', 
-                    debug=self.debug, 
-                    console=self.console)
+            LogInit().set_logging(
+                location=logfolder, 
+                filename='converter.log', 
+                debug=self.debug, 
+                console=self.console)
+        except SystemExit:
+            pass
+
+    def run(self):
+        try:
             log = getLogger('Rkive.Converter')
             if self.convert:
                 visit_files(

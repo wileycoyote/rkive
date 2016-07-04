@@ -1,29 +1,38 @@
 from rkive.clients.cl.opts import GetOpts, FileValidation
-import rkive.clients.log
+from rkive.clients.log import LogInit
 import argparse
 from logging import getLogger
 import sys
 
 class MarkupClient(GetOpts):
 
-    def run(self, logloc=None):
+    def __init__(self, logfolder):
         try:
-            go = GetOpts(parent=self)
-            go.p.add_argument('--bare',  type=str, help="data with no markup", action=FileValidation)
-            go.p.add_argument('--markup',  type=str, help="marked-up file")
-            go.p.add_argument(
+            p = self.get_parser()
+            p.add_argument('--bare',  type=str, help="data with no markup", action=FileValidation)
+            p.add_argument('--markup',  type=str, help="marked-up file")
+            p.add_argument(
                 'infile', 
                 nargs='?', 
                 type=argparse.FileType('r'),
                 default=sys.stdin)
-            go.p.add_argument(
+            p.add_argument(
                 'outfile', 
                 nargs='?', 
                 type=argparse.FileType('w'),
                 default=sys.stdout)
-            go.get_opts()
+            p.parse_args(namespace=self)
             self.console = True
-            rkive.clients.log.LogInit().set_logging(location=log, filename='markup.log', debug=self.debug, console=self.console)
+            LogInit().set_logging(
+                location=logfolder, 
+                filename='markup.log', 
+                debug=self.debug, 
+                console=self.console)
+        except SystemExit:
+            pass
+
+    def run(self, logloc=None):
+        try:
             log = getLogger('Rkive.Markup')
             if (self.markup and self.bare):
                 self.create_markup(self.bare, self.markup)

@@ -1,5 +1,5 @@
-import rkive.clients.log
-import rkive.clients.cl.opts
+from rkive.clients.log import LogInit
+from rkive.clients.cl.opts import GetOpts
 import os.path
 import argparse
 from logging import getLogger
@@ -45,14 +45,15 @@ class ListScreen(GridLayout):
         self.password = TextInput(password=True, multiline=False)
         self.add_widget(self.password)
 
-class IndexClient(App):
+class IndexClient(App, GetOpts):
 
-    def build(self): 
+    def __init__(self, logfolder='.'):
         try:
-            go = rkive.clients.cl.opts.GetOpts(parent=self)
-            go.get_opts()
-            rkive.clients.log.LogInit().set_logging(location=logloc,filename='index.log', debug=self.debug, console=self.console)
+            p = self.get_parser()
+            LogInit().set_logging(location=logfolder,filename='index.log', debug=self.debug, console=self.console)
         except SystemExit:
             pass
+        
+    def build(self): 
         return ListScreen()
 

@@ -22,7 +22,7 @@ class ParsePattern(argparse.Action):
 
 class Tagger(GetOpts):
 
-    def run(self, logloc=None):
+    def __init__(self, logfolder=None):
         try:
             p = self.get_parser()
             p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
@@ -36,8 +36,17 @@ class Tagger(GetOpts):
                 comment = v['comment']
                 p.add_argument(option, help=comment, type=str)
             p.parse_args(namespace=self)
-            LogInit().set_logging(location=logloc, filename='tagger.log', debug=self.debug, console=self.console)
-            log = getLogger('Rkive.Tagger')
+            LogInit().set_logging(
+                location=logfolder, 
+                filename='tagger.log', 
+                debug=self.debug, 
+                console=self.console)
+        except SystemExit:
+            pass
+
+    def run(self, logloc=None):
+        log = getLogger('Rkive.Tagger')
+        try:
             if self.printtags:
                 if self.filename != None:
                     folder, filename = os.path.split(self.filename)
@@ -79,13 +88,9 @@ class Tagger(GetOpts):
                 return
             self.search_and_modify_files()
             return 
-        except SystemExit:
-            pass
         except TypeNotSupported as e:
-            log = getLogger('Rkive.Tagger')
             log.fatal("Type not supported")
         except FileNotFound as e:
-            log = getLogger('Rkive.Tagger')
             log.fatal("Type not supported")
 
     def print_file_tags(self, root, fn):
