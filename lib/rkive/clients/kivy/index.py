@@ -47,13 +47,19 @@ class ListScreen(GridLayout):
 
 class IndexClient(App, GetOpts):
 
-    def __init__(self, logfolder='.'):
+    def __init__(self, logfolder=None):
         try:
             p = self.get_parser()
+            p.add_argument('--gui', help="display gui", action='store_true', default=True)
+            p.parse_args(namespace=self)            
             LogInit().set_logging(location=logfolder,filename='index.log', debug=self.debug, console=self.console)
         except SystemExit:
             pass
         
     def build(self): 
+        log = getLogger('Rkive.Index')        
+        if not self.gui:
+            log.debug("running with no gui")
+            return
         return ListScreen()
 
