@@ -1,6 +1,6 @@
 import unittest
 from rkive.clients.cl.tagger import Tagger
-from rkive.musicfile import Media, MusicFile
+from rkive.index.musicfile import Media, MusicFile
 import sys
 import logging
 import os.path

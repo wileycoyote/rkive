@@ -12,11 +12,12 @@ from rkive.clients.log import LogInit
 
 class ConvertClient(GetOpts):
     split_cmd = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],    
-    ffmpeg_mp3 =  ['ffmpeg', '-i', '"[infile]"', '-acodec','libmp3lame', '-ab', '128k', '-map_metadata 0:s:0','"[outfile]"']
+    ffmpeg_mp3 =  ['ffmpeg', '-i', '"[infile]"', '-acodec','libmp3lame', '-ab', '128k', '"[outfile]"']
     convert_cmd = {
         '.ogg' : ffmpeg_mp3,
         '.wav' : ['pacpl', '-t', 'flac', '[infile]'],
-        '.m4a' : ffmpeg_mp3
+        '.m4a' : ffmpeg_mp3,
+        '.mp4' : ffmpeg_mp3
     }
     def __init__(self, logfolder=None):
         try:
