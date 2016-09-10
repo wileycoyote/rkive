@@ -8,7 +8,14 @@ if (script == 'rk_tag'):
     Tagger(logfolder=log).run()
 if (script == 'rk_index'):
     from rkive.clients.kivy.index import IndexClient
-    IndexClient(logfolder=log).run()
+    index_client = IndexClient(logfolder=log).run()
+    if index_client.gui:
+        from kivy.base import runTouchApp
+        from rkive.clients.kivy.index import MasterDetailView
+        master_detail = MasterDetailView(index_client.data, width=800)
+        runTouchApp(master_detail)
+    else:
+        print('no gui')
 if (script == 'rk_report'):
     from rkive.clients.cl.reporter import ReportClient
     ReportClient(logfolder=log).run()

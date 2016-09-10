@@ -13,6 +13,7 @@ from sqlite3 import dbapi2 as sqlite
 import sqlalchemy.exc as alchemy_exceptions
 import kivy
 kivy.require('1.0.6') # replace with your current kivy version !
+from kivy.uix.listview import ListView
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
@@ -32,19 +33,6 @@ DBSession = sessionmaker()
 DBSession.bind = engine
 session = DBSession()    
 
-class ListScreen(GridLayout):
-
-    def __init__(self, **kwargs):
-        f = Movie.get_movies_full(session)
-        super(LoginScreen, self).__init__(**kwargs)
-        self.cols = 2
-        self.add_widget(Label(text='User Name'))
-        self.username = TextInput(multiline=False)
-        self.add_widget(self.username)
-        self.add_widget(Label(text='password'))
-        self.password = TextInput(password=True, multiline=False)
-        self.add_widget(self.password)
-
 class IndexClient(App, GetOpts):
 
     def __init__(self, logfolder=None):
@@ -53,13 +41,9 @@ class IndexClient(App, GetOpts):
             p.add_argument('--gui', help="display gui", action='store_true', default=True)
             p.parse_args(namespace=self)            
             LogInit().set_logging(location=logfolder,filename='index.log', debug=self.debug, console=self.console)
+            #get the data
         except SystemExit:
             pass
-        
-    def build(self): 
-        log = getLogger('Rkive.Index')        
-        if not self.gui:
-            log.debug("running with no gui")
-            return
-        return ListScreen()
 
+class MasterDetailView(GridLayout):
+    pass
