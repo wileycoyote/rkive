@@ -1,30 +1,11 @@
 #!/usr/bin/env python
 import os.path
 import sys
-script =  os.path.basename(sys.argv[0])
-log = os.path.join(os.path.expanduser('~'), 'logs')
-if (script == 'rk_tag'):
-    from rkive.clients.cl.tagger import Tagger
-    Tagger(logfolder=log).run()
-if (script == 'rk_index'):
-    from rkive.clients.kivy.index import IndexClient
-    index_client = IndexClient(logfolder=log).run()
-    if index_client.gui:
-        from kivy.base import runTouchApp
-        from rkive.clients.kivy.index import MasterDetailView
-        master_detail = MasterDetailView(index_client.data, width=800)
-        runTouchApp(master_detail)
-    else:
-        print('no gui')
-if (script == 'rk_report'):
-    from rkive.clients.cl.reporter import ReportClient
-    ReportClient(logfolder=log).run()
-if (script == 'markup'):
-    from rkive.clients.cl.markup import MarkupClient
-    MarkupClient(logfolder=log).run()
-if (script == 'rk_convert'):
-    from rkive.clients.cl.converter import ConvertClient
-    ConvertClient(logfolder=log).run()
-if (script == 'rk_make_index'):
-    from rkive.clients.cl.makeindex import MakeIndexClient
-    MakeIndexClient(logfolder=log).run()
+from rkive.clients.cl.runner import RkiveRunner
+if __name__ == '__main__':
+    script =  os.path.basename(sys.argv[0])
+    base = os.path.dirname(sys.argv[0])
+    install_path =os.path.dirname(base)
+    logs = os.path.join(os.path.expanduser('~'), 'logs')
+    media_server = '191.168.1.155'
+    RkiveRunner.run(script, logs, install_path, media_server)
