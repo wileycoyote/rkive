@@ -37,9 +37,9 @@ class Tagger(GetOpts):
                 p.add_argument(option, help=comment, type=str)
             p.parse_args(namespace=self)
             LogInit().set_logging(
-                location=logfolder, 
-                filename='tagger.log', 
-                debug=self.debug, 
+                location=logfolder,
+                filename='tagger.log',
+                debug=self.debug,
                 console=self.console)
         except SystemExit:
             pass
@@ -70,14 +70,14 @@ class Tagger(GetOpts):
             self.media = MusicFile()
             if not self.media:
                 log.fatal("No media object instanciated")
-                raise 
+                raise
             # check arguments for something to add tags/to
             for t in Media.TagMap:
                 if hasattr(self, t):
                     v = getattr(self, t)
-                    log.debug("t: {0} v: {1}".format(t, v))                     
+                    log.debug("t: {0} v: {1}".format(t, v))
                     if v:
-                        log.debug("t: {0} v: {1}".format(t, v)) 
+                        log.debug("t: {0} v: {1}".format(t, v))
                         setattr(self.media, t,v)
             if (not self.media.__dict__):
                 log.info("no attributes to apply")
@@ -87,7 +87,7 @@ class Tagger(GetOpts):
                 self.modify_file_tags(folder, filename)
                 return
             self.search_and_modify_files()
-            return 
+            return
         except TypeNotSupported as e:
             log.fatal("Type not supported")
         except FileNotFound as e:
@@ -101,17 +101,17 @@ class Tagger(GetOpts):
 
     def search_and_print_folder(self):
         log = getLogger('Rkive')
-        log.info("print tags of music files in {0}".format(self.base))        
+        log.info("print tags of music files in {0}".format(self.base))
         visit_files(
-            folder=self.base, 
-            funcs=[self.print_file_tags], 
-            include=self.include, 
+            folder=self.base,
+            funcs=[self.print_file_tags],
+            include=self.include,
             recursive=self.recursive)
 
     def search_and_modify_gain(self):
         visit_files(
-            folder=self.base, 
-            funcs=[self.modify_gain], 
+            folder=self.base,
+            funcs=[self.modify_gain],
             include=self.include)
 
     def modify_gain(self, root, filename):
@@ -215,6 +215,5 @@ class Tagger(GetOpts):
         if ext in ['.mp3','.flac']:
             return True
         return False
-
 if __name__ == '__main__':
     Tagger().run()
