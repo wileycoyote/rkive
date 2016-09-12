@@ -20,6 +20,6 @@ setup(name='Rkive',
           'rkive.index' : 'src/rkive/index',
           'rkive.clients.cl': 'src/rkive/clients/cl',
           'rkive.clients.web' : 'src/rkive/clients/web',
-          'rkive.clients.g' : 'src/rkive/clients/kivy'
+          'rkive.clients.gui' : 'src/rkive/clients/gui'
       }
 )
