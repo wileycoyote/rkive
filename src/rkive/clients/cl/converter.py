@@ -12,7 +12,7 @@ from rkive.clients.log import LogInit
 
 class ConvertClient(GetOpts):
     split_cmd = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],    
-    ffmpeg_mp3 =  ['ffmpeg', '-i', '"[infile]"', '-acodec','libmp3lame', '-ab', '128k', '"[outfile]"']
+    ffmpeg_mp3 =  ['ffmpeg', '-i', '[infile]', '[outfile]']
     convert_cmd = {
         '.ogg' : ffmpeg_mp3,
         '.wav' : ['pacpl', '-t', 'flac', '[infile]'],
@@ -94,13 +94,12 @@ class ConvertClient(GetOpts):
         log = getLogger('Rkive')
         base,ext = os.path.splitext(filename)
         cmd = copy.copy(self.convert_cmd[ext])
-        cmd[-1] = cmd[-1].replace('[infile]', filename)
-        #cmd[-2] = cmd[-2].replace('[outfile]',base)
-        if self.dryrun:
-            c = ' '.join(cmd)
-            log.info("Command line to use for convert {0}".format(c))
-            return
+        cmd[2] = cmd[2].replace('[infile]', filename)
+        cmd[-1] = cmd[-1].replace('[outfile]',base+'.mp3')
+        log.debug("filename: {0}, base: {1}".format(filename, base))
         c = ' '.join(cmd)
-        log.info("Command line to use for convert {0}".format(c))
+        log.info("Command line to use for convert {0} #### {1} #####".format(c, root))
+        if self.dryrun:
+            return
         subprocess.call(cmd, cwd=root)
 

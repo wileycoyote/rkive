@@ -1,10 +1,10 @@
 class RkiveRunner:
-    def run(script, logs, install_path, media_server):
+    def run(script, log, install_path, media_server):
         if script == 'rk_tag':
             from rkive.clients.cl.tagger import Tagger
             Tagger(logfolder=log).run()
-        if script == 'rk_index_gui':
-            from rkive.clients.index import IndexClient
+        if script == 'rk_local_index_gui':
+            from rkive.clients.cl.index import IndexClient
             uri = 'sqlite:///{0}data/index.db'.format(install_path)
             engine = create_engine(uri)
             index_client = IndexClient(logfolder=log, engine=engine)

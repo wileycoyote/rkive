@@ -10,7 +10,7 @@ import weakref
 
 class InvalidTag(Exception): pass
 
-class Media(object):
+class Tags(object):
 
     CueMap = {
         'album_name' : 'album',
@@ -93,15 +93,15 @@ class Media(object):
             'mp3' : ['TDRC', TDRC],
             'comment' : 'Year of original recording, remaster dates go in comment'
         },
-    } 
+    }
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.warn("Save method not instanciated")
         return None
 
-class MP3(Media):
-  
+class MP3(Tags):
+
     def __init__(self, filename):
         self.filename = filename
 
@@ -120,7 +120,7 @@ class MP3(Media):
         discnumber = None
         disctotal = None
         if (hasattr(self, 'discnumber')):
-            discnumber = getattr(self, 'discnumber') 
+            discnumber = getattr(self, 'discnumber')
         if (hasattr(self, 'disctotal')):
             disctotal = getattr(self, 'disctotal')
         v = None
@@ -159,13 +159,13 @@ class MP3(Media):
         log.debug("loop through tag values "+str(self.__dict__))
         for t, v in self.__dict__.items():
             if t in self.TagMap:
-                id3_key, func = self.TagMap[t]['mp3']            
+                id3_key, func = self.TagMap[t]['mp3']
                 log.debug("modifying tag {0} with value {1} ".format(id3_key, v))
                 mp3.delall(id3_key)
                 mp3.add(func(encoding=3, text=v))
         mp3.save()
 
-class Flac(Media):
+class Flac(Tags):
 
     def __init__(self, filename):
         self.filename = filename
@@ -179,7 +179,7 @@ class Flac(Media):
             return flac
 
     def save(self):
-        log = getLogger('Rkive.MusicFile')                
+        log = getLogger('Rkive.MusicFile')
         flac = self.get_object()
         if hasattr(self, 'picture'):
             flac.clear_pictures()
@@ -193,7 +193,7 @@ class Flac(Media):
                 pic.mime = u"image/jpeg"
             if v.endswith('png'):
                 pic.mime = u"image/png"
-            pic.width = im.size[0] 
+            pic.width = im.size[0]
             pic.height = im.size[1]
             flac.add_picture(pic)
             delattr(self, 'picture')
@@ -209,17 +209,16 @@ class FileNotFound(Exception):
 class TypeNotSupported(Exception):
     pass
 
-class MediaObjectNotFound(Exception):
+class TagsObjectNotFound(Exception):
     pass
 #
 # Proxy Object
-
 class MusicFile(object):
 
     Types = {
         '.mp3'  : MP3,
         '.flac' : Flac
-    } 
+    }
 
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
@@ -234,14 +233,14 @@ class MusicFile(object):
             log.info("Tag: {0} Value: {1}".format(t, v))
 
     def pprint(self, filename):
-        log = getLogger('Rkive.MusicFiles')        
+        log = getLogger('Rkive.MusicFiles')
         self.filename = filename
         c = self.media.get_object()
         log.info(c.pprint())
 
     def __setattr__(self, t, v):
         log = getLogger('Rkive.MusicFile')
-        if t in Media.TagMap:
+        if t in Tags.TagMap:
             log.debug("{0}: {1}".format(t,v))
             self.__dict__[ t] = v
         elif t=='filename':
@@ -251,9 +250,9 @@ class MusicFile(object):
                 log.warn("Path not found {0}".format(filename))
                 raise FileNotFound
             basename, mediatype = os.path.splitext(filename)
-            log.debug("Mediatype : {0}".format(mediatype))
+            log.debug("Tagstype : {0}".format(mediatype))
             if (not mediatype in self.Types):
-                raise TypeNotSupported 
+                raise TypeNotSupported
             if ('.AppleDouble' in filename):
                 raise TypeNotSupported
             self.__dict__['media'] = self.Types[mediatype](filename)
@@ -261,11 +260,11 @@ class MusicFile(object):
             self.__dict__[t] =  v
 
     def save(self):
-        log = getLogger('Rkive.MusicFiles')        
+        log = getLogger('Rkive.MusicFiles')
         if not self.media:
             log.fatal("No media set")
             raise MediaObjectNotFound
         for t, v in self.__dict__.items():
-            if t in Media.TagMap and v:
+            if t in Tags.TagMap and v:
                 setattr(self.media, t, v)
         self.media.save()
