@@ -11,13 +11,14 @@ from rkive.clients.files import visit_files
 from rkive.clients.log import LogInit
 
 class ConvertClient(GetOpts):
-    split_cmd = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],    
-    ffmpeg_mp3 =  ['ffmpeg', '-i', '[infile]', '[outfile]']
+    split_cmd = ['cuebreakpoints','"[cuefile]"', '|', 'shnsplit', '-O', 'always', '-o', '[type]', '"[infile]"'],
+    ffmpeg_mp3 =  ['ffmpeg', '-y', '-i', '[infile]', '[outfile]']
     convert_cmd = {
         '.ogg' : ffmpeg_mp3,
         '.wav' : ['pacpl', '-t', 'flac', '[infile]'],
         '.m4a' : ffmpeg_mp3,
-        '.mp4' : ffmpeg_mp3
+        '.mp4' : ffmpeg_mp3,
+        '.opus' : ffmpeg_mp3
     }
     def __init__(self, logfolder=None):
         try:
@@ -48,22 +49,24 @@ class ConvertClient(GetOpts):
                     folder=self.base, 
                     funcs=[self.convert_file], 
                     include=self.include_convert,
-                    recursive=True
+                    recursive=self.recursive
                 )
                 sys.exit()
-            if self.split:
-                print("Folder: "+self.base)
-                visit_files(
-                    folder=self.base, 
-                    funcs=[self.split_file], 
-                    include=self.include_split)
-                sys.exit()
+#            if self.split:
+#                print("Folder: "+self.base)
+#                visit_files(
+#                    folder=self.base, 
+#                    funcs=[self.split_file], 
+#                    include=self.include_split)
+#                sys.exit()
         except SystemExit:
             pass
     
     def include_convert(self, root, fn):
         base, ext = os.path.splitext(fn)
-        if ext in ['.wav', '.ogg', '.m4a']:
+        log = getLogger('Rkive.Converter')
+        log.debug("XXXXX root {0} filename {1}".format(root, fn))
+        if ext in self.convert_cmd.keys():
             return True
         return False
 
@@ -94,7 +97,7 @@ class ConvertClient(GetOpts):
         log = getLogger('Rkive')
         base,ext = os.path.splitext(filename)
         cmd = copy.copy(self.convert_cmd[ext])
-        cmd[2] = cmd[2].replace('[infile]', filename)
+        cmd[3] = cmd[3].replace('[infile]', filename)
         cmd[-1] = cmd[-1].replace('[outfile]',base+'.mp3')
         log.debug("filename: {0}, base: {1}".format(filename, base))
         c = ' '.join(cmd)

@@ -12,7 +12,7 @@ association_table = Table('association', Base.metadata,
     Column('participant_id', Integer, ForeignKey('participant.id'))
 )
 
-class Opus(Base):
+class Movie(Base):
     __tablename__ = 'opus'
     id = Column(Integer, primary_key=True)
     title = Column(String)
@@ -57,11 +57,6 @@ class Media(Base):
         self.year_released = yr
         self.year_reissued = yri
 
-class Movie(object):
-    
-    #
-    # folder format is '<title> (<director_1, director_2 ... director_x>, <year>)'
-    film_re = re.compile('(.*?) \((.*?), (\d\d\d\d)\)')
     session = None
     
     def __init__(self, title, director, year):
