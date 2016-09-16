@@ -1,36 +1,42 @@
-import rkive.clients.log
-import rkive.clients.cl.opts
+from rkive.clients.log import LogInit
 import os.path
 import argparse
 from logging import getLogger
 import sys
-from rkive.musicfile import MusicFile
-import rkive.clients.files
+from rkive.clients.cl.opts import GetOpts
+from rkive.index.musicfile import MusicFile, Tags
+from rkive.index.reporter import Reporter
 
-
-class ReportClient(Report, FileSanitiser):
+class ReportClient(GetOpts, Reporter):
 
     def run(self, log=None):
         try:
-            go = rkive.clients.cl.opts.GetOpts(parent=self)
-            go.p.add_argument('--sanitize', help="Sanitize filenames", action='store_true')           
-            go.p.add_argument('--genre', help="Report on genre in music files in upload area", action='store_true')
-            go.p.add_argument('--no-genre', help="Report on music files with no genre in upload area", action='store_true')
-            go.p.add_argument('--summary', help="Summary of files in upload area", action='store_true')
-            go.get_opts()
-            rkive.clients.log.LogInit().set_logging(location=log,filename='uploader.log', debug=self.debug, console=self.console)
-            if (self.sanitize):
-                self.sanitize_files()
-                return
-            if (self.genre):
+            p = self.get_parser()
+            p.add_argument('--filename', help="Report on a music file", action='store_true')
+            p.add_argument('--all', help="Report on all files", action='store_true')
+            for t,v in Tags.TagMap.items():
+                option = '--'+t
+                comment = v['comment']
+                p.add_argument(option, help=comment, type=str)
+            p.parse_args(namespace=self)
+            LogInit().set_logging(
+                location=log,
+                filename='reporter.log',
+                debug=self.debug,
+                console=self.console)
+
+            if self.genre:
                 self.report_genre()
                 return
-            if (self.no_genre):
-                self.report_no_genre()
+
+            if self.title:
+                self.report_title()
                 return
-            if (self.summary):
-                self.list_summaries()
+
+            if self.summary:
+                self.summary()
+                return
+            log.warn("Tag not implemented")
+
         except SystemExit:
             pass
-
-  

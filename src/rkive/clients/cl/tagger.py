@@ -5,7 +5,7 @@ from logging import getLogger
 import glob
 import re
 import xml.etree.ElementTree as ET
-from rkive.index.musicfile import MusicFile, Media, TypeNotSupported, FileNotFound
+from rkive.index.musicfile import MusicFile, Tags, TypeNotSupported, FileNotFound
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
@@ -31,7 +31,7 @@ class Tagger(GetOpts):
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             p.add_argument('--markup', type=str, help="give file containing metadata", action=FileValidation)
             p.add_argument('--gain', help="add gain to music files", action='store_true')
-            for t,v in Media.TagMap.items():
+            for t,v in Tags.TagMap.items():
                 option = '--'+t
                 comment = v['comment']
                 p.add_argument(option, help=comment, type=str)
@@ -72,7 +72,7 @@ class Tagger(GetOpts):
                 log.fatal("No media object instanciated")
                 raise
             # check arguments for something to add tags/to
-            for t in Media.TagMap:
+            for t in Tags.TagMap:
                 if hasattr(self, t):
                     v = getattr(self, t)
                     log.debug("t: {0} v: {1}".format(t, v))
