@@ -5,7 +5,8 @@ from logging import getLogger
 import glob
 import re
 import xml.etree.ElementTree as ET
-from rkive.index.musicfile import MusicFile, Tags, TypeNotSupported, FileNotFound
+from rkive.index.musicfile import MusicFile, Tags, TypeNotSupported, FileNotFound, is_music_file
+from rkive.index.reporter import Reporter
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
@@ -50,9 +51,9 @@ class Tagger(GetOpts):
             if self.printtags:
                 if self.filename != None:
                     folder, filename = os.path.split(self.filename)
-                    self.print_file_tags(folder, filename)
+                    Reporter().all_tags(folder, filename)
                     return
-                self.search_and_print_folder()
+                Reporter().print_folder(self.base, self.recursive)
                 return
             if self.cuesheet:
                 self.modify_from_cuesheet()
@@ -93,26 +94,11 @@ class Tagger(GetOpts):
         except FileNotFound as e:
             log.fatal("Type not supported")
 
-    def print_file_tags(self, root, fn):
-        log = getLogger('Rkive')
-        fp = os.path.join(root, fn)
-        log.info("Music Attributes for {0}".format(fp))
-        MusicFile().pprint(fp)
-
-    def search_and_print_folder(self):
-        log = getLogger('Rkive')
-        log.info("print tags of music files in {0}".format(self.base))
-        visit_files(
-            folder=self.base,
-            funcs=[self.print_file_tags],
-            include=self.include,
-            recursive=self.recursive)
-
     def search_and_modify_gain(self):
         visit_files(
             folder=self.base,
             funcs=[self.modify_gain],
-            include=self.include)
+            include=is_music_file)
 
     def modify_gain(self, root, filename):
         log = getLogger('Rkive.MusicFiles')
@@ -127,7 +113,7 @@ class Tagger(GetOpts):
         visit_files(
             folder=self.base, 
             funcs=[self.mod_filetags_from_regexp], 
-            include=self.include,
+            include=is_music_file,
             recursive=self.recursive)
 
     def mod_filetags_from_regexp(self, root, filename):
@@ -206,14 +192,8 @@ class Tagger(GetOpts):
         visit_files(
             folder=self.base, 
             funcs=[self.modify_file_tags], 
-            include=self.include, 
+            include=is_music_file, 
             recursive=self.recursive)
   
-    def include(self, root, fn):
-        log = getLogger('Rkive.MusicFiles')        
-        basename, ext = os.path.splitext(fn)
-        if ext in ['.mp3','.flac']:
-            return True
-        return False
 if __name__ == '__main__':
     Tagger().run()

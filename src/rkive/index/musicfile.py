@@ -100,6 +100,12 @@ class Tags(object):
         log.warn("Save method not instanciated")
         return None
 
+def is_music_file(self, fp):
+    for t in Tags.Types:
+        if (fp.endswith(t)):
+            return True
+    return False
+
 class MP3(Tags):
 
     def __init__(self, filename):
