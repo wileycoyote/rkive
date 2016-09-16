@@ -50,10 +50,9 @@ class Tagger(GetOpts):
         try:
             if self.printtags:
                 if self.filename != None:
-                    folder, filename = os.path.split(self.filename)
-                    Reporter().all_tags(folder, filename)
+                    self.print_file_tags()
                     return
-                Reporter().print_folder(self.base, self.recursive)
+                Reporter().print_folder()
                 return
             if self.cuesheet:
                 self.modify_from_cuesheet()
@@ -93,6 +92,22 @@ class Tagger(GetOpts):
             log.fatal("Type not supported")
         except FileNotFound as e:
             log.fatal("Type not supported")
+
+    def print_file_tags(self):
+        log = getLogger('Rkive.Tagger')
+        log.info("Music Attributes for {0}".format(self.filename))
+        musicfile = MusicFile()
+        musicfile.set_media(self.filename)
+        musicfile.report_all_attrs()
+
+    def print_folder(self):
+        log = getLogger('Rkive.Tagger')
+        log.info("print tags of music files in {0}".format(base))
+        visit_files(
+            folder=self.base,
+            funcs=[self.print_file_tags],
+            include=is_music_file,
+            recursive=self.recursive)
 
     def search_and_modify_gain(self):
         visit_files(

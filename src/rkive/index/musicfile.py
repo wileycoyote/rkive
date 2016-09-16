@@ -226,6 +226,9 @@ class MusicFile(object):
         '.flac' : Flac
     }
 
+    def __init__(self):
+        self.create_print_none_functions()
+
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
@@ -233,22 +236,49 @@ class MusicFile(object):
             log.info("{0}: {1}".format(t,v))
             setattr(self, t, v)
 
-    def print_attrs(self):
+    def set_media(self, filename):
+        basename, ext = os.path.splitext(filename)
+        self.media = Types[ext](filename)
+        for t in Tags.TagMap:
+            v = self.media.__dict__[t]
+            setattr(self, t, v)
+
+    def print_set_attrs(self):
         log = getLogger('Rkive.MusicFiles')
         for t,v in self.__dict__.items():
             log.info("Tag: {0} Value: {1}".format(t, v))
+
+    def report_all_attrs(self):
+        for t in Tags.TagMap:
+            func_name = 'print_{0}'.format(t)
+            getattr(self, func_name)()
 
     def pprint(self, filename):
         log = getLogger('Rkive.MusicFiles')
         self.filename = filename
         c = self.media.get_object()
         log.info(c.pprint())
+        
+
+    def create_print_none_functions(self):
+        log = getLogger('Rkive.MusicFile')
+        for t in Tag.TagMap:
+            def func(self):
+                print("Attribute {0} has not been set".format(t))
+            func_name = 'print_{0}'.format(t)
+            setattr(self, func_name, func) 
 
     def __setattr__(self, t, v):
         log = getLogger('Rkive.MusicFile')
         if t in Tags.TagMap:
             log.debug("{0}: {1}".format(t,v))
             self.__dict__[ t] = v
+            def func(self):
+                print("Attribute {0} has been set with value {1}".format(t,v))
+            func_name = 'print_{0}'.format(t)
+            #
+            # monkey patch the attribute print function
+            setattr(self, func_name, func)
         elif t=='filename':
             filename = v
             log.info("Filename: {0}".format(filename))
