@@ -227,7 +227,7 @@ class MusicFile(object):
     }
 
     def __init__(self):
-        self.create_print_none_functions()
+        self.create_report_functions()
 
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
@@ -243,30 +243,32 @@ class MusicFile(object):
             v = self.media.__dict__[t]
             setattr(self, t, v)
 
-    def print_set_attrs(self):
-        log = getLogger('Rkive.MusicFiles')
-        for t,v in self.__dict__.items():
-            log.info("Tag: {0} Value: {1}".format(t, v))
+    def report_tag(self, t):
+        func_name = 'print_{0}'.format(t)
+        getattr(self, func_name)()
 
-    def report_all_attrs(self):
+    def report_select_tags(self, tags):
+        log = getLogger('Rkive.MusicFile')
+        for t in tags:
+            self.report_tag(t)
+
+    def report_all_tags(self):
         for t in Tags.TagMap:
-            func_name = 'print_{0}'.format(t)
-            getattr(self, func_name)()
+            self.report_tag(t)
 
     def pprint(self, filename):
-        log = getLogger('Rkive.MusicFiles')
+        log = getLogger('Rkive.MusicFile')
         self.filename = filename
         c = self.media.get_object()
         log.info(c.pprint())
-        
 
-    def create_print_none_functions(self):
+    def create_report_functions(self):
         log = getLogger('Rkive.MusicFile')
         for t in Tag.TagMap:
             def func(self):
                 print("Attribute {0} has not been set".format(t))
             func_name = 'print_{0}'.format(t)
-            setattr(self, func_name, func) 
+            setattr(self, func_name, func)
 
     def __setattr__(self, t, v):
         log = getLogger('Rkive.MusicFile')

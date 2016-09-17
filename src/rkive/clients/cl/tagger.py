@@ -6,7 +6,6 @@ import glob
 import re
 import xml.etree.ElementTree as ET
 from rkive.index.musicfile import MusicFile, Tags, TypeNotSupported, FileNotFound, is_music_file
-from rkive.index.reporter import Reporter
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 import rkive.clients.regexp
 from rkive.clients.files import visit_files
@@ -48,29 +47,30 @@ class Tagger(GetOpts):
     def run(self, logloc=None):
         log = getLogger('Rkive.Tagger')
         try:
-            if self.printtags:
-                if self.filename != None:
-                    self.print_file_tags()
-                    return
-                Reporter().print_folder()
-                return
+
             if self.cuesheet:
                 self.modify_from_cuesheet()
                 return
+
             if self.markup:
                 self.modify_from_markup()
                 return
+
             if self.pattern:
                 self.modify_from_pattern()
                 return
+
             if self.gain:
                 self.search_and_modify_gain()
                 return
+
             #now set the attributes for the media object, if any
             self.media = MusicFile()
+
             if not self.media:
                 log.fatal("No media object instanciated")
                 raise
+
             # check arguments for something to add tags/to
             for t in Tags.TagMap:
                 if hasattr(self, t):
@@ -79,13 +79,27 @@ class Tagger(GetOpts):
                     if v:
                         log.debug("t: {0} v: {1}".format(t, v))
                         setattr(self.media, t,v)
+
+            if self.printtags:
+                if self.filename:
+                    self.media.set_media(filename)
+                    if self.media.__dict__:
+                        self.media.report_select_tags()
+                    else:
+                        self.media.report_all_tags()
+                    return
+                self.report_all_files()
+                return
+
             if (not self.media.__dict__):
                 log.info("no attributes to apply")
                 return
+
             if (self.filename):
                 folder, filename = os.path.split(self.file)
                 self.modify_file_tags(folder, filename)
                 return
+
             self.search_and_modify_files()
             return
         except TypeNotSupported as e:
@@ -93,16 +107,20 @@ class Tagger(GetOpts):
         except FileNotFound as e:
             log.fatal("Type not supported")
 
-    def print_file_tags(self):
+    def report_file_tags(self, base, filename):
         log = getLogger('Rkive.Tagger')
-        log.info("Music Attributes for {0}".format(self.filename))
+        log.info("Music Attributes for {0}".format(filename))
+        filename = os.path.join(base, filename)
         musicfile = MusicFile()
-        musicfile.set_media(self.filename)
-        musicfile.report_all_attrs()
+        musicfile.set_media(filename)
+        if (self.media.__dict__):
+            musicfile.report_select_tags(self.media.__dict__)
+            return
+        musicfile.report_all_tags()
 
-    def print_folder(self):
+    def report_all_files(self):
         log = getLogger('Rkive.Tagger')
-        log.info("print tags of music files in {0}".format(base))
+        log.info("print tags of music files in {0}".format(self.base))
         visit_files(
             folder=self.base,
             funcs=[self.print_file_tags],
@@ -116,7 +134,7 @@ class Tagger(GetOpts):
             include=is_music_file)
 
     def modify_gain(self, root, filename):
-        log = getLogger('Rkive.MusicFiles')
+        log = getLogger('Rkive.Tagger')
         cmd = ['metaflac','--add-replay-gain', filename]
         if filename.endswith('.mp3'):
             cmd = ['mp3gain', '-r', filename]
@@ -124,15 +142,15 @@ class Tagger(GetOpts):
 
     # assume that one pattern matches all the files under examination
     def modify_from_pattern(self):
-        log = getLogger('Rkive.MusicFiles')        
+        log = getLogger('Rkive.Tagger')
         visit_files(
-            folder=self.base, 
-            funcs=[self.mod_filetags_from_regexp], 
+            folder=self.base,
+            funcs=[self.mod_filetags_from_regexp],
             include=is_music_file,
             recursive=self.recursive)
 
     def mod_filetags_from_regexp(self, root, filename):
-        log = getLogger('Rkive.MusicFiles')        
+        log = getLogger('Rkive.Tagger')
         (fn, ext) = os.path.splitext(filename)
         self.media = MusicFile()
         for t,v in self.pattern.match(fn).items():
@@ -140,15 +158,15 @@ class Tagger(GetOpts):
         self.modify_file_tags(root, filename)
 
     def modify_from_cuesheet(self):
-        log = getLogger('Rkive.MusicFiles')        
-        import audiotools.cue 
+        log = getLogger('Rkive.Tagger')
+        import audiotools.cue
         cue = audiotools.cue.read_cuesheet(self.cuesheet)
         (folder, base) = os.path.split(sheet)
         if (folder ==''):
             folder = os.getcwd()
         log.info("Using cuesheet {0} in folder {1}".format(base, folder))
         os.chdir(folder)
-        files = glob.glob('*.flac') 
+        files = glob.glob('*.flac')
         for filename in files:
             # shntool gives us this nice %t-%name filename
             file_number = re.search('(\d\d)', filename)
@@ -170,7 +188,7 @@ class Tagger(GetOpts):
             m.save()
 
     def modify_from_markup(self):
-        log = getLogger('Rkive.MusicFiles')        
+        log = getLogger('Rkive.Tagger')
         tree = ET.parse(self.markup)
         albums = tree.getroot()
         for album in albums:
@@ -183,7 +201,7 @@ class Tagger(GetOpts):
                 m.save()
 
     def modify_file_tags(self, root, filename):
-        log = getLogger('Rkive')
+        log = getLogger('Rkive.Tagger')
         fp = os.path.join(root, filename)
         if self.dryrun:
             log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
@@ -200,15 +218,15 @@ class Tagger(GetOpts):
         except AttributeError as e:
             log.warn("Attribute error {0} with {1}".format(e, fp))
             return
-       
+
     def search_and_modify_files(self):
-        log = getLogger('Rkive')
-        log.info("modify tags of music files in {0}".format(self.base))        
+        log = getLogger('Rkive.Tagger')
+        log.info("modify tags of music files in {0}".format(self.base))
         visit_files(
-            folder=self.base, 
-            funcs=[self.modify_file_tags], 
-            include=is_music_file, 
+            folder=self.base,
+            funcs=[self.modify_file_tags],
+            include=is_music_file,
             recursive=self.recursive)
-  
+
 if __name__ == '__main__':
     Tagger().run()
