@@ -109,13 +109,15 @@ class Tagger(GetOpts):
 
     def report_file_tags(self, base, filename):
         log = getLogger('Rkive.Tagger')
-        log.info("Music Attributes for {0}".format(filename))
-        filename = os.path.join(base, filename)
-        musicfile = MusicFile()
-        musicfile.set_media(filename)
+        fp = os.path.join(base, filename)
+        log.info("Music Attributes for {0}".format(fp))
+        musicfile=MusicFile()
+        log.debug(self.media.__dict__)
         if (self.media.__dict__):
+            musicfile.set_media(fp)
             musicfile.report_select_tags(self.media.__dict__)
             return
+        musicfile.set_media(fp)
         musicfile.report_all_tags()
 
     def report_all_files(self):
@@ -123,7 +125,7 @@ class Tagger(GetOpts):
         log.info("print tags of music files in {0}".format(self.base))
         visit_files(
             folder=self.base,
-            funcs=[self.print_file_tags],
+            funcs=[self.report_file_tags],
             include=is_music_file,
             recursive=self.recursive)
 
