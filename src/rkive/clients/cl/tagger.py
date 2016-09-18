@@ -26,6 +26,7 @@ class Tagger(GetOpts):
         try:
             p = self.get_parser()
             p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
+            p.add_argument('--tag', type=str, nargs='?', help="select tag for printtag", action='append')
             p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
@@ -112,10 +113,10 @@ class Tagger(GetOpts):
         fp = os.path.join(base, filename)
         log.info("Music Attributes for {0}".format(fp))
         musicfile=MusicFile()
-        log.debug(self.media.__dict__)
-        if (self.media.__dict__):
+        log.debug(self.tag)
+        if (self.tag):
             musicfile.set_media(fp)
-            musicfile.report_select_tags(self.media.__dict__)
+            musicfile.report_select_tags(self.tag)
             return
         musicfile.set_media(fp)
         musicfile.report_all_tags()

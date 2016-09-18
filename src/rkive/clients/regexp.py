@@ -2,7 +2,7 @@ import re
 from logging import getLogger
 
 class Regexp:
-    token_exemplars = {
+    token_templates = {
         '%tracknumber%' : '(\d+)', 
         '%title%' : '(.+)',
         '%discnumber%' : '(\d+?)'
@@ -17,7 +17,7 @@ class Regexp:
         token_count = 0
         token_regexp = tokens
         log.info("TOKENS: {0}".format(tokens))
-        for token, regexp in self.token_exemplars.items():
+        for token, regexp in self.token_templates.items():
             if token in token_regexp:
                 token_regexp = token_regexp.replace(token, regexp)
                 tl = len(token) -1 
