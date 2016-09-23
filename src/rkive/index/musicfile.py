@@ -280,13 +280,26 @@ class MusicFile(object):
         if hasattr(self,method_name):
             getattr(self, method_name)(self)
         else:
-            log.info("Attribute {0} has not been set".format(t))
+            log.info("{0}: Attribute {1} has not been set".format(self.media.filename, t))
 
-    def report_select_tags(self, tags):
+    def report_unset_tags(self, tags):
         log = getLogger('Rkive.MusicFile')
-        log.debug("XXXXXX report_select_tags")        
+        if not tags:
+            return
         for t in tags:
-            self.report_tag(t)
+            method_name = self.make_method_name(t)
+            if not hasattr(self, method_name):
+                log.info("{0}: Attribute {1} has not been set".format(self.media.filename, t))
+
+    def report_set_tags(self, tags):
+        log = getLogger('Rkive.MusicFile')
+        log.debug("XXXXXX report_set_tags")        
+        if not tags:
+            return
+        for t in tags:
+            method_name = self.make_method_name(t)
+            if hasattr(self, method_name):
+                getattr(self, method_name)(self)
 
     def report_all_tags(self):
         log = getLogger('Rkive.MusicFile')

@@ -7,93 +7,89 @@ import re
 
 Base = declarative_base()
 
-association_table = Table('association', Base.metadata,
-    Column('opus_id', Integer, ForeignKey('opus.id')),
-    Column('participant_id', Integer, ForeignKey('participant.id'))
-)
+class Media(Base):
+    __tablename__='media'
+    id = Column(Integer, primary_key=True)
+    filepath = Column(String)
+    format = Column(String)
+
+    def __init__(self, fp, fmt):
+        self.filepath = fp
+        self.format = fmt
+
+class Person(Base):
+    __tablename__='person'
+    id = Column(Integer, primary_key=True),
+    name = Column(String)
+
+    def __init__(self, n):
+        self.name = n
+
+class MoviePeople(Base):
+    __tablename__ = 'moviepeople'
+    id = Column(Integer, primary_key=True)
+    role = Column(String)
+    people_id = Column(Integer, ForeignKey('people.id'))
+    person = relationship("Person")
+    movie_id = Column(Integer, ForeignKey("movie.id"))
+
+    def __init__(self, r, p):
+        self.role = r
+        self.person = p
 
 class Movie(Base):
-    __tablename__ = 'opus'
+    __tablename__ = 'movie'
     id = Column(Integer, primary_key=True)
     title = Column(String)
     category = Column(String)
-    participants = relationship("Participant",
-                    secondary=association_table,
-                    back_populates="opii",
-                    cascade="all, delete")
+    year = Column(String)
     mediaobjects = relationship("Media", cascade="all, delete, delete-orphan")
+    people = relationship("MoviePeople", cascade="all, delete, delete-orphan")
 
-    def __init__(self, t, c):
-        self.title = t
-        self.category = c
-
-
-class Participant(Base):
-    __tablename__ = 'participant'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    role = Column(String)
-    opii = relationship(
-        "Opus",
-        secondary=association_table,
-        back_populates="participants")
-
-    def __init__(self, n, r):
-        self.name = n
-        self.role = r
-
-class Media(Base):
-    __tablename__= 'media'
-    id = Column(Integer, primary_key=True)
-    parent_id = Column(Integer, ForeignKey('opus.id'))
-    media_format = Column(String)
-    year_produced = Column(String)
-    year_released = Column(String)
-    year_reissued = Column(String)
-
-    def __init__(self, mfmt, yp, yr, yri):
-        self.media_format = mfmt
-        self.year_produced = yp
-        self.year_released = yr
-        self.year_reissued = yri
-
-    session = None
-    
-    def __init__(self, title, director, year):
+    def __init__(self, title, year, fp):
         self.title = title
         self.director = []
-        for d in director:
-            self.director.append(d)
         self.year = year
         self.category = 'movie'
-        self.role = 'director'
 
     def p(self):
         directors = ', '.join(self.directors)
         p='{0} ({1}, {2})'.format(self.title, directors, self.year)
         print(p)
 
-    def save(self):
-        m = Media('mkv',self.year,self.year,self.year)
-        o = Opus(self.title, 'movie')
-        for d in self.director:
-            p = Participant(d, 'director')
-            p.opii.append(o)
-            o.participants.append(p)
-        o.mediaobjects.append(m)
-        Movie.session.add(p)
-        Movie.session.add(o)
-        Movie.session.add(m)
-        Movie.session.commit()
+    def add_media(self, m):
+        self.mediaobjects.append(m)
+
+    def add_person(self, person):
+        self.people.append(person)
+
+class Movies(Base):
+
+    session = None
+    file_re = re.compile('(.+?) \((.*?)\), \((\d\d\d\d)\)')
+
+    def add_movie(title, year, directors, fp):
+        m = Movie(title, year)
+        for d in directors:
+            p = Person(d)
+            session.add(p)
+            mp = MoviePeople('director', p)
+            session.add(mp)
+            m.add_person(mp)
+        t ='mkv'
+        media = MediaObject(t, fp)
+        session.add(media)
+        m.add_media(media)
+        session.add(m)
+        session.commit()
 
     def get_movies():
-        return Movie.session.query(Opus.title).filter_by(category='movie').all() 
-
+        return Movies.session.query(Movie.title).all()
     #
     # returns a list of <movie_name> (<director(s)>, <year>)
     def get_movies_index():
         movie_info = set()
-        movies = Movie.session.query(Opus).filter_by(category='movie').all() 
+        movies = Movies.session.query(Movie).all()
         for movie in movies:
             info = Movie.get_movie_index(movie)
             movie_info.add(info)
@@ -101,7 +97,7 @@ class Media(Base):
 
     def get_movie_index(movie):
         directors = []
-        for p in movie.participants:
+        for p in movie.people:
             if p.role=='director':
                 directors.append(p.name)
         year =''
@@ -112,36 +108,35 @@ class Media(Base):
         return '{0} ({1}, {2})'.format(movie.title, directors, year)
 
     def find_movie(title, fmt, year,directors=[] ):
-        category = 'movie'
         role='director'
         movie = None
         try:
-            movie=Movie.session.query(Opus, Media).\
-            filter_by(category=category,title=title).\
-            filter(Media.media_format==fmt,Media.year_produced==year,Opus.id==Media.id).\
-            filter(and_(Opus.participants.any(Participant.role==role), Participant.name.in_(directors))).\
+            movie=Movies.session.query(Movie, Media).\
+            filter_by(title=title).\
+            filter(Media.format==fmt,Movie.year==year,Movie.id==Media.id).\
+            filter(and_(Movie.people.any(People.role==role), People.name.in_(directors))).\
             one()
         except alchemy_exceptions.SQLAlchemyError:
             return movie
         return movie
 
     def is_movie(s):
-        m = Movie.film_re.match(s)
+        m = Movies.film_re.match(s)
         if not m:
             return False
         movie = m.group(1)
         director = m.group(2)
         year = m.group(3)
         directors = director.split(', ')
-        if Movie.find_movie(movie, 'mkv', year, directors):
+        if Movies.find_movie(movie, 'mkv', year, directors):
             return True
-        m = Movie(movie, directors, year)
+        m = self.add_movie(movie, directors, year)
         m.save()
         return True
 
     def remove_movies(movies):
         for movie in movies:
-            m = Movie.film_re.match(movie)
+            m = Movies.film_re.match(movie)
             title = m.group(1)
             directors = m.group(2).split(', ')
             year = m.group(3)

@@ -26,7 +26,9 @@ class Tagger(GetOpts):
         try:
             p = self.get_parser()
             p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
-            p.add_argument('--tag', type=str, nargs='?', help="select tag for printtag", action='append')
+            p.add_argument('--tag', type=str, nargs='?', help="select tags which are set for printtag", action='append')
+            p.add_argument('--no-tag', type=str, nargs='?', help="select tag which are not set for printing", action='append')
+            p.add_argument('--all-tags', help="report all tags", action='store_true', default=False)
             p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
@@ -84,10 +86,7 @@ class Tagger(GetOpts):
             if self.printtags:
                 if self.filename:
                     self.media.set_media(filename)
-                    if self.media.__dict__:
-                        self.media.report_select_tags()
-                    else:
-                        self.media.report_all_tags()
+                    self.report_file_tags()
                     return
                 self.report_all_files()
                 return
@@ -111,15 +110,16 @@ class Tagger(GetOpts):
     def report_file_tags(self, base, filename):
         log = getLogger('Rkive.Tagger')
         fp = os.path.join(base, filename)
-        log.info("Music Attributes for {0}".format(fp))
         musicfile=MusicFile()
-        log.debug(self.tag)
-        if (self.tag):
-            musicfile.set_media(fp)
-            musicfile.report_select_tags(self.tag)
-            return
         musicfile.set_media(fp)
-        musicfile.report_all_tags()
+        if self.all_tags:
+            log.info("Music Attributes for {0}".format(fp))
+            musicfile.report_all_tags()
+            return
+        if self.no_tag:
+            musicfile.report_unset_tags(self.no_tag)
+        if self.tag:
+            musicfile.report_set_tags(self.tag)
 
     def report_all_files(self):
         log = getLogger('Rkive.Tagger')
