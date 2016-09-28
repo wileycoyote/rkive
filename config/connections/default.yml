@@ -1,0 +1,5 @@
+{
+  "type":"sqlite3",
+  #This is empty if in-memory is to be used
+  "path":"/home/roger/.config/rkive/database"
+}

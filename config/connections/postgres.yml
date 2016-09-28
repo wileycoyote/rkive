@@ -1,0 +1,9 @@
+{
+  "type":"postgresql",
+  "username":"scott",
+  "password":"tiger",
+  "hostname":"localhost",
+  "port":"5432",
+  "path":"/mydatabase",
+  "active":"no"
+}
