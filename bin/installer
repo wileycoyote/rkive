@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import os
 import os.path
+import shutil
 runner_files = [
-    'rk_report', 
-    'rk_index', 
-    'rk_tag', 
+    'rk_report',
+    'rk_index',
+    'rk_tag',
     'rk_convert',
     'rk_markup',
     'rk_make_index'
@@ -19,3 +20,7 @@ for f in runner_files:
         os.remove(tgt)
     print ("Installing {0} as {1}".format(src, tgt))
     os.symlink(src, tgt)
+conf_src = os.path.join(root, 'conf')
+conf_tgt = os.path.join(os.environ['HOME'],'.conf','rkive')
+os.mkdir(conf_tgt)
+shutil.copytree(conf_src, conf_tgt)
