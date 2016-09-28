@@ -121,7 +121,7 @@ class Movies(Base):
         return movie
 
     def is_movie(s):
-        m = Movies.film_re.match(s)
+        m = self.film_re.match(s)
         if not m:
             return False
         movie = m.group(1)

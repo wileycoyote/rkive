@@ -1,0 +1,8 @@
+{
+  "sources":[
+    {"folder":"/media/roger/Music/Collections","category":"Music"},
+    {"folder":"/home/roger/Music","category":"Music"},
+    {"folder":"/media/azure/Multimedia2/TV","category":"TV"},
+    {"folder":"/media/azure/Multimedia/Movies","category":"Movies"}
+  ]
+}
