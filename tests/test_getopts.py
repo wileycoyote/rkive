@@ -1,4 +1,5 @@
 import unittest
+import tempfile
 from rkive.clients.cl.opts import GetOpts
 import sys
 
@@ -34,3 +35,14 @@ class TestGetOpts(unittest.TestCase):
         p = GetOpts().get_parser()
         p.parse_args(namespace=d)
         self.assertTrue(d.console)
+
+    def test_base(self):
+        d = Dummy()
+        tempdir=tempfile.gettempdir()
+        sys.argv = ["prog", "--base",tempdir]
+        p = GetOpts().get_parser()
+        p.parse_args(namespace=d)
+        self.assertTrue(d.console)
+
+    def test_recursive(self):
+        self.fail("Must implement test_recursive")
