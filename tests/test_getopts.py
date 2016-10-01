@@ -7,7 +7,7 @@ class Dummy(object):
     pass
 
 class TestGetOpts(unittest.TestCase):
-    
+
     def test_debug(self):
         d = Dummy()
         sys.argv = ["prog", "--debug"]
@@ -21,7 +21,7 @@ class TestGetOpts(unittest.TestCase):
         p = GetOpts().get_parser()
         p.parse_args(namespace=d)
         self.assertTrue(d.dryrun)
-    
+
     def test_quiet(self):
         d = Dummy()
         sys.argv = ["prog", "--quiet"]
@@ -43,6 +43,16 @@ class TestGetOpts(unittest.TestCase):
         p = GetOpts().get_parser()
         p.parse_args(namespace=d)
         self.assertTrue(d.console)
+
+    def test_no_base(self):
+        """ Base file non-existent
+        """
+        d = Dummy()
+        tempdir='/xxx'
+        sys.argv = ["prog", "--base",tempdir]
+        p = GetOpts().get_parser()
+        with self.assertRaises(Exception):
+            p.parse_args(namespace=d)
 
     def test_recursive(self):
         self.fail("Must implement test_recursive")

@@ -18,7 +18,8 @@ class Config:
     """
     def __init__(self, home):
         self.sources = {}
-        self.connections = []
+        self.local_connections = []
+        self.remote_connections = []
         self.home = home
 
     def read_sources(self):
@@ -54,9 +55,16 @@ class Config:
                 if not isinstance(conns,list):
                     raise NoConnectionsError
                 for conn in conns:
-                    print(conn)
+                    # Test for must have parameters first
+                    if not 'type' in conn:
+                        raise NoConnectionsError
+                    if not 'path' in conn:
+                        raise NoConnectionsError
+                    if not 'location' in conn:
+                        raise NoConnectionsError
                     dbtype = conn['type']
                     path=conn['path']
+                    location=conn['location']
                     username = ''
                     if 'username' in conn:
                         username = conn['username']
@@ -71,7 +79,10 @@ class Config:
                         port = ':'+conn['port']
                     if 'live' in conn and conn['live'].lower() == "y":
                         url='{0}://{1}{2}{3}{4}/{5}'.format(dbtype,username,password,host,port,path)
-                        self.connections.append(url)
+                        if location.lower() == 'local':
+                            self.local_connections.append(url)
+                        else:
+                            self.remote_connections.append(url)
         except EnvironmentError:
             raise EnvironmentError
         if self.connections == []:
@@ -87,5 +98,8 @@ class Config:
             return None
         return self.sources["movies"]
 
-    def get_live_connections(self):
-        return self.connections
+    def get_local_connections(self):
+        return self.local_connections
+
+    def get_remote_connections(self):
+        return self.remote_connections

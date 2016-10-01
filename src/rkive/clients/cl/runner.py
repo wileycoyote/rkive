@@ -25,12 +25,15 @@ class RkiveRunner:
             ConvertClient(logfolder=log).run()
         if script == 'rk_make_local_index':
             from rkive.clients.cl.makeindex import MakeIndexClient
-            uri = 'sqlite:///{0}data/index.db'.format(install_path)
-            engine = create_engine(uri)
-            MakeIndexClient(logfolder=log, engine=engine).run()
+            from rkive.clients.config import Config
+            c = Config(install_path)
+            urls = c.get_local_connections()
+            sources = c.get_sources()
+            MakeIndexClient(logfolder=log, urls=urls, sources=sources).run()
         if script == 'rk_make_index':
             from rkive.clients.cl.makeindex import MakeIndexClient
-            uri ='postgresql://postgres:postgres@{0}/mediaindex'.format(media_server)
-            engine = create_engine(uri)
-            MakeIndexClient(logfolder=log, engine=engine).run()
-
+            from rkive.clients.config import Config
+            c = Config(install_path)
+            urls = c.get_remote_connections()
+            sources = c.get_sources()
+            MakeIndexClient(logfolder=log, urls=urls, sources=sources).run()
