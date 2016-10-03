@@ -11,7 +11,7 @@ import weakref
 class InvalidTag(Exception): pass
 
 class Tags(object):
-    
+
     Id3ReverseLookup = {}
 
     CueMap = {
@@ -103,9 +103,9 @@ class Tags(object):
         return False
 
     def id3_reverse_lookup():
-        for t,v in Tags.TagMap.items():
-            id3 = v['mp3'][0]
-            Tags.Id3ReverseLookup[id3] = t
+        for tag,value in Tags.TagMap.items():
+            id3 = value['mp3'][0]
+            Tags.Id3ReverseLookup[id3] = tag
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
@@ -232,7 +232,7 @@ class MediaTypes:
 
 
 def is_music_file(fp):
-    log = getLogger('Rkive.MusicFiles')    
+    log = getLogger('Rkive.MusicFiles')
     log.debug("fp: {0}".format(fp))
     for t in MediaTypes.Types:
         if (fp.endswith(t)):
@@ -257,55 +257,55 @@ class MusicFile(object):
         self.media = MediaTypes.Types[ext](filename)
         Tags.id3_reverse_lookup()
         obj = self.media.get_object()
-        for t, v in obj.items():
-            log.debug("hello: {0} {1}".format(t, v))
+        for tag, value in obj.items():
+            log.debug("hello: {0} {1}".format(tag, value))
             rkive_tag = ''
             if ext == '.mp3':
-                if t in Tags.Id3ReverseLookup:
-                    rkive_tag = Tags.Id3ReverseLookup[t]  
+                if tag in Tags.Id3ReverseLookup:
+                    rkive_tag = Tags.Id3ReverseLookup[tag]
             else:
-                if t in Tags.TagMap:
-                    rkive_tag = t
+                if tag in Tags.TagMap:
+                    rkive_tag = tag
             if rkive_tag:
-                setattr(self, rkive_tag, v)
+                setattr(self, rkive_tag, value)
 
-    def make_method_name(self, t):
-        return 'print_{0}'.format(t)
+    def make_method_name(self, tag):
+        return 'print_{0}'.format(tag)
 
-    def report_tag(self, t):
+    def report_tag(self, tag):
         log = getLogger('Rkive.MusicFile')
-        log.debug("tag: {0}".format(t))        
-        method_name = self.make_method_name(t)
+        log.debug("tag: {0}".format(tag))
+        method_name = self.make_method_name(tag)
         log.debug("method_name: {0}".format(method_name))
         if hasattr(self,method_name):
             getattr(self, method_name)(self)
         else:
-            log.info("{0}: Attribute {1} has not been set".format(self.media.filename, t))
+            log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
 
     def report_unset_tags(self, tags):
         log = getLogger('Rkive.MusicFile')
         if not tags:
             return
-        for t in tags:
-            method_name = self.make_method_name(t)
+        for tag in tags:
+            method_name = self.make_method_name(tag)
             if not hasattr(self, method_name):
-                log.info("{0}: Attribute {1} has not been set".format(self.media.filename, t))
+                log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
 
     def report_set_tags(self, tags):
         log = getLogger('Rkive.MusicFile')
-        log.debug("XXXXXX report_set_tags")        
+        log.debug("report_set_tags")
         if not tags:
             return
-        for t in tags:
-            method_name = self.make_method_name(t)
+        for tag in tags:
+            method_name = self.make_method_name(tag)
             if hasattr(self, method_name):
                 getattr(self, method_name)(self)
 
     def report_all_tags(self):
         log = getLogger('Rkive.MusicFile')
-        log.debug("XXXXXX report_all_tags")
-        for t in Tags.TagMap:
-            self.report_tag(t)
+        log.debug("report_all_tags")
+        for tag in Tags.TagMap:
+            self.report_tag(tag)
 
     def pprint(self, filename):
         log = getLogger('Rkive.MusicFile')
@@ -313,19 +313,19 @@ class MusicFile(object):
         c = self.media.get_object()
         log.info(c.pprint())
 
-    def __setattr__(self, t, v):
+    def __setattr__(self, tag, value):
         log = getLogger('Rkive.MusicFile')
-        if t in Tags.TagMap:
-            log.debug("{0}: {1}".format(t,v))
-            self.__dict__[t] = v
+        if tag in Tags.TagMap:
+            log.debug("{0}: {1}".format(tag,value))
+            self.__dict__[tag] = value
             def func(self):
-                print("Attribute {0} has been set with value {1}".format(t,v))
-            func_name = 'print_{0}'.format(t)
+                print("Attribute {0} has been set with value {1}".format(tag,value))
+            func_name = 'print_{0}'.format(tag)
             #
             # monkey patch the attribute print function
             setattr(self, func_name, func)
-        elif t=='filename':
-            filename = v
+        elif tag=='filename':
+            filename = value
             log.info("Filename: {0}".format(filename))
             if (not os.path.exists(filename)):
                 log.warn("Path not found {0}".format(filename))
@@ -338,14 +338,14 @@ class MusicFile(object):
                 raise TypeNotSupported
             self.__dict__['media'] = Tags.Types[mediatype](filename)
         else:
-            self.__dict__[t] =  v
+            self.__dict__[tag]=value
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')
         if not self.media:
             log.fatal("No media set")
             raise MediaObjectNotFound
-        for t, v in self.__dict__.items():
-            if t in Tags.TagMap and v:
-                setattr(self.media, t, v)
+        for tag, value in self.__dict__.items():
+            if tag in Tags.TagMap and value:
+                setattr(self.media, tag, value)
         self.media.save()

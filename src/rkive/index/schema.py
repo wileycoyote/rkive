@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table
 import sqlalchemy.exc as alchemy_exceptions
 from sqlalchemy import create_engine, or_, and_
 import re
+from rkive.index.musicfile import MusicFile as MusicFile
 
 Base = declarative_base()
 
