@@ -18,6 +18,24 @@ class Opus(Base):
     title = Column(String)
     category = Column(String)
     participants = relationship("Participant",
+class MusicTrack(Base, MusicFile):
+    __tablename__ = 'MusicTrack'
+    id_track = Column('idMusicTrack', Integer, primary_key=True)
+    Column('discnumber', String)
+    Column('disctotal', String)
+    Column('album', String)
+    Column('title', String)
+    Column('filepath', String)
+    Column('tracktotal', String)
+    Column('tracknumber', String)
+    Column('artist', String, nullable=True)
+    Column('albumartist', String, nullable=True)
+    Column('genre', String, nullable=True)
+    Column('composer', String, nullable=True)
+    Column('comment', String, nullable=True)
+
+    def __init__(self, path):
+        MusicFile.__init__(path)
                     secondary=association_table,
                     back_populates="opii",
                     cascade="all, delete")
@@ -57,22 +75,4 @@ class Media(Base):
         self.year_released = yr
         self.year_reissued = yri
 
-class MusicTrack(Base, MusicFile):
-    __tablename__ = 'MusicTrack'
-    id_track = Column('idMusicTrack', Integer, primary_key=True)
-    Column('discnumber', String)
-    Column('disctotal', String)
-    Column('album', String)
-    Column('title', String)
-    Column('filepath', String)
-    Column('tracktotal', String)
-    Column('tracknumber', String)
-    Column('artist', String, nullable=True)
-    Column('albumartist', String, nullable=True)
-    Column('genre', String, nullable=True)
-    Column('composer', String, nullable=True)
-    Column('comment', String, nullable=True)
-
-    def __init__(self, path):
-        MusicFile.__init__(path)
 
