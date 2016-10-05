@@ -7,7 +7,7 @@ import re
 import xml.etree.ElementTree as ET
 from rkive.index.musicfile import MusicFile, Tags, TypeNotSupported, FileNotFound, is_music_file
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
-import rkive.clients.regexp
+from rkive.clients.regexp import Regexp as Regexp
 from rkive.clients.files import visit_files
 from rkive.clients.log import LogInit
 
@@ -17,7 +17,7 @@ class ParsePattern(argparse.Action):
         super(ParsePattern, self).__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
-        values = rkive.clients.regexp.Regexp(values)
+        values = Regexp(values)
         setattr(namespace, self.dest, values)
 
 class Tagger(GetOpts):
