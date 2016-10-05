@@ -47,7 +47,7 @@ class Tagger(GetOpts):
         except SystemExit:
             pass
 
-    def run(self, logloc=None):
+    def run(self):
         log = getLogger('Rkive.Tagger')
         try:
 
