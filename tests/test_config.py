@@ -59,11 +59,13 @@ class TestGetConfig(unittest.TestCase):
         self.assertEquals(1,len(m))
         self.assertIn('/media/roger/Music/Collections',m)
 
-    def test_connections(self):
+    def test_live_connections(self):
         c = Config('data/config')
         c.read_connections()
-        conns = c.get_live_connections()
-        self.assertEquals(1,len(conns))
+        local_conns = c.get_local_live_connections()
+        self.assertEquals(1,len(local_conns))
         url = 'sqlite3:///tests/data/config/rkive/database'
-        self.assertIn(url, conns)
+        self.assertIn(url, local_conns)
+        remote_connections = c.get_remote_live_connections()
+        self.assertEquals(0, len(remote_connections))
 

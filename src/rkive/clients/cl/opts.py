@@ -1,6 +1,5 @@
 import argparse
 import os.path
-import weakref
 
 class FolderValidation(argparse.Action):
 
@@ -15,9 +14,6 @@ class FolderValidation(argparse.Action):
         setattr(namespace, self.dest, values)
 
 class FileValidation(argparse.Action):
-
-    def __init__(self, option_strings, dest, nargs=None, **kwargs):
-        super(FileValidation, self).__init__(option_strings, dest, **kwargs)
 
     def __call__(self, parser, namespace, values, option_string=None):
         p = os.path.expanduser(values)

@@ -9,7 +9,7 @@ def runTests(target = None, source = None, env = None) :
         if t in COMMAND_LINE_TARGETS:
             args.append(t)
     # fill args
-    env.PrependENVPath('PATH','/opt/local/bin')
+    env.PrependENVPath('PATH','/home/roger/venv/bin')
     pp = os.path.join(os.getcwd(), 'lib')
     env.PrependENVPath('PYTHONPATH',pp) 
     retCode = subprocess.call(args, env = env['ENV'], cwd = os.getcwd(), shell = True)

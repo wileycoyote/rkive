@@ -1,6 +1,7 @@
 import unittest
 import tempfile
-from rkive.clients.cl.opts import GetOpts
+from rkive.clients.cl.opts import GetOpts as GetOpts
+from rkive.clients.cl.opts import FileValidation
 import sys
 
 class Dummy(object):
@@ -37,6 +38,8 @@ class TestGetOpts(unittest.TestCase):
         self.assertTrue(d.console)
 
     def test_base(self):
+        """ Test that an existing base is detected
+        """
         d = Dummy()
         tempdir=tempfile.gettempdir()
         sys.argv = ["prog", "--base",tempdir]
@@ -54,5 +57,28 @@ class TestGetOpts(unittest.TestCase):
         with self.assertRaises(Exception):
             p.parse_args(namespace=d)
 
+    def test_file_validation(self):
+        d = Dummy()
+        tmpfile=tempfile.gettempdir()+'/rkive_tmpfile'
+        f = open(tmpfile, 'w')
+        f.close()
+        sys.argv = ["prog", "--filename",tmpfile]
+        p = GetOpts().get_parser()
+        p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
+        p.parse_args(namespace=d)
+        self.assertTrue(d.filename == tmpfile)
+
+    def test_no_file_validation(self):
+        d = Dummy()
+        sys.argv = ["prog", "--filename",'/xxxxx']
+        p = GetOpts().get_parser()
+        p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
+        with self.assertRaises(Exception):
+            p.parse_args(namespace=d)
+
     def test_recursive(self):
-        self.fail("Must implement test_recursive")
+        d = Dummy()
+        sys.argv = ["prog", "--recursive"]
+        p = GetOpts().get_parser()
+        p.parse_args(namespace=d)
+        self.assertTrue(d.recursive)

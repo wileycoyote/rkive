@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table
 import sqlalchemy.exc as alchemy_exceptions
 from sqlalchemy import create_engine, or_, and_
 import re
+from rkive.index.musicfile import MusicFile as MusicFile
 
 Base = declarative_base()
 
@@ -142,3 +143,23 @@ class Movies(Base):
             year = m.group(3)
             movie_in_db = Movie.find_movie(title, 'mkv', year, directors)
             movie_in_db.delete(synchronize_session=True)
+
+class MusicTrack(Base, MusicFile):
+    __tablename__ = 'MusicTrack'
+    id_track = Column('idMusicTrack', Integer, primary_key=True)
+    Column('discnumber', String)
+    Column('disctotal', String)
+    Column('album', String)
+    Column('title', String)
+    Column('filepath', String)
+    Column('tracktotal', String)
+    Column('tracknumber', String)
+    Column('artist', String, nullable=True)
+    Column('albumartist', String, nullable=True)
+    Column('genre', String, nullable=True)
+    Column('composer', String, nullable=True)
+    Column('comment', String, nullable=True)
+
+    def __init__(self, path):
+        MusicFile.__init__(path)
+
