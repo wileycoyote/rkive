@@ -18,6 +18,7 @@ class Config:
     """
     def __init__(self, home):
         self.sources = {}
+        self.connections = []
         self.local_connections = []
         self.remote_connections = []
         self.home = home
@@ -47,6 +48,7 @@ class Config:
 
     def read_connections(self):
         conns_cfg = os.path.join(self.home, 'connections.yml')
+        print(conns_cfg)
         try:
             with open(conns_cfg) as cf:
                 conns = load(cf)
@@ -55,16 +57,20 @@ class Config:
                 if not isinstance(conns,list):
                     raise NoConnectionsError
                 for conn in conns:
+                    print(conn)
                     # Test for must have parameters first
                     if not 'type' in conn:
                         raise NoConnectionsError
                     if not 'path' in conn:
+                        raise NoConnectionsError
+                    if not 'status' in conn:
                         raise NoConnectionsError
                     if not 'location' in conn:
                         raise NoConnectionsError
                     dbtype = conn['type']
                     path=conn['path']
                     location=conn['location']
+                    status=conn['status']
                     username = ''
                     if 'username' in conn:
                         username = conn['username']
@@ -77,15 +83,11 @@ class Config:
                     port = ''
                     if 'port' in conn:
                         port = ':'+conn['port']
-                    if 'live' in conn and conn['live'].lower() == "y":
-                        url='{0}://{1}{2}{3}{4}/{5}'.format(dbtype,username,password,host,port,path)
-                        if location.lower() == 'local':
-                            self.local_connections.append(url)
-                        else:
-                            self.remote_connections.append(url)
+                    url='{0}://{1}{2}{3}{4}/{5}'.format(dbtype,username,password,host,port,path)
+                    self.connections.append((status, location, url))
         except EnvironmentError:
             raise EnvironmentError
-        if self.connections == []:
+        if not self.connections:
             raise NoConnectionsError
         return True
 
@@ -98,8 +100,11 @@ class Config:
             return None
         return self.sources["movies"]
 
-    def get_local_connections(self):
-        return self.local_connections
+    def get_local_live_connections(self):
+        return([c[2] for c in self.connections if 'live' in c[0] and 'local' in c[1]])
 
-    def get_remote_connections(self):
-        return self.remote_connections
+    def get_remote_live_connections(self):
+        return ([c[2] for c in self.connections if 'live' in c[0] and 'remote' in c[1]])
+
+    def get_all_connections(self):
+        return self.connections

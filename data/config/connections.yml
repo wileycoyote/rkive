@@ -2,5 +2,6 @@
   {"type":"sqlite3",
   #This is empty if in-memory is to be used
   "path":"tests/data/config/rkive/database",
-  "live":"y"}
+  "status":"live",
+  "location":"local"}
 ]
