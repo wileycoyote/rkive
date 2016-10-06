@@ -98,14 +98,14 @@ class Tags(object):
     }
 
     def get_rkive_tagname(t,mt):
-        if t in Tags.TagMap:
-            return(Tags.TagMap[t][mt])
+        if key in Tags.TagMap:
+            return(Tags.TagMap[key][mt])
         return False
 
     def id3_reverse_lookup():
-        for t,v in Tags.TagMap.items():
-            id3 = v['mp3'][0]
-            Tags.Id3ReverseLookup[id3] = t
+        for tag,value in Tags.TagMap.items():
+            id3 = value['mp3'][0]
+            Tags.Id3ReverseLookup[id3] = tag
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
@@ -135,13 +135,13 @@ class MP3(Tags):
             discnumber = getattr(self, 'discnumber')
         if (hasattr(self, 'disctotal')):
             disctotal = getattr(self, 'disctotal')
-        v = None
-        t, f = self.TagMap['discnumber']['mp3']
-        if hasattr(mp3, t):
-            c = mp3[t]
-            mp3.delall(t)
-            if ('/' in c):
-                dn, dt = '/'.split(c)
+        val = None
+        id3tag, id3func = self.TagMap['discnumber']['mp3']
+        if hasattr(mp3, id3tag):
+            valinfile = mp3[id3tag]
+            mp3.delall(id3tag)
+            if ('/' in valinfile):
+                dn, dt = '/'.split(valinfile)
                 if (discnumber):
                     dn = discnumber
                 if (disctotal):
@@ -167,7 +167,7 @@ class MP3(Tags):
                 delattr(self, 'discnumber')
             if disctotal:
                 delattr(self, 'disctotal')
-            mp3.add(f(encoding=1, text=v))
+            mp3.add(id3func(encoding=1, text=v))
         log.debug("loop through tag values "+str(self.__dict__))
         for t, v in self.__dict__.items():
             if t in self.TagMap:
@@ -232,7 +232,7 @@ class MediaTypes:
 
 
 def is_music_file(fp):
-    log = getLogger('Rkive.MusicFiles')    
+    log = getLogger('Rkive.MusicFiles')
     log.debug("fp: {0}".format(fp))
     for t in MediaTypes.Types:
         if (fp.endswith(t)):
@@ -257,12 +257,12 @@ class MusicFile(object):
         self.media = MediaTypes.Types[ext](filename)
         Tags.id3_reverse_lookup()
         obj = self.media.get_object()
-        for t, v in obj.items():
-            log.debug("hello: {0} {1}".format(t, v))
+        for tag, val in obj.items():
+            log.debug("hello: {0} {1}".format(tag, val))
             rkive_tag = ''
             if ext == '.mp3':
                 if t in Tags.Id3ReverseLookup:
-                    rkive_tag = Tags.Id3ReverseLookup[t]  
+                    rkive_tag = Tags.Id3ReverseLookup[t]
             else:
                 if t in Tags.TagMap:
                     rkive_tag = t
