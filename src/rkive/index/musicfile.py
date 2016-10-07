@@ -125,32 +125,35 @@ class MP3(Tags):
             mp3.save(self.filename)
             return mp3
 
-    def get_id3_discnumber(self, id3_val, val):
+    def get_id3_number(self, id3_val, val):
         value = val
         if '/' in id3_val:
-            curr_discnumber, curr_disctotal = '/'.split(id3_val)
-            value = '/'.join([value, curr_disctotal]) 
+            curr_number, curr_total = '/'.split(id3_val)
+            value = '/'.join([value, curr_total])
         return value
-       
-    def get_id3_disctotal(self, id3_val, val):
-        curr_discnumber = id3_val
+
+    def get_id3_total(self, id3_val, val):
+        curr_number = val
         if '/' in id3_val:
-            curr_discnumber, curr_disctotal = '/'.split(id3_val)
-        value = '/'.join([curr_discnumber, val])
-        return value
+            curr_number, curr_total = '/'.split(id3_val)
+        return '/'.join([curr_number, val])
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
         log.debug("loop through tag values "+str(self.__dict__))
-        for tag, value in self.__dict__.items():
+        for rkive_tag, value in self.__dict__.items():
             if rkive_tag in self.TagMap:
-                id3_key, func = self.TagMap[t]['mp3']
+                id3_key, func = self.TagMap[rkive_tag]['mp3']
+                if rkive_tag == 'tracknumber':
+                    value = self.get_id3_number(mp3[id3_key], value)
+                if rkive_tag == 'tracktotal':
+                    value = self.get_id3_total(mp3[id3_key], value)
                 if rkive_tag == 'discnumber':
-                    value = self.get_id3_discnumber(mp3[id3_key], value)
+                    value = self.get_id3_number(mp3[id3_key], value)
                 if rkive_tag == 'disctotal':
-                    value = self.get_id3_disctotal(mp3[id3_key], value)
+                    value = self.get_id3_total(mp3[id3_key], value)
                 log.debug("modifying tag {0} with value {1} ".format(id3_key, value))
                 mp3.delall(id3_key)
                 mp3.add(func(encoding=3, text=value))
