@@ -125,56 +125,35 @@ class MP3(Tags):
             mp3.save(self.filename)
             return mp3
 
+    def get_id3_discnumber(self, id3_val, val):
+        value = val
+        if '/' in id3_val:
+            curr_discnumber, curr_disctotal = '/'.split(id3_val)
+            value = '/'.join([value, curr_disctotal]) 
+        return value
+       
+    def get_id3_disctotal(self, id3_val, val):
+        curr_discnumber = id3_val
+        if '/' in id3_val:
+            curr_discnumber, curr_disctotal = '/'.split(id3_val)
+        value = '/'.join([curr_discnumber, val])
+        return value
+
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
-        discnumber = None
-        disctotal = None
-        if (hasattr(self, 'discnumber')):
-            discnumber = getattr(self, 'discnumber')
-        if (hasattr(self, 'disctotal')):
-            disctotal = getattr(self, 'disctotal')
-        v = None
-        t, f = self.TagMap['discnumber']['mp3']
-        if hasattr(mp3, t):
-            c = mp3[t]
-            mp3.delall(t)
-            if ('/' in c):
-                dn, dt = '/'.split(c)
-                if (discnumber):
-                    dn = discnumber
-                if (disctotal):
-                    dt = disctotal
-                v = dn+'/'+dt
-            else:
-                dn = c
-                if (discnumber):
-                    v = discnumber
-                else:
-                    v = dn
-                if (disctotal):
-                    v = v+'/'+disctotal
-        else:
-            if (discnumber):
-                v = discnumber
-            if (disctotal):
-                if (not discnumber):
-                    v = '1'
-                v = v+'/'+disctotal
-        if (v):
-            if discnumber:
-                delattr(self, 'discnumber')
-            if disctotal:
-                delattr(self, 'disctotal')
-            mp3.add(f(encoding=1, text=v))
         log.debug("loop through tag values "+str(self.__dict__))
-        for t, v in self.__dict__.items():
-            if t in self.TagMap:
+        for tag, value in self.__dict__.items():
+            if rkive_tag in self.TagMap:
                 id3_key, func = self.TagMap[t]['mp3']
-                log.debug("modifying tag {0} with value {1} ".format(id3_key, v))
+                if rkive_tag == 'discnumber':
+                    value = self.get_id3_discnumber(mp3[id3_key], value)
+                if rkive_tag == 'disctotal':
+                    value = self.get_id3_disctotal(mp3[id3_key], value)
+                log.debug("modifying tag {0} with value {1} ".format(id3_key, value))
                 mp3.delall(id3_key)
-                mp3.add(func(encoding=3, text=v))
+                mp3.add(func(encoding=3, text=value))
         mp3.save()
 
 class Flac(Tags):
