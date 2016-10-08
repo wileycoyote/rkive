@@ -48,7 +48,6 @@ class Config:
 
     def read_connections(self):
         conns_cfg = os.path.join(self.home, 'connections.yml')
-        print(conns_cfg)
         try:
             with open(conns_cfg) as cf:
                 conns = load(cf)
@@ -94,6 +93,7 @@ class Config:
     def get_music(self):
         if not "music" in self.sources:
             return None
+        return self.sources["music"]
 
     def get_movies(self):
         if not "movies" in self.sources:

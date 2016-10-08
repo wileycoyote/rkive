@@ -34,7 +34,7 @@ class Tagger(GetOpts):
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             p.add_argument('--markup', type=str, help="give file containing metadata", action=FileValidation)
             p.add_argument('--gain', help="add gain to music files", action='store_true')
-            for t,v in Tags.TagMap.items():
+            for t,v in Tags.Tags.items():
                 option = '--'+t
                 comment = v['comment']
                 p.add_argument(option, help=comment, type=str)

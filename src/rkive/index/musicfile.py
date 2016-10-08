@@ -7,115 +7,69 @@ from mutagen.flac import FLAC, Picture
 from mutagen.id3 import TIT1, TIT2, TPE3, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM, APIC
 from PIL import Image
 import weakref
+from yaml import load
 
 class InvalidTag(Exception): pass
 
-class Tags(object):
+TagMap={
+    "grouping" : "Group tracks",
+    "album" : "Album name,, unique to artist namespace",
+    "albumartist": "The album artist",
+    "comment" : "General comments - stuff that can't be put in tags",
+    "artist": "Track artist",
+    "composer": "This is used by me",
+    "discnumber": "Discnumber",
+    "disctotal":"Total number of discs",
+    "genre":"the genre(s) of the piece",
+    "picture":"Picture",
+    "title": "Title of track",
+    "tracknumber":"Number of track",
+    "tracktotal":"Total number of tracks in collection",
+    "year":"Year of Release"
+}
 
-    Id3ReverseLookup = {}
+CueMap = {
+    'album_name' : 'album',
+    'performer_name' : 'albumartist',
+    'track_number' : 'tracknumber',
+    'track_name' : 'title'
+}
 
-    CueMap = {
-        'album_name' : 'album',
-        'performer_name' : 'albumartist',
-        'track_number' : 'tracknumber',
-        'track_name' : 'title'
+class MP3(object):
+
+    ID3Lookup = {}
+
+    Tags={
+        "grouping" : "TIT1",
+        "album" : "TALB",
+        "albumartist": "TPE2",
+        "comment" : "COMM",
+        "artist": "TPE1",
+        "comment": "COMM",
+        "composer": "TCOM",
+        "discnumber": "TPOS",
+        "disctotal":"TPOS",
+        "genre":"TCON",
+        "picture":"APIC",
+        "title": "TIT2",
+        "tracknumber":"TRCK",
+        "tracktotal":"TRCK",
+        "year":"TDRC"
     }
-
-    TagMap = {
-        'grouping' : {
-            'flac' : ['grouping'],
-            'mp3' : ['TIT1', TIT1],
-            'comment' : 'Grouping'
-        },
-        'album'    : {
-            'flac' : ['album'],
-            'mp3' : ['TALB', TALB],
-            'comment' : 'Album Name'
-        },
-        'albumartist' : {
-            'flac' : ['albumartist'],
-            'mp3' : ['TPE2', TPE2],
-            'comment' : 'Album artist set to "Various Artists" for multiple artists'
-        },
-        'artist'      : {
-            'flac' : ['artist'],
-            'mp3' : ['TPE1', TPE1],
-            'comment' : 'Artist, seperate by ; if multiple'
-        },
-        'comment'     : {
-            'flac' : ['comment'],
-            'mp3' : ['COMM', COMM],
-            'comment' : 'Comment'
-        },
-        'composer'    : {
-            'flac' : ['composer'],
-            'mp3' : ['TCOM', TCOM],
-            'comment' : 'composer'
-        },
-        'discnumber'  : {
-            'flac' : ['discnumber'],
-            'mp3' : ['TPOS', TPOS],
-            'comment' : 'disc number',
-            'default' : 1
-        },
-        'disctotal'   : {
-            'flac' : ['disctotal'],
-            'default' : 1,
-            'mp3' : ['TPOS', TPOS],
-            'comment' : 'Number of discs'
-        },
-        'genre'       : {
-            'flac' : ['genre'],
-            'mp3' : ['TCON',TCON],
-            'comment' : 'Only one genre'
-        },
-        'picture'     : {
-            'mp3' : ['APIC', APIC],
-            'flac' : ['picture'],
-            'comment' : 'The filename for a image associated with file'
-        },
-        'title'       : {
-            'flac' : ['title'],
-            'mp3' : ['TIT2', TIT2],
-            'comment' : 'title'
-        },
-        'tracknumber' : {
-            'flac' : ['tracknumber'],
-            'mp3' : ['TRCK', TRCK],
-            'comment' : 'tracknumber - start from 1'
-        },
-        'tracktotal'  : {
-            'flac' : ['tracktotal'],
-            'mp3': ['tracktotal'],
-            'default' : 1,
-            'comment' : 'total number of tracks'
-        },
-        'year'        : {
-            'flac' : ['year'],
-            'mp3' : ['TDRC', TDRC],
-            'comment' : 'Year of original recording, remaster dates go in comment'
-        },
-    }
-
-    def get_rkive_tagname(t,mt):
-        if t in Tags.TagMap:
-            return(Tags.TagMap[t][mt])
-        return False
-
-    def id3_reverse_lookup():
-        for tag,value in Tags.TagMap.items():
-            id3 = value['mp3'][0]
-            Tags.Id3ReverseLookup[id3] = tag
-
-    def save(self):
-        log = getLogger('Rkive.MusicFile')
-        log.warn("Save method not instanciated")
-        return None
-
-class MP3(Tags):
 
     def __init__(self, filename):
+        log = getLogger('Rkive.MusicFile')
         self.filename = filename
+        if self.ID3Lookup:
+            return
+        for tag,id3tag in self.Tags.items():
+            if not tag in TagMap:
+                log.fatal("tag {0}, not in global map, talk to the programmer",format(tag))
+                continue
+            self.ID3Lookup[tag] = {
+                "id3tag" : id3tag,
+                "id3method" : getattr(mutagen.id3,id3tag)
+            }
 
     def get_object(self):
         try:
@@ -143,23 +97,25 @@ class MP3(Tags):
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
         log.debug("loop through tag values "+str(self.__dict__))
-        for rkive_tag, value in self.__dict__.items():
-            if rkive_tag in self.TagMap:
-                id3_key, func = self.TagMap[rkive_tag]['mp3']
+
+        for rkive_tag, attr in self.__dict__.items():
+            if rkive_tag in self.ID3Lookup:
+                id3 = self.ID3Lookup[rkive_tag]
+                id3tag=id3['id3tag']
                 if rkive_tag == 'tracknumber':
-                    value = self.get_id3_number(mp3[id3_key], value)
+                    value = self.get_id3_number(mp3[id3tag], value)
                 if rkive_tag == 'tracktotal':
-                    value = self.get_id3_total(mp3[id3_key], value)
+                    value = self.get_id3_total(mp3[id3tag], value)
                 if rkive_tag == 'discnumber':
-                    value = self.get_id3_number(mp3[id3_key], value)
+                    value = self.get_id3_number(mp3[id3tag], value)
                 if rkive_tag == 'disctotal':
-                    value = self.get_id3_total(mp3[id3_key], value)
-                log.debug("modifying tag {0} with value {1} ".format(id3_key, value))
-                mp3.delall(id3_key)
-                mp3.add(func(encoding=3, text=value))
+                    value = self.get_id3_total(mp3[id3tag], value)
+                log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
+                mp3.delall(id3tag)
+                mp3.add(id3['id3method'](encoding=3, text=value))
         mp3.save()
 
-class Flac(Tags):
+class Flac(Music):
 
     def __init__(self, filename):
         self.filename = filename
