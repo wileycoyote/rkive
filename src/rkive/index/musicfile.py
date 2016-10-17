@@ -11,22 +11,6 @@ from yaml import load
 
 class InvalidTag(Exception): pass
 
-TagMap={
-    "grouping" : "Group tracks",
-    "album" : "Album name,, unique to artist namespace",
-    "albumartist": "The album artist",
-    "comment" : "General comments - stuff that can't be put in tags",
-    "artist": "Track artist",
-    "composer": "This is used by me",
-    "discnumber": "Discnumber",
-    "disctotal":"Total number of discs",
-    "genre":"the genre(s) of the piece",
-    "picture":"Picture",
-    "title": "Title of track",
-    "tracknumber":"Number of track",
-    "tracktotal":"Total number of tracks in collection",
-    "year":"Year of Release"
-}
 
 CueMap = {
     'album_name' : 'album',
@@ -34,12 +18,27 @@ CueMap = {
     'track_number' : 'tracknumber',
     'track_name' : 'title'
 }
+class Tag(object):
 
-class MP3(object):
+    @property
+    def value(self):
+        return self._value
 
-    ID3Lookup = {}
+    @value.setter
+    def value(self, v):
+        self._value=v
 
-    Tags={
+    @property
+    def comment(self):
+        return self._comment
+
+    @comment.setter
+    def comment(self, c):
+        self._comment=c
+
+class ID3Tag(Tag):
+
+    ID3Tags={
         "grouping" : "TIT1",
         "album" : "TALB",
         "albumartist": "TPE2",
@@ -57,20 +56,171 @@ class MP3(object):
         "year":"TDRC"
     }
 
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, n):
+        self._name = n
+        self._func = getattr(mutagen.id3, n)
+
+    @property
+    def func(self):
+        return self._func
+
+class MusicTrack(object):
+
+    @property
+    def title(self):
+        """Title of Track"""
+        return self._title
+
+    @title.setter
+    def title(self, a):
+        t = Tag()
+        t.name='title'
+        t.value = a
+        self._album = t
+ 
+    @property
+    def album(self):
+        """Album name, unique to artist namespace"""
+        return self._album
+
+    @album.setter
+    def album(self, a):
+        t = Tag()
+        t.name='album'
+        t.value = a
+        self._album = t
+ 
+    @property
+    def disctotal(self):
+        """Total number of discs in pack"""
+        return self._disctotal
+
+    @disctotal.setter
+    def disctotal(self, n):
+        t = Tag()
+        t.name='disctotal'
+        t.value = n
+        self._disctotal = t
+
+    @property
+    def year(self):
+        """Year of Release"""
+        return self._year
+
+    @year.setter
+    def year(self, y):
+        self._year = y
+
+    @property
+    def tracktotal(self):
+        """Total number of tracks in collection"""
+        return self._tracktotal
+
+    @tracktotal.setter
+    def tracktotal(self, t):
+        self._tracktotal = t
+
+    @property
+    def discnumber(self):
+        """Number of disc in collection"""
+        return self._discnumber
+
+    @discnumber.setter
+    def discnumber(self, d):
+        self._discnumber = d
+
+    @property
+    def grouping(self):
+        """A label to group tracks"""
+        return self._grouping
+
+    @grouping.setter
+    def grouping(self, g):
+        self._grouping=g
+
+    @property
+    def comment(self):
+        """General comments - stuff that can't be put in tags"""
+        return self._comment
+
+    @comment.setter
+    def comment(self, c):
+        self._comment = c
+
+    @property
+    def composer(self):
+        """Composer of track"""
+        return self._composer
+
+    @composer.setter
+    def composer(self, c):
+        self._composer = c
+
+    @property
+    def artist(self):
+        """Track artist"""
+        return self._artist
+
+    @artist.setter
+    def artist(self, artist):
+        self._artist = artist
+        self._artist.comment=""
+
+    @property
+    def albumartist(self):
+        """The album artist"""
+        return self._albumartist
+
+    @albumartist.setter
+    def albumartist(self, a):
+        self._albumartist = a
+
+    @property
+    def genre(self):
+        "The genre(s) of the piece, each seperated by a comma"""
+        return self._genre
+
+    @genre.setter
+    def genre(self, g):
+        self._genre = g
+
+    @property
+    def picture(self):
+        """ Picture to display - usually front-cover"""
+        return self._picture
+
+    @picture.setter
+    def picture(self, p):
+        self._picture = p
+
+    def set_rkive_tag(self, tag):
+        if tag in TagMap:
+            return tag
+        return None
+
+class MP3(MusicTrack):
+
+    @grouping.setter
+    def grouping(self, g):
+        t = ID3Tag()
+        t.name='TIT1'
+
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
+        for tag, tag_obj in vars(self):
+            setattr(self, tag, ID3Tag()) 
+            tag_obj = getattr(self, tag)
+            id3tag=ID3Tags[tag]
+            tag_obj.id3tag = id3tag
+            tag_obj.func = getattr(mutagen.id3,id3tag)
         self.filename = filename
-        if self.ID3Lookup:
-            return
-        for tag,id3tag in self.Tags.items():
-            if not tag in TagMap:
-                log.fatal("tag {0}, not in global map, talk to the programmer",format(tag))
-                continue
-            self.ID3Lookup[tag] = {
-                "id3tag" : id3tag,
-                "id3method" : getattr(mutagen.id3,id3tag)
-            }
 
+    
     def get_object(self):
         try:
             return(ID3(self.filename))
@@ -92,16 +242,22 @@ class MP3(object):
             curr_number, curr_total = '/'.split(id3_val)
         return '/'.join([curr_number, val])
 
+    def set_rkive_tag(self, id3tag):
+        if id3tag in self.ID3ReverseLookup:
+            return self.ID3RevereLookup[id3tag]
+        return None
+
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
         log.debug("loop through tag values "+str(self.__dict__))
 
-        for rkive_tag, attr in self.__dict__.items():
-            if rkive_tag in self.ID3Lookup:
-                id3 = self.ID3Lookup[rkive_tag]
-                id3tag=id3['id3tag']
+        for rkive_tag, attr in vars(self).items():
+            if hasattr(self, rkive_tag):
+                attr = getattr(self, rkive_tag)
+                value = attr.value
+                id3tag = attr.name
                 if rkive_tag == 'tracknumber':
                     value = self.get_id3_number(mp3[id3tag], value)
                 if rkive_tag == 'tracktotal':
@@ -112,10 +268,10 @@ class MP3(object):
                     value = self.get_id3_total(mp3[id3tag], value)
                 log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
                 mp3.delall(id3tag)
-                mp3.add(id3['id3method'](encoding=3, text=value))
+                mp3.add(getattr(attr,'func')(encoding=3, text=value))
         mp3.save()
 
-class Flac(Music):
+class Flac(MusicTrack):
 
     def __init__(self, filename):
         self.filename = filename
@@ -147,10 +303,10 @@ class Flac(Music):
             pic.height = im.size[1]
             flac.add_picture(pic)
             delattr(self, 'picture')
-        for t, v in self.__dict__.items():
-            log.debug("Tag: {0}: {1}".format(t, v))
-            if t in self.TagMap:
-                flac[t] = v
+        for tag, attr in vars(self).items():
+            log.debug("Tag: {0}: {1}".format(tag, attr.value))
+            if tag in vars(self):
+                flac[tag] = attr.value
         flac.save()
 
 class FileNotFound(Exception):
@@ -164,8 +320,8 @@ class TagsObjectNotFound(Exception):
 
 class MediaTypes:
     Types = {
-        '.mp3'  : MP3,
-        '.flac' : Flac
+        '.mp3'  : (MP3, ID3Tag),
+        '.flac' : (Flac, Tag)
     }
 
 
@@ -184,39 +340,33 @@ class MusicFile(object):
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFiles')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
-        for t,v in l.items():
-            log.info("{0}: {1}".format(t,v))
-            setattr(self, t, v)
+        for tag,value in l.items():
+            log.info("{0}: {1}".format(tag,val))
+            setattr(self, tag, val)
 
     def set_media(self, filename):
         log = getLogger('Rkive.MusicFile')
         basename, ext = os.path.splitext(filename)
         log.debug("hello: {0}".format(ext))
-        self.media = MediaTypes.Types[ext](filename)
-        Tags.id3_reverse_lookup()
+        self.media = MediaTypes.Types[ext][0](filename)
         obj = self.media.get_object()
+        tag_class = MediaTypes.Types[ext][1]
         for tag, value in obj.items():
             log.debug("hello: {0} {1}".format(tag, value))
-            rkive_tag = ''
-            if ext == '.mp3':
-                if tag in Tags.Id3ReverseLookup:
-                    rkive_tag = Tags.Id3ReverseLookup[tag]
-            else:
-                if tag in Tags.TagMap:
-                    rkive_tag = tag
+            rkive_tag = self.media.set_rkive_tag(tag)
             if rkive_tag:
-                setattr(self, rkive_tag, value)
-
-    def make_method_name(self, tag):
-        return 'print_{0}'.format(tag)
+                t = tag_class()
+                t.value=value
+                setattr(self, rkive_tag, t)
+            else:
+                log.warn("tag {0} not found for {1}".format(tag, filename))
 
     def report_tag(self, tag):
         log = getLogger('Rkive.MusicFile')
         log.debug("tag: {0}".format(tag))
-        method_name = self.make_method_name(tag)
-        log.debug("method_name: {0}".format(method_name))
-        if hasattr(self,method_name):
-            getattr(self, method_name)(self)
+        if hasattr(self,tag):
+            value = getattr(self, tag)
+            log.info("{0}: Attribute {1} has value {2}".format(self.media.filename, tag, value))
         else:
             log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
 
@@ -225,8 +375,7 @@ class MusicFile(object):
         if not tags:
             return
         for tag in tags:
-            method_name = self.make_method_name(tag)
-            if not hasattr(self, method_name):
+            if not hasattr(self, tag):
                 log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
 
     def report_set_tags(self, tags):
@@ -235,9 +384,7 @@ class MusicFile(object):
         if not tags:
             return
         for tag in tags:
-            method_name = self.make_method_name(tag)
-            if hasattr(self, method_name):
-                getattr(self, method_name)(self)
+            self.report_tag(tag)
 
     def report_all_tags(self):
         log = getLogger('Rkive.MusicFile')
@@ -255,13 +402,7 @@ class MusicFile(object):
         log = getLogger('Rkive.MusicFile')
         if tag in Tags.TagMap:
             log.debug("{0}: {1}".format(tag,value))
-            self.__dict__[tag] = value
-            def func(self):
-                print("Attribute {0} has been set with value {1}".format(tag,value))
-            func_name = 'print_{0}'.format(tag)
-            #
-            # monkey patch the attribute print function
-            setattr(self, func_name, func)
+            setattr(self, tag, value)
         elif tag=='filename':
             filename = value
             log.info("Filename: {0}".format(filename))
