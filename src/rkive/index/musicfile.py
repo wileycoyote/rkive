@@ -20,6 +20,18 @@ CueMap = {
 }
 class Tag(object):
 
+    def __init__(self, n, v):
+        self._name=n
+        self._value=v
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, n):
+        self._name=n
+
     @property
     def value(self):
         return self._value
@@ -28,46 +40,24 @@ class Tag(object):
     def value(self, v):
         self._value=v
 
-    @property
-    def comment(self):
-        return self._comment
-
-    @comment.setter
-    def comment(self, c):
-        self._comment=c
-
 class ID3Tag(Tag):
 
-    ID3Tags={
-        "grouping" : "TIT1",
-        "album" : "TALB",
-        "albumartist": "TPE2",
-        "comment" : "COMM",
-        "artist": "TPE1",
-        "comment": "COMM",
-        "composer": "TCOM",
-        "discnumber": "TPOS",
-        "disctotal":"TPOS",
-        "genre":"TCON",
-        "picture":"APIC",
-        "title": "TIT2",
-        "tracknumber":"TRCK",
-        "tracktotal":"TRCK",
-        "year":"TDRC"
-    }
-
     @property
-    def name(self):
+    def id3name(self, n):
         return self._name
 
-    @name.setter
-    def name(self, n):
-        self._name = n
-        self._func = getattr(mutagen.id3, n)
+    @id3name.setter
+    def id3name(self, n):
+        self.name = n
+        self.func = getattr(mutagen.id3, n)
 
     @property
     def func(self):
         return self._func
+
+    @func.setter
+    def func(self, f):
+        self._func = f
 
 class MusicTrack(object):
 
@@ -78,11 +68,8 @@ class MusicTrack(object):
 
     @title.setter
     def title(self, a):
-        t = Tag()
-        t.name='title'
-        t.value = a
-        self._album = t
- 
+        self._title=Tag('title', a)
+
     @property
     def album(self):
         """Album name, unique to artist namespace"""
@@ -90,11 +77,8 @@ class MusicTrack(object):
 
     @album.setter
     def album(self, a):
-        t = Tag()
-        t.name='album'
-        t.value = a
-        self._album = t
- 
+        self._album = Tag('album', a)
+
     @property
     def disctotal(self):
         """Total number of discs in pack"""
@@ -102,10 +86,7 @@ class MusicTrack(object):
 
     @disctotal.setter
     def disctotal(self, n):
-        t = Tag()
-        t.name='disctotal'
-        t.value = n
-        self._disctotal = t
+        self._disctotal=Tag('disctotal', n)
 
     @property
     def year(self):
@@ -114,7 +95,7 @@ class MusicTrack(object):
 
     @year.setter
     def year(self, y):
-        self._year = y
+        self._year=Tag('year',y)
 
     @property
     def tracktotal(self):
@@ -123,7 +104,7 @@ class MusicTrack(object):
 
     @tracktotal.setter
     def tracktotal(self, t):
-        self._tracktotal = t
+        self._tracktotal = Tag('tracktotal',t)
 
     @property
     def discnumber(self):
@@ -132,7 +113,7 @@ class MusicTrack(object):
 
     @discnumber.setter
     def discnumber(self, d):
-        self._discnumber = d
+        self._discnumber = Tag('discnumber',d)
 
     @property
     def grouping(self):
@@ -141,7 +122,7 @@ class MusicTrack(object):
 
     @grouping.setter
     def grouping(self, g):
-        self._grouping=g
+        self._grouping=Tag('grouping',g)
 
     @property
     def comment(self):
@@ -150,7 +131,7 @@ class MusicTrack(object):
 
     @comment.setter
     def comment(self, c):
-        self._comment = c
+        self._comment = Tag('comment',c)
 
     @property
     def composer(self):
@@ -159,7 +140,7 @@ class MusicTrack(object):
 
     @composer.setter
     def composer(self, c):
-        self._composer = c
+        self._composer = Tag('composer',c)
 
     @property
     def artist(self):
@@ -167,9 +148,8 @@ class MusicTrack(object):
         return self._artist
 
     @artist.setter
-    def artist(self, artist):
-        self._artist = artist
-        self._artist.comment=""
+    def artist(self, a):
+        self._artist = Tag('artist',a)
 
     @property
     def albumartist(self):
@@ -178,16 +158,16 @@ class MusicTrack(object):
 
     @albumartist.setter
     def albumartist(self, a):
-        self._albumartist = a
+        self._albumartist = Tag('albumartist',a)
 
     @property
     def genre(self):
-        "The genre(s) of the piece, each seperated by a comma"""
+        """The genre(s) of the piece, each seperated by a comma"""
         return self._genre
 
     @genre.setter
     def genre(self, g):
-        self._genre = g
+        self._genre = Tag('genre',g)
 
     @property
     def picture(self):
@@ -196,31 +176,80 @@ class MusicTrack(object):
 
     @picture.setter
     def picture(self, p):
-        self._picture = p
-
-    def set_rkive_tag(self, tag):
-        if tag in TagMap:
-            return tag
-        return None
+        self._picture = Tag('picture',p)
 
 class MP3(MusicTrack):
 
+    @year.setter
+    def year(self, t):
+        self._title=ID3Tag('TDRC', t)
+
+    @title.setter
+    def title(self, t):
+        self._title=ID3Tag('TIT2', t)
+
+    @tracktotal.setter
+    def tracktotal(self, t):
+        """MP3 does not have a concept of seperate tracknumber and track total
+        However, Rkive does - so the ID3tag for tracktotal is the same as tracknumber
+        The current string is calculated on write to MP3 file
+        """
+        self._tracktotal=ID3Tag('TRCK', t)
+
+    @tracknumber.setter
+    def tracknumber(self, t):
+        self._tracknumber=ID3Tag('TRCK', t)
+
+    @picture.setter
+    def picture(self, p):
+        self._picture=ID3Tag('APIC', p)
+
+    @disctotal.setter
+    def disctotal(self, v):
+        self._disctotal=ID3Tag('TPOS', v)
+
+    @genre.setter
+    def genre(self, g):
+        self._genre=ID3Tag('TCON', g)
+
+    @discnumber.setter
+    def discnumber(self, d):
+        self._discnumber=ID3Tag('TPOS',d)
+
+    @composer.setter
+    def composer(self, c):
+        self._composer=ID3Tag('TCOM',c)
+
+    @artist.setter
+    def artist(self, a):
+        self._artist=ID3Tag('TPE1', a)
+
+    @albumartist.setter
+    def albumartist(self, a):
+        self._albumartist = ID3Tag('TPE2', a)
+
+    @comment.setter
+    def comment(self, c):
+        self._comment=ID3Tag('COMM', c)
+
+    @album.setter
+    def album(self, g):
+        self._album = ID3Tag('TALB', c)
+
     @grouping.setter
     def grouping(self, g):
-        t = ID3Tag()
-        t.name='TIT1'
+        self._grouping = ID3Tag('TIT1', g)
 
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
         for tag, tag_obj in vars(self):
-            setattr(self, tag, ID3Tag()) 
+            setattr(self, tag, ID3Tag())
             tag_obj = getattr(self, tag)
             id3tag=ID3Tags[tag]
             tag_obj.id3tag = id3tag
             tag_obj.func = getattr(mutagen.id3,id3tag)
         self.filename = filename
 
-    
     def get_object(self):
         try:
             return(ID3(self.filename))
@@ -242,22 +271,16 @@ class MP3(MusicTrack):
             curr_number, curr_total = '/'.split(id3_val)
         return '/'.join([curr_number, val])
 
-    def set_rkive_tag(self, id3tag):
-        if id3tag in self.ID3ReverseLookup:
-            return self.ID3RevereLookup[id3tag]
-        return None
-
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
-        log.debug("loop through tag values "+str(self.__dict__))
-
         for rkive_tag, attr in vars(self).items():
             if hasattr(self, rkive_tag):
                 attr = getattr(self, rkive_tag)
                 value = attr.value
                 id3tag = attr.name
+                log.debug("Writing tag {0}: {1}".format(id3tag,value))
                 if rkive_tag == 'tracknumber':
                     value = self.get_id3_number(mp3[id3tag], value)
                 if rkive_tag == 'tracktotal':
