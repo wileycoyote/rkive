@@ -50,10 +50,8 @@ class TestGetConfig(unittest.TestCase):
     def test_sources(self):
         c = Config('data/config/')
         self.assertTrue(c.read_sources())
-
         m = c.get_music()
         self.assertIsNone(m)
-
         m = c.get_movies()
         self.assertIsNotNone(m)
         self.assertEquals(1,len(m))
@@ -68,4 +66,3 @@ class TestGetConfig(unittest.TestCase):
         self.assertIn(url, local_conns)
         remote_connections = c.get_remote_live_connections()
         self.assertEquals(0, len(remote_connections))
-
