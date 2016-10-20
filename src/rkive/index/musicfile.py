@@ -4,14 +4,13 @@ from logging import getLogger
 from mutagen.id3 import ID3
 from mutagen.id3 import error as id3_error
 from mutagen.flac import FLAC, Picture
-from mutagen.id3 import TIT1, TIT2, TPE3, TPE2, TALB, TPE1, TDAT, TRCK, TCON, TORY, TPUB, TDRC, TPOS, COMM, TCOM, APIC
 from PIL import Image
 import weakref
 from yaml import load
 
 class InvalidTag(Exception): pass
 
-
+#left in for when I remap cuemaps for the new class hierarchy
 CueMap = {
     'album_name' : 'album',
     'performer_name' : 'albumartist',
@@ -44,11 +43,11 @@ class ID3Tag(Tag):
 
     @property
     def id3name(self, n):
-        return self._name
+        return self._id3name
 
     @id3name.setter
     def id3name(self, n):
-        self.name = n
+        self._id3name = n
         self.func = getattr(mutagen.id3, n)
 
     @property
@@ -60,6 +59,10 @@ class ID3Tag(Tag):
         self._func = f
 
 class MusicTrack(object):
+    
+    def get_properties(self):
+        return [p for p in self.__dict__.keys() if
+                not p.startswith('__') or not p.startswith('get') or not p.startswith('save')]
 
     @property
     def title(self):
@@ -105,6 +108,15 @@ class MusicTrack(object):
     @tracktotal.setter
     def tracktotal(self, t):
         self._tracktotal = Tag('tracktotal',t)
+
+    @property
+    def tracknumber(self):
+        """Sequential number of track in collection"""
+        return self._tracknumber
+
+    @tracktotal.setter
+    def tracktotal(self, t):
+        self._tracknumber = Tag('tracknumber',t)
 
     @property
     def discnumber(self):
@@ -180,74 +192,80 @@ class MusicTrack(object):
 
 class MP3(MusicTrack):
 
-    @year.setter
+    @property
+    def TDRC(self):
+        return "year"
+
+    @MusicTrack.year.setter
     def year(self, t):
         self._title=ID3Tag('TDRC', t)
 
-    @title.setter
+    @property
+    def TIT2(self):
+        return 'title'
+
+    @MusicTrack.title.setter
     def title(self, t):
         self._title=ID3Tag('TIT2', t)
 
-    @tracktotal.setter
+    @property
+    def TRCK(self):
+        return "tracknumber"
+
+    @MusicTrack.tracktotal.setter
     def tracktotal(self, t):
         """MP3 does not have a concept of seperate tracknumber and track total
         However, Rkive does - so the ID3tag for tracktotal is the same as tracknumber
-        The current string is calculated on write to MP3 file
+        The "tracknumber/tracktotal" string is calculated on write to MP3 file
         """
         self._tracktotal=ID3Tag('TRCK', t)
 
-    @tracknumber.setter
+    @MusicTrack.tracknumber.setter
     def tracknumber(self, t):
         self._tracknumber=ID3Tag('TRCK', t)
 
-    @picture.setter
+    @MusicTrack.picture.setter
     def picture(self, p):
         self._picture=ID3Tag('APIC', p)
 
-    @disctotal.setter
+    @MusicTrack.disctotal.setter
     def disctotal(self, v):
         self._disctotal=ID3Tag('TPOS', v)
 
-    @genre.setter
+    @MusicTrack.genre.setter
     def genre(self, g):
         self._genre=ID3Tag('TCON', g)
 
-    @discnumber.setter
+    @MusicTrack.discnumber.setter
     def discnumber(self, d):
         self._discnumber=ID3Tag('TPOS',d)
 
-    @composer.setter
+    @MusicTrack.composer.setter
     def composer(self, c):
         self._composer=ID3Tag('TCOM',c)
 
-    @artist.setter
+    @MusicTrack.artist.setter
     def artist(self, a):
         self._artist=ID3Tag('TPE1', a)
 
-    @albumartist.setter
+    @MusicTrack.albumartist.setter
     def albumartist(self, a):
         self._albumartist = ID3Tag('TPE2', a)
 
-    @comment.setter
+    @MusicTrack.comment.setter
     def comment(self, c):
         self._comment=ID3Tag('COMM', c)
 
-    @album.setter
+    @MusicTrack.album.setter
     def album(self, g):
         self._album = ID3Tag('TALB', c)
 
-    @grouping.setter
+    @MusicTrack.grouping.setter
     def grouping(self, g):
         self._grouping = ID3Tag('TIT1', g)
 
     def __init__(self, filename):
         log = getLogger('Rkive.MusicFile')
-        for tag, tag_obj in vars(self):
-            setattr(self, tag, ID3Tag())
-            tag_obj = getattr(self, tag)
-            id3tag=ID3Tags[tag]
-            tag_obj.id3tag = id3tag
-            tag_obj.func = getattr(mutagen.id3,id3tag)
         self.filename = filename
 
     def get_object(self):
@@ -275,7 +293,7 @@ class MP3(MusicTrack):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
-        for rkive_tag in self.get_properties():
+        for rkive_tag in MusicTrack.get_properties():
             if hasattr(self, rkive_tag):
                 attr = getattr(self, rkive_tag)
                 value = attr.value
@@ -341,27 +359,28 @@ class TypeNotSupported(Exception):
 class TagsObjectNotFound(Exception):
     pass
 
-class MediaTypes:
+class MediaTypes(object):
+
     Types = {
         '.mp3'  : (MP3, ID3Tag),
         '.flac' : (Flac, Tag)
     }
 
-
-def is_music_file(fp):
-    log = getLogger('Rkive.MusicFiles')
-    log.debug("fp: {0}".format(fp))
-    for t in MediaTypes.Types:
-        if (fp.endswith(t)):
-            return True
-    return False
+    @classmethod
+    def is_music_file(cls, fp):
+        log = getLogger('Rkive.MusicFile.MediaTypes')
+        log.debug("fp: {0}".format(fp))
+        for t in self.Types:
+            if (fp.endswith(t)):
+                return True
+        return False
 
 #
 # Proxy Object
 class MusicFile(object):
 
     def set_tags_from_list(self, l):
-        log = getLogger('Rkive.MusicFiles')
+        log = getLogger('Rkive.MusicFile')
         log.info("Setting attributes from list for {0}".format(self.media.filename))
         for tag,value in l.items():
             log.info("{0}: {1}".format(tag,val))
@@ -373,13 +392,11 @@ class MusicFile(object):
         log.debug("hello: {0}".format(ext))
         self.media = MediaTypes.Types[ext][0](filename)
         obj = self.media.get_object()
-        for tag, value in obj.items():
-            if rkive_tag:
-                t = tag_class()
-                t.value=value
-                setattr(self, rkive_tag, t)
-            else:
-                log.warn("tag {0} not found for {1}".format(tag, filename))
+        for tag in obj:
+            if tag in self.media.get_properties():
+                rkive_tag = getattr(self.media, tag)
+                value = obj[tag]
+                setattr(self, rkive_tag, value)
 
     def report_tag(self, tag):
         log = getLogger('Rkive.MusicFile')
@@ -420,8 +437,17 @@ class MusicFile(object):
 
     def __setattr__(self, tag, value):
         log = getLogger('Rkive.MusicFile')
-        if tag in Tags.TagMap:
+        if tag in MusicTrack.get_properties():
             log.debug("{0}: {1}".format(tag,value))
+            #
+            # MP3 combines the tracknumber/tracktotal and discnumber/disctotal
+            if '/' in value:
+                if tag=='tracknumber':
+                    value, tracktotal = value.split('/') 
+                    setattr(self, 'tracktotal', tracktotal)
+                if tag=='discnumber':
+                    value,disctotal = value.split('/')
+                    setattr(self, 'disctotal', disctotal)
             setattr(self, tag, value)
         elif tag=='filename':
             filename = value
@@ -435,7 +461,7 @@ class MusicFile(object):
                 raise TypeNotSupported
             if ('.AppleDouble' in filename):
                 raise TypeNotSupported
-            self.__dict__['media'] = Tags.Types[mediatype](filename)
+            self.__dict__['media'] = MediaTypes.Types[mediatype](filename)
         else:
             self.__dict__[tag]=value
 
