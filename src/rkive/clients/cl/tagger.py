@@ -5,7 +5,7 @@ from logging import getLogger
 import glob
 import re
 import xml.etree.ElementTree as ET
-from rkive.index.musicfile import MusicFile, Tags, TypeNotSupported, FileNotFound, is_music_file
+from rkive.index.musicfile import MusicTrack, TypeNotSupported, FileNotFound, MediaTypes
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 from rkive.clients.regexp import Regexp as Regexp
 from rkive.clients.files import visit_files
