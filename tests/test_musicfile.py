@@ -1,11 +1,24 @@
 import unittest
-from rkive.clients.cl.tagger import Tagger
+from rkive.index.musicfile import MusicTrack,Tag,ID3Tag
 import sys
 import logging
 
-class TestTagger(unittest.TestCase):
+class TestTag(unittest.TestCase):
 
-    base = "/Users/roger/Upload"
+    def test_set_property_in_constructor(self):
+        t = Tag('title','bravo')
+        self.assertEqual(t.name,"title")
+        self.assertEqual(t.value,"bravo")
 
-    def test_log_setup(self):
-        pass
+    def test_set_property_in_constructor(self):
+        t = Tag()
+        t.name='title'
+        t.value='value'
+        self.assertEqual(t.name,"title")
+        self.assertEqual(t.value,"value")
+
+class TestID3Tag(unittest.TestCase):
+    pass
+
+class TestMusicTrack(unittest.TestCase):
+    pass

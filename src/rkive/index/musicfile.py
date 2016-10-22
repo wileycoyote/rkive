@@ -18,8 +18,8 @@ CueMap = {
     'track_name' : 'title'
 }
 class Tag(object):
-
-    def __init__(self, n, v):
+    """Primary container for handling Meta data for Music Files """
+    def __init__(self, n='', v=''):
         self._name=n
         self._value=v
 
@@ -40,6 +40,7 @@ class Tag(object):
         self._value=v
 
 class ID3Tag(Tag):
+    """Container for ID3 name of tag, plus the function related to that tag """
 
     @property
     def id3name(self, n):
@@ -59,7 +60,7 @@ class ID3Tag(Tag):
         self._func = f
 
 class MusicTrack(object):
-    
+
     def get_properties(self):
         return [p for p in self.__dict__.keys() if
                 not p.startswith('__') or not p.startswith('get') or not p.startswith('save')]
@@ -443,7 +444,7 @@ class MusicFile(object):
             # MP3 combines the tracknumber/tracktotal and discnumber/disctotal
             if '/' in value:
                 if tag=='tracknumber':
-                    value, tracktotal = value.split('/') 
+                    value, tracktotal = value.split('/')
                     setattr(self, 'tracktotal', tracktotal)
                 if tag=='discnumber':
                     value,disctotal = value.split('/')
