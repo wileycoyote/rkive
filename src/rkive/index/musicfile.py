@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import os.path
 from logging import getLogger
+import mutagen
 from mutagen.id3 import ID3
 from mutagen.id3 import error as id3_error
 from mutagen.flac import FLAC, Picture
 from PIL import Image
-import weakref
 from yaml import load
 
 class InvalidTag(Exception): pass
@@ -19,9 +19,9 @@ CueMap = {
 }
 class Tag(object):
     """Primary container for handling Meta data for Music Files """
-    def __init__(self, n='', v=''):
-        self._name=n
-        self._value=v
+    def __init__(self, name='', value=''):
+        self.name=name
+        self.value=value
 
     @property
     def name(self):
@@ -43,7 +43,7 @@ class ID3Tag(Tag):
     """Container for ID3 name of tag, plus the function related to that tag """
 
     @property
-    def id3name(self, n):
+    def id3name(self):
         return self._id3name
 
     @id3name.setter
@@ -61,9 +61,10 @@ class ID3Tag(Tag):
 
 class MusicTrack(object):
 
-    def get_properties(self):
-        return [p for p in self.__dict__.keys() if
-                not p.startswith('__') or not p.startswith('get') or not p.startswith('save')]
+    @classmethod
+    def get_properties(cls):
+        return [p for p in cls.__dict__.keys() if
+                not p.startswith('__') and not p.startswith('get') and not p.startswith('save')]
 
     @property
     def title(self):
