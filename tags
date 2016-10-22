@@ -128,7 +128,6 @@ Tagger	build/lib/rkive/clients/cl/tagger.py	/^class Tagger(GetOpts):$/;"	c
 Tagger	src/rkive/clients/cl/tagger.py	/^class Tagger(GetOpts):$/;"	c
 TestGetOpts	tests/test_getopts.py	/^class TestGetOpts(unittest.TestCase):$/;"	c
 TestLogInit	tests/test_log.py	/^class TestLogInit(unittest.TestCase):$/;"	c
-TestTagger	tests/test_musicfile.py	/^class TestTagger(unittest.TestCase):$/;"	c
 TestTagger	tests/test_rkiverunner.py	/^class TestTagger(unittest.TestCase):$/;"	c
 TestTagger	tests/test_tagger.py	/^class TestTagger(unittest.TestCase):$/;"	c
 Track	build/lib/rkive/clients/markup.py	/^class Track(object):$/;"	c
@@ -257,7 +256,6 @@ base	src/rkive/distribution/clients/distributer.py	/^    base = os.path.join(os.
 base	src/rkive/distribution/config.py	/^    base = Column('base', String) $/;"	v	class:Sender
 base	src/rkive/distribution/config.py	/^    base = Column('base', String)$/;"	v	class:Receiver
 base	tests/test_log.py	/^    base = "\/Users\/roger\/Upload"$/;"	v	class:TestLogInit
-base	tests/test_musicfile.py	/^    base = "\/Users\/roger\/Upload"$/;"	v	class:TestTagger
 base	tests/test_rkiverunner.py	/^    base = "\/Users\/roger\/Upload"$/;"	v	class:TestTagger
 bin_folder	bin/installer	/^bin_folder=os.path.join(os.environ['HOME'], 'bin')$/;"	v
 build_target	src/rkive/distribution/clients/local.py	/^    def build_target(self, fp):$/;"	m	class:LocalDistributer
@@ -587,7 +585,6 @@ tag_tx	src/rkive/clients/markdown.py	/^    tag_tx = {'A': 'artist', 'C': 'commen
 test_debug	tests/test_getopts.py	/^    def test_debug(self):$/;"	m	class:TestGetOpts
 test_dryrun	tests/test_getopts.py	/^    def test_dryrun(self):$/;"	m	class:TestGetOpts
 test_log_setup	tests/test_log.py	/^    def test_log_setup(self):$/;"	m	class:TestLogInit
-test_log_setup	tests/test_musicfile.py	/^    def test_log_setup(self):$/;"	m	class:TestTagger
 test_log_write	tests/test_log.py	/^    def test_log_write(self):$/;"	m	class:TestLogInit
 test_make_local_index	tests/test_rkiverunner.py	/^    def test_make_local_index(self):$/;"	m	class:TestTagger
 test_musicfile_setup	tests/test_tagger.py	/^    def test_musicfile_setup(self):$/;"	m	class:TestTagger

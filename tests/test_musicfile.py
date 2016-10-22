@@ -1,11 +1,9 @@
 import unittest
-from rkive.clients.cl.tagger import Tagger
+from rkive.index.musicfile import MusicTrack
 import sys
 import logging
 
-class TestTagger(unittest.TestCase):
-
-    base = "/Users/roger/Upload"
+class TestMusicTrack(unittest.TestCase):
 
     def test_log_setup(self):
         pass
