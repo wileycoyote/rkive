@@ -294,7 +294,7 @@ class MP3(MusicTrack):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_object()
-        for rkive_tag in Music.get_properties():
+        for rkive_tag in MusicTrack.get_properties():
             if hasattr(self, rkive_tag):
                 attr = getattr(self, rkive_tag)
                 value = attr.value

@@ -6,11 +6,6 @@ import logging
 class TestTag(unittest.TestCase):
 
     def test_set_property_in_constructor(self):
-        t = Tag('title','bravo')
-        self.assertEqual(t.name,"title")
-        self.assertEqual(t.value,"bravo")
-
-    def test_set_property_in_constructor(self):
         t = Tag()
         t.name='title'
         t.value='value'
