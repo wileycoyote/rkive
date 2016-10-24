@@ -109,15 +109,15 @@ class MusicTrack(object):
 
     @tracktotal.setter
     def tracktotal(self, t):
-        self._tracktotal = Tag('tracktotal',t)
+        self._tracktotal=Tag('tracktotal',t)
 
     @property
     def tracknumber(self):
         """Sequential number of track in collection"""
         return self._tracknumber
 
-    @tracktotal.setter
-    def tracktotal(self, t):
+    @tracknumber.setter
+    def tracknumber(self, t):
         self._tracknumber = Tag('tracknumber',t)
 
     @property
