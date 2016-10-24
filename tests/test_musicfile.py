@@ -133,10 +133,10 @@ class TestMusicTrack(unittest.TestCase):
 
     def test_set_discnumber(self):
         m=MusicTrack()
-        disctotal=10
-        m.disctotal=disctotal
-        self.assertEqual(m.disctotal.value,disctotal)
-        self.assertEqual(m.disctotal.name,'disctotal')   
+        discnumber=5
+        m.discnumber=discnumber
+        self.assertEqual(m.discnumber.value,discnumber)
+        self.assertEqual(m.discnumber.name,'discnumber')   
 
     def test_set_composer(self):
         m=MusicTrack()
