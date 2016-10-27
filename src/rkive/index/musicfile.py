@@ -33,21 +33,25 @@ class Tags(object):
         'composer':'Composer of track',
         'artist': """Track artist: <soloist> (instrument); <soloist> (instrument), conductor:orchestra""",
         'albumartist':'The album artist',
-        'genre':'The generes of piece, seperated by comma',
+        'genre':'The genres of a piece, seperated by comma',
         'picture':'Picture - just the front picture',
     }
 
     @classmethod
     def get_tags(cls):
-        return self.tags.keys()
+        """A convenience method for getting the standard tag names """
+        return cls.tags.keys()
 
 class MusicTrack(object):
+    """ A class to be inherited by all Track type classes"""
 
-    def get_object(self):
+    def get_track(self):
+        """ Return the Mutagen object that represents the track"""
         log = getLogger('Rkive.MusicFile')
-        log.fatal("Method get_object not implemented")
+        log.fatal("Method get_track not implemented")
 
     def save(self):
+        """ Save the tags to the related external file"""
         log = getLogger('Rkive.MusicFile')
         log.fatal("Method save not implemented")
 
@@ -74,7 +78,7 @@ class MP3(MusicTrack):
         log = getLogger('Rkive.MusicFile')
         self.filename = filename
 
-    def get_object(self):
+    def get_track(self):
         try:
             return(ID3(self.filename))
         except id3_error:
@@ -98,7 +102,7 @@ class MP3(MusicTrack):
     def save(self):
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
-        mp3 = self.get_object()
+        mp3 = self.get_track()
         for rkive_tag in Tags.get_tags():
             if hasattr(self, rkive_tag):
                 value = getattr(self, rkive_tag)
@@ -122,7 +126,7 @@ class Flac(MusicTrack):
     def __init__(self, filename):
         self.filename = filename
 
-    def get_object(self):
+    def get_track(self):
         try:
             return(FLAC(self.filename))
         except mutagen.flac.error:
@@ -132,7 +136,7 @@ class Flac(MusicTrack):
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
-        flac = self.get_object()
+        flac = self.get_track()
         if hasattr(self, 'picture'):
             flac.clear_pictures()
             pic = Picture()
@@ -167,8 +171,8 @@ class TagsObjectNotFound(Exception):
 class MediaTypes(object):
 
     Types = {
-        '.mp3'  : (MP3, ID3Tag),
-        '.flac' : (Flac, Tag)
+        '.mp3'  : MP3,
+        '.flac' : Flac
     }
 
     @classmethod
@@ -196,7 +200,7 @@ class MusicFile(object):
         basename, ext = os.path.splitext(filename)
         log.debug("hello: {0}".format(ext))
         self.media = MediaTypes.Types[ext][0](filename)
-        obj = self.media.get_object()
+        obj = self.media.get_track()
         for tag in obj:
             if tag in Tags.get_tags():
                 rkive_tag = getattr(self.media, tag)
@@ -237,7 +241,7 @@ class MusicFile(object):
     def pprint(self, filename):
         log = getLogger('Rkive.MusicFile')
         self.filename = filename
-        c = self.media.get_object()
+        c = self.media.get_track()
         log.info(c.pprint())
 
     def __setattr__(self, tag, value):
