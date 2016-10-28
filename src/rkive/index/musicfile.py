@@ -79,9 +79,13 @@ class MP3(MusicTrack):
         self.filename = filename
 
     def get_track(self):
+        log=getLogger('Rkive.MusicFile')
         try:
-            return(ID3(self.filename))
+            id3=ID3(self.filename)
+            log.debug("Return file: {0}".format(self.filename))
+            return id3
         except id3_error:
+            log.debug("Adding default ID3 frame to {0}".format(self.filename))
             mp3 = ID3()
             mp3.save(self.filename)
             return mp3
@@ -89,14 +93,14 @@ class MP3(MusicTrack):
     def get_id3_number(self, id3_val, val):
         value = val
         if '/' in id3_val:
-            curr_number, curr_total = '/'.split(id3_val)
+            curr_number, curr_total = id3_val.split('/')
             value = '/'.join([value, curr_total])
         return value
 
     def get_id3_total(self, id3_val, val):
-        curr_number = val
+        curr_number = id3_val
         if '/' in id3_val:
-            curr_number, curr_total = '/'.split(id3_val)
+            curr_number, curr_total = id3_val.split('/')
         return '/'.join([curr_number, val])
 
     def save(self):
@@ -123,6 +127,12 @@ class MP3(MusicTrack):
 
 class Flac(MusicTrack):
 
+    mimetypes={
+        '.jpeg': u"image/jpeg",
+        '.jpg': u"image/jpeg",
+        '.png': u"image/png"
+    }
+
     def __init__(self, filename):
         self.filename = filename
 
@@ -145,10 +155,8 @@ class Flac(MusicTrack):
             im = Image.open(self.picture)
             pic.type = 3
             v = getattr(self, 'picture')
-            if v.endswith('jpg'):
-                pic.mime = u"image/jpeg"
-            if v.endswith('png'):
-                pic.mime = u"image/png"
+            filename, file_extension = os.path.splitext(v)
+            pic.mime=self.mime_types[file_extension.lower()]
             pic.width = im.size[0]
             pic.height = im.size[1]
             flac.add_picture(pic)
