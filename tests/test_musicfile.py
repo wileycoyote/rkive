@@ -126,7 +126,7 @@ class TestMP3(unittest.TestCase):
         album=str_generator()
         m['album']=album
         m.save() 
-        t=get_track()
+        t=m.get_track()
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)

@@ -55,6 +55,15 @@ class MusicTrack(object):
         log = getLogger('Rkive.MusicFile')
         log.fatal("Method save not implemented")
 
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def __getitem__(self, key):
+        if key in self.__dict__:
+            return self.__dict__[key]
+        else:
+            return None
+
 class MP3(MusicTrack):
 
     id3tags={
@@ -90,40 +99,63 @@ class MP3(MusicTrack):
             mp3.save(self.filename)
             return mp3
 
-    def get_id3_number(self, id3_val, val):
-        value = val
-        if '/' in id3_val:
-            curr_number, curr_total = id3_val.split('/')
+    def get_id3_number(self, val_in_file, val_to_set):
+        value = val_to_set
+        if '/' in val_in_file:
+            curr_number, curr_total = val_in_file.split('/')
             value = '/'.join([value, curr_total])
         return value
 
     def get_id3_total(self, id3_val, val):
+        log = getLogger('Rkive.MusicFile')
         curr_number = id3_val
         if '/' in id3_val:
             curr_number, curr_total = id3_val.split('/')
-        return '/'.join([curr_number, val])
+        return  '/'.join([curr_number, val])
+
+    def set_id3_number(self, mp3, seqnumtag, totaltag):
+        log = getLogger('Rkive.MusicFile')
+        if hasattr(self, totaltag):
+            total=getattr(self, totaltag)
+            seqnum="1"
+            if hasattr(self, seqnumtag):
+                seqnum=getattr(self, seqnumtag)
+                seqnum='/'.join([seqnum,total])
+            else:
+                id3tag=self.id3tags[totaltag]
+                #
+                # if no value is set in the MP3 file, add a default tracknumber or discnumber
+                if id3tag in mp3:
+                    seqnum=str(mp3[id3tag])
+                seqnum=self.get_id3_total(seqnum,total)
+            delattr(self, totaltag)
+        elif hasattr(self, seqnumtag):
+            id3tag=self.id3tags[seqnumtag]
+            seqnum=getattr(self,seqnumtag)
+            if id3tag in mp3:
+                val_from_file=str(mp3[id3tag])
+                seqnum=self.get_id3_number(val_from_file,seqnum)
+        setattr(self, seqnumtag, seqnum)
 
     def save(self):
+        """ Save a MP3
+        ID3 format has TRCK=Tracknumber/Tracktotal, IPOS=DiscNumber/Disctotal
+        the Rkive way is to carry both seperately, so when we come to save
+        we need to do come work to reduce two variables to one, if need be
+        do that disctotal or discnumber never reach the save loop
+        """
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
         mp3 = self.get_track()
+        self.set_id3_number(mp3, 'tracknumber', 'tracktotal')
+        self.set_id3_number(mp3, 'discnumber', 'disctotal')
         for rkive_tag in Tags.get_tags():
             if hasattr(self, rkive_tag):
                 value = getattr(self, rkive_tag)
                 id3tag=self.id3tags[rkive_tag]
-                log.debug("Writing tag {0}: {1}".format(id3tag,value))
-                if rkive_tag == 'tracknumber':
-                    value = self.get_id3_number(mp3[id3tag], value)
-                if rkive_tag == 'tracktotal':
-                    value = self.get_id3_total(mp3[id3tag], value)
-                if rkive_tag == 'discnumber':
-                    value = self.get_id3_number(mp3[id3tag], value)
-                if rkive_tag == 'disctotal':
-                    value = self.get_id3_total(mp3[id3tag], value)
                 log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
-                mp3.delall(id3tag)
                 mp3.add(getattr(mutagen.id3,id3tag)(encoding=3, text=value))
-        mp3.save()
+        mp3.save(self.filename)
 
 class Flac(MusicTrack):
 
