@@ -129,13 +129,14 @@ class MP3(MusicTrack):
                     seqnum=str(mp3[id3tag])
                 seqnum=self.get_id3_total(seqnum,total)
             delattr(self, totaltag)
+            setattr(self, seqnumtag, seqnum)
         elif hasattr(self, seqnumtag):
             id3tag=self.id3tags[seqnumtag]
             seqnum=getattr(self,seqnumtag)
             if id3tag in mp3:
                 val_from_file=str(mp3[id3tag])
                 seqnum=self.get_id3_number(val_from_file,seqnum)
-        setattr(self, seqnumtag, seqnum)
+            setattr(self, seqnumtag, seqnum)
 
     def save(self):
         """ Save a MP3
