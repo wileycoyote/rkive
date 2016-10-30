@@ -43,7 +43,9 @@ class Tags(object):
         return cls.tags.keys()
 
 class MusicTrack(object):
-    """ A class to be inherited by all Track type classes"""
+    """ A class to be inherited by all Track type classes
+    all MusicTrack classes implement two methods - get_track and save
+    All MusicTrack classes are iterable"""
 
     def get_track(self):
         """ Return the Mutagen object that represents the track"""
@@ -55,14 +57,24 @@ class MusicTrack(object):
         log = getLogger('Rkive.MusicFile')
         log.fatal("Method save not implemented")
 
+    def __iter__(self):
+        # first start by grabbing the Class items
+        iters = dict((x,y) for x,y in MusicTrack.__dict__.items() if x[:2] != '__')
+
+        # then update the class items with the instance items
+        iters.update(self.__dict__)
+
+        # now 'yield' through the items
+        for x,y in iters.items():
+            yield x,y
+
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
     def __getitem__(self, key):
         if key in self.__dict__:
             return self.__dict__[key]
-        else:
-            return None
+        raise KeyError
 
 class MP3(MusicTrack):
 
@@ -115,11 +127,11 @@ class MP3(MusicTrack):
 
     def set_id3_number(self, mp3, seqnumtag, totaltag):
         log = getLogger('Rkive.MusicFile')
-        if hasattr(self, totaltag):
-            total=getattr(self, totaltag)
+        if totaltag in self:
+            total=self[totaltag]
             seqnum="1"
-            if hasattr(self, seqnumtag):
-                seqnum=getattr(self, seqnumtag)
+            if seqnumtag in self:
+                seqnum=self[seqnumtag]
                 seqnum='/'.join([seqnum,total])
             else:
                 id3tag=self.id3tags[totaltag]
@@ -128,18 +140,18 @@ class MP3(MusicTrack):
                 if id3tag in mp3:
                     seqnum=str(mp3[id3tag])
                 seqnum=self.get_id3_total(seqnum,total)
-            delattr(self, totaltag)
-            setattr(self, seqnumtag, seqnum)
-        elif hasattr(self, seqnumtag):
+            del self[totaltag]
+            self[seqnumtag]=seqnum
+        elif seqnumtag in self:
             id3tag=self.id3tags[seqnumtag]
-            seqnum=getattr(self,seqnumtag)
+            seqnum=self[seqnumtag]
             if id3tag in mp3:
                 val_from_file=str(mp3[id3tag])
                 seqnum=self.get_id3_number(val_from_file,seqnum)
-            setattr(self, seqnumtag, seqnum)
+            self[seqnumtag]=seqnum
 
     def save(self):
-        """ Save a MP3
+        """ Save a MP3 file
         ID3 format has TRCK=Tracknumber/Tracktotal, IPOS=DiscNumber/Disctotal
         the Rkive way is to carry both seperately, so when we come to save
         we need to do come work to reduce two variables to one, if need be
@@ -150,12 +162,11 @@ class MP3(MusicTrack):
         mp3 = self.get_track()
         self.set_id3_number(mp3, 'tracknumber', 'tracktotal')
         self.set_id3_number(mp3, 'discnumber', 'disctotal')
-        for rkive_tag in Tags.get_tags():
-            if hasattr(self, rkive_tag):
-                value = getattr(self, rkive_tag)
-                id3tag=self.id3tags[rkive_tag]
-                log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
-                mp3.add(getattr(mutagen.id3,id3tag)(encoding=3, text=value))
+        for rkive_tag in Tags.get_tags() and rkive_tag in self:
+            value = self[rkive_tag]
+            id3tag=self.id3tags[rkive_tag]
+            log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
+            mp3.add(getattr(mutagen.id3,id3tag)(encoding=3, text=value))
         mp3.save(self.filename)
 
 class Flac(MusicTrack):
@@ -180,24 +191,22 @@ class Flac(MusicTrack):
     def save(self):
         log = getLogger('Rkive.MusicFile')
         flac = self.get_track()
-        if hasattr(self, 'picture'):
+        if 'picture' in self:
             flac.clear_pictures()
             pic = Picture()
             with open(self.picture, "rb") as f:
                 pic.data = f.read()
             im = Image.open(self.picture)
             pic.type = 3
-            v = getattr(self, 'picture')
-            filename, file_extension = os.path.splitext(v)
+            filename, file_extension = os.path.splitext(self.picture)
             pic.mime=self.mime_types[file_extension.lower()]
             pic.width = im.size[0]
             pic.height = im.size[1]
             flac.add_picture(pic)
-            delattr(self, 'picture')
-        log.debug("Tag: {0}: {1}".format(tag, attr.value))
-        for rkive_tag in Tags.get_tags():
+            del self['picture']
+        for rkive_tag in Tags.tags:
             if hasattr(self, rkive_tag):
-                flac[rkive_tag] = getattr(self, rkive_tag)
+                flac[rkive_tag] = self[rkive_tag]
         flac.save()
 
 class FileNotFound(Exception):
@@ -227,7 +236,7 @@ class MediaTypes(object):
 
 #
 # Proxy Object
-class MusicFile(object):
+class MusicFile(MusicTrack):
 
     def set_tags_from_list(self, l):
         log = getLogger('Rkive.MusicFile')
@@ -235,6 +244,9 @@ class MusicFile(object):
         for tag,value in l.items():
             log.info("{0}: {1}".format(tag,val))
             setattr(self, tag, val)
+
+    def get_track(self):
+        return self.media.get_track()
 
     def set_media(self, filename):
         log = getLogger('Rkive.MusicFile')
@@ -244,15 +256,14 @@ class MusicFile(object):
         obj = self.media.get_track()
         for tag in obj:
             if tag in Tags.get_tags():
-                rkive_tag = getattr(self.media, tag)
                 value = obj[tag]
-                setattr(self.media,rkive_tag, value)
+                self[tag]=value
 
     def report_tag(self, tag):
         log = getLogger('Rkive.MusicFile')
         log.debug("tag: {0}".format(tag))
-        if hasattr(self,tag):
-            value = getattr(self, tag)
+        if tag in self:
+            value = self[tag]
             log.info("{0}: Attribute {1} has value {2}".format(self.media.filename, tag, value))
         else:
             log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
@@ -262,7 +273,7 @@ class MusicFile(object):
         if not tags:
             return
         for tag in tags:
-            if not hasattr(self, tag):
+            if not tag in self:
                 log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
 
     def report_set_tags(self, tags):
@@ -289,7 +300,7 @@ class MusicFile(object):
         log = getLogger('Rkive.MusicFile')
         if tag in Tags.get_tags():
             log.debug("{0}: {1}".format(tag,value))
-            setattr(self, tag, value)
+            self[tag]=value
         elif tag=='filename':
             filename = value
             log.info("Filename: {0}".format(filename))
@@ -302,16 +313,16 @@ class MusicFile(object):
                 raise TypeNotSupported
             if ('.AppleDouble' in filename):
                 raise TypeNotSupported
-            self.__dict__['media'] = MediaTypes.Types[mediatype](filename)
+            self['media'] = MediaTypes.Types[mediatype](filename)
         else:
-            self.__dict__[tag]=value
+            self[tag]=value
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')
         if not self.media:
             log.fatal("No media set")
             raise MediaObjectNotFound
-        for tag, value in self.__dict__.items():
-            if tag in MusicTrack.get_properties() and value:
-                setattr(self.media, tag, value)
+        for tag, value in self.items():
+            if tag in Tags.get_properties() and value:
+                self.media[tag]=value
         self.media.save()
