@@ -117,7 +117,7 @@ class TestMP3(unittest.TestCase):
         m['year']=year
         albumartist=str_generator()
         m['albumartist']=albumartist
-        disctotal="10"
+        disctotal="11"
         m['disctotal']=disctotal
         discnumber="4"
         m['discnumber']=discnumber
@@ -127,6 +127,29 @@ class TestMP3(unittest.TestCase):
         m['album']=album
         m.save() 
         t=m.get_track()
+        id3vars = dict(t)
+        for rkivetag, id3tag in MP3.id3tags.items():
+            if not id3tag in id3vars:
+                continue
+            id3val=str(id3vars[id3tag])
+            if rkivetag=='tracktotal':
+                tracknumber, tracktotal=str(id3vars['TRCK']).split('/')
+                self.assertEqual(tracktotal,"10")
+                continue
+            if rkivetag=='tracknumber':
+                tracknumber, tracktotal=str(id3vars['TRCK']).split('/')
+                self.assertEqual(tracknumber,"5")
+                continue
+            if rkivetag=='disctotal':
+                discnumber, disctotal=str(id3vars['TPOS']).split('/')
+                self.assertEqual(disctotal,"11")
+                continue
+            if rkivetag=='discnumber':
+                discnumber, disctotal=str(id3vars['TPOS']).split('/')
+                self.assertEqual(discnumber,"4")
+                continue
+            rkiveval=m[rkivetag]
+            self.assertEqual(id3val,rkiveval)
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)
