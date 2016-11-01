@@ -1,16 +1,17 @@
-import rkive.clients.log
-import rkive.clients.cl.opts
+from rkive.clients.log import LogInit
+from rkive.clients.cl.opts import GetOpts
 import os.path
 import argparse
 from logging import getLogger
 import sys
 from rkive.index.musicfile import MusicFile
 from rkive.index.schema import Base, Movie
-from sqlalchemy import create_engine, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 class MakeIndexClient(GetOpts):
 
-    def __init__(self, logloc='.', urls=[], sources=[]):
+    def __init__(self, logfolder='.', connections=[], sources=[]):
         """ Initialise class - logs, command-line parameters, urls and sources
 
         Attributes:
@@ -20,8 +21,8 @@ class MakeIndexClient(GetOpts):
         """
         p = self.get_parser()
         p.parse_args(namespace=self)
-        LogInit().set_logging(location=logloc,filename='index.log', debug=self.debug, console=self.console)
-        self.urls = urls
+        LogInit().set_logging(location=logfolder,filename='index.log', debug=self.debug, console=self.console)
+        self.connections = connections
         self.sources = sources
 
     def run(self):
@@ -29,9 +30,11 @@ class MakeIndexClient(GetOpts):
         currently only movies and music are supported
         """
         log = getLogger('Rkive.Index')
+        session=''
         try:
-            for url in self.urls:
-                engine = create_engine(url)
+            for connection in self.connections:
+                log.info("Connection: {0}".format(connection))
+                engine = create_engine(connection)
                 session = sessionmaker(bind=engine)
                 Base.metadata.create_all(engine)
                 Base.metadata.bind = engine

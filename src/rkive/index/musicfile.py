@@ -62,9 +62,12 @@ class MusicTrack(object):
         return cls.rkivetags.keys()
 
     @classmethod
-    def get_mime_type(cls, key):
+    def get_mime_type(cls, filename):
         """A convenience method for defining mime type"""
-        if key in cls.mimetypes:
+        log = getLogger('Rkive.MusicFile')
+        fp, ext=os.path.splitext(filename)
+        log.info(ext)
+        if ext in cls.mimetypes:
             return cls.mimetypes[key]
         raise KeyError
 
@@ -196,8 +199,7 @@ class MP3(MusicTrack):
         mp3 = self.get_track()
         self.set_id3_number(mp3, 'tracknumber', 'tracktotal')
         self.set_id3_number(mp3, 'discnumber', 'disctotal')
-        mimetype=self.get_mime_type(self.filename)
-        for rkive_tag in self.get_tags():
+        for rkive_tag in self.get_rkive_tags():
             log.debug("cycle through tag: {0}".format(rkive_tag))
             if rkive_tag in dict(self):
                 value = self[rkive_tag]
@@ -205,6 +207,7 @@ class MP3(MusicTrack):
                 log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
                 mutagenid3=getattr(mutagen.id3,id3tag)
                 if id3tag == 'APIC':
+                    mimetype=self.get_mime_type(value)
                     picfh=open(value).read()
                     mp3.add(mutagenid3(encoding=3, mime=mimetype,type=3,desc=u"cover",data=picfh))
                 mp3.add(mutagenid3(encoding=3, text=value))
@@ -233,8 +236,7 @@ class Flac(MusicTrack):
                 pic.data = f.read()
             im = Image.open(self.picture)
             pic.type = 3
-            filename, file_extension = os.path.splitext(self.picture)
-            pic.mime=self.get_mime_type(file_extension.lower())
+            pic.mime=self.get_mime_type(self.picture)
             pic.width = im.size[0]
             pic.height = im.size[1]
             flac.add_picture(pic)

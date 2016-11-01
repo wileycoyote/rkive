@@ -27,13 +27,13 @@ class RkiveRunner:
             from rkive.clients.cl.makeindex import MakeIndexClient
             from rkive.clients.config import Config
             c = Config(install_path)
-            urls = c.get_local_connections()
+            connections = c.get_local_live_connections()
             sources = c.get_sources()
-            MakeIndexClient(logfolder=log, urls=urls, sources=sources).run()
+            MakeIndexClient(logfolder=log, connections=connections, sources=sources).run()
         if script == 'rk_make_index':
             from rkive.clients.cl.makeindex import MakeIndexClient
             from rkive.clients.config import Config
             c = Config(install_path)
-            urls = c.get_remote_connections()
+            urls = c.get_remote_live_connections()
             sources = c.get_sources()
             MakeIndexClient(logfolder=log, urls=urls, sources=sources).run()

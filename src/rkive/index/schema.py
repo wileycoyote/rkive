@@ -20,7 +20,7 @@ class Media(Base):
 
 class Person(Base):
     __tablename__='person'
-    id = Column(Integer, primary_key=True),
+    id = Column(Integer, primary_key=True)
     name = Column(String)
 
     def __init__(self, n):
@@ -64,7 +64,7 @@ class Movie(Base):
     def add_person(self, person):
         self.people.append(person)
 
-class Movies(Base):
+class Movies(object):
 
     session = None
     file_re = re.compile('(.+?) \((.*?)\), \((\d\d\d\d)\)')

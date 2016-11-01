@@ -8,11 +8,14 @@ runner_files = [
     'rk_tag',
     'rk_convert',
     'rk_markup',
-    'rk_make_index'
+    'rk_make_index',
+    'rk_make_local_index'
 ]
 root = os.path.realpath(__file__)
+print(root)
 root, leaf = os.path.split(root)
-src = os.path.join(root, 'runner.py')
+root, leaf = os.path.split(root)
+src = os.path.join(root, 'bin', 'runner.py')
 bin_folder=os.path.join(os.environ['HOME'], 'bin')
 for f in runner_files:
     tgt = os.path.join(bin_folder, f)
@@ -20,7 +23,10 @@ for f in runner_files:
         os.remove(tgt)
     print ("Installing {0} as {1}".format(src, tgt))
     os.symlink(src, tgt)
-conf_src = os.path.join(root, 'conf')
-conf_tgt = os.path.join(os.environ['HOME'],'.conf','rkive')
-os.mkdir(conf_tgt)
-shutil.copytree(conf_src, conf_tgt)
+conf_src = os.path.join(root, 'config')
+conf_tgt = os.path.join(os.environ['HOME'],'.config','rkive')
+if not os.path.isdir(conf_tgt):
+    os.mkdir(conf_tgt)
+for f in os.listdir('./config'):
+    shutil.copy(os.path.join('./config',f), conf_tgt)
+

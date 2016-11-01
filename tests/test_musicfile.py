@@ -9,7 +9,7 @@ import tempfile
 from testfixtures import LogCapture as LogCapture
 from logging import getLogger as getLogger
 from rkive.clients.log import LogInit
-from rkive.index.musicfile import MusicTrack, Tags, MP3
+from rkive.index.musicfile import MusicTrack, MP3
 
 def str_generator(size=random.randrange(0, 101, 2), chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
@@ -41,7 +41,7 @@ class TestTags(unittest.TestCase):
     ]
 
     def test_get_tags(self):
-        props = Tags.get_tags()
+        props = MusicTrack.get_rkive_tags()
         self.assertEqual(len(props),len(self.props))
         for p in self.props:
             self.assertIn(p,props)

@@ -1,4 +1,4 @@
-from yaml import load
+from yaml import load as yaml_load
 import os.path
 import logging
 
@@ -16,12 +16,16 @@ class Config:
     Attributes:
         home: directory where config files are to be found
     """
-    def __init__(self, home):
+    def __init__(self, base):
+        if not os.path.isdir(base):
+            raise EnvironmentError
+        self.home = os.path.join(base,'.config','rkive')
         self.sources = {}
         self.connections = []
         self.local_connections = []
         self.remote_connections = []
-        self.home = home
+        self.read_sources()
+        self.read_connections()
 
     def read_sources(self):
         """ read source file from designated folder
@@ -30,27 +34,32 @@ class Config:
         source = os.path.join(self.home, 'sources.yml')
         try:
             with open(source) as s:
-                d = load(s)
+                d = yaml_load(s)
                 if d is None:
                     raise NoSourcesError
                 if not isinstance(d,dict):
                     raise NoSourcesError
-                for k, v in d.items():
-                    reverse_key = v.lower()
-                    if not reverse_key in self.sources:
-                        self.sources[reverse_key] = []
-                    self.sources[reverse_key].append(k)
+                for source_key, sources in d.items():
+                    for source in sources:
+                        category=source['category']
+                        source=source['folder']
+                        if not source in self.sources:
+                            self.sources[source] = []
+                        self.sources[source].append(category)
         except EnvironmentError:
             raise EnvironmentError
         if self.sources == {}:
             raise NoSourcesError
         return True
 
+    def get_sources(self):
+        return self.sources
+
     def read_connections(self):
         conns_cfg = os.path.join(self.home, 'connections.yml')
         try:
             with open(conns_cfg) as cf:
-                conns = load(cf)
+                conns = yaml_load(cf)
                 if conns is None:
                     raise NoConnectionsError
                 if not isinstance(conns,list):
@@ -83,6 +92,9 @@ class Config:
                     if 'port' in conn:
                         port = ':'+conn['port']
                     url='{0}://{1}{2}{3}{4}/{5}'.format(dbtype,username,password,host,port,path)
+                    if not os.path.isfile(path):
+                        fh=open(path,'w')
+                        fh.close()
                     self.connections.append((status, location, url))
         except EnvironmentError:
             raise EnvironmentError
