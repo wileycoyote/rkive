@@ -5,6 +5,7 @@ import sqlalchemy.exc as alchemy_exceptions
 from sqlalchemy import create_engine, or_, and_
 import re
 from rkive.index.musicfile import MusicFile as MusicFile
+from logging import getLogger
 
 Base = declarative_base()
 
@@ -13,6 +14,7 @@ class Media(Base):
     id = Column(Integer, primary_key=True)
     filepath = Column(String)
     format = Column(String)
+    movie_id = Column(Integer, ForeignKey("movie.id"))
 
     def __init__(self, fp, fmt):
         self.filepath = fp
@@ -26,11 +28,11 @@ class Person(Base):
     def __init__(self, n):
         self.name = n
 
-class MoviePeople(Base):
+class Moviepeople(Base):
     __tablename__ = 'moviepeople'
     id = Column(Integer, primary_key=True)
     role = Column(String)
-    people_id = Column(Integer, ForeignKey('people.id'))
+    people_id = Column(Integer, ForeignKey('person.id'))
     person = relationship("Person")
     movie_id = Column(Integer, ForeignKey("movie.id"))
 
@@ -44,12 +46,11 @@ class Movie(Base):
     title = Column(String)
     category = Column(String)
     year = Column(String)
-    mediaobjects = relationship("Media", cascade="all, delete, delete-orphan")
-    people = relationship("MoviePeople", cascade="all, delete, delete-orphan")
+    mediaobjects = relationship("Media", backref='movie', cascade="all, delete, delete-orphan")
+    people = relationship("Moviepeople", backref='movie', cascade="all, delete, delete-orphan")
 
-    def __init__(self, title, year, fp):
+    def __init__(self, title, year):
         self.title = title
-        self.director = []
         self.year = year
         self.category = 'movie'
 
@@ -66,33 +67,47 @@ class Movie(Base):
 
 class Movies(object):
 
-    session = None
-    file_re = re.compile('(.+?) \((.*?)\), \((\d\d\d\d)\)')
+    film_re = re.compile('(.+?) \((.*?), (\d\d\d\d)\)')
 
-    def add_movie(title, year, directors, fp):
-        m = Movie(title, year)
+    def __init__(self, session):
+        self.session = session
+
+    def parse_midx(self, midx):
+        m = self.film_re.match(midx)
+        return(m.group(1),m.group(2),m.group(3))
+
+    def add_movie(self, title, directors, year, fp):
+        log = getLogger('Rkive.Index')
+        log.info("title: {0}".format(title))
+        people=[]
+        directors = directors.split(', ')
         for d in directors:
             p = Person(d)
-            session.add(p)
+            self.session.add(p)
             mp = MoviePeople('director', p)
-            session.add(mp)
-            m.add_person(mp)
+            self.session.add(mp)
+            self.session.commit()
+            people.append(mp)
         t ='mkv'
         media = MediaObject(t, fp)
-        session.add(media)
-        m.add_media(media)
-        session.add(m)
-        session.commit()
+        self.session.add(media)
+        self.session.commit()
+        movie = Movie(title, year)
+        movie.add_people(people)
+        movie.add_media(media)
+        self.session.add(movie)
+        self.session.commit()
 
-    def get_movies():
-        return Movies.session.query(Movie.title).all()
+    def get_movies(self):
+        return self.session.query(Movie.title).all()
     #
     # returns a list of <movie_name> (<director(s)>, <year>)
-    def get_movies_index():
+    def get_movies_index(self):
+        log = getLogger('Rkive.Index')
         movie_info = set()
-        movies = Movies.session.query(Movie).all()
+        movies = self.session.query(Movie).all()
         for movie in movies:
-            info = Movie.get_movie_index(movie)
+            info = rkive.index.schema.Movie.get_movie_index(movie)
             movie_info.add(info)
         return movie_info
 
@@ -108,11 +123,11 @@ class Movies(object):
         directors = ', '.join(directors)
         return '{0} ({1}, {2})'.format(movie.title, directors, year)
 
-    def find_movie(title, fmt, year,directors=[] ):
+    def find_movie(self, title, fmt, year,directors=[] ):
         role='director'
         movie = None
         try:
-            movie=Movies.session.query(Movie, Media).\
+            movie=self.session.query(Movie, Media).\
             filter_by(title=title).\
             filter(Media.format==fmt,Movie.year==year,Movie.id==Media.id).\
             filter(and_(Movie.people.any(People.role==role), People.name.in_(directors))).\
@@ -121,18 +136,13 @@ class Movies(object):
             return movie
         return movie
 
-    def is_movie(s):
-        m = self.film_re.match(s)
+    @classmethod
+    def is_movie(cls, root, name):
+        log = getLogger('Rkive.Index')
+        m = cls.film_re.match(name)
+        log.debug("Found: {0} {1}".format(m, name))
         if not m:
             return False
-        movie = m.group(1)
-        director = m.group(2)
-        year = m.group(3)
-        directors = director.split(', ')
-        if Movies.find_movie(movie, 'mkv', year, directors):
-            return True
-        m = self.add_movie(movie, directors, year)
-        m.save()
         return True
 
     def remove_movies(movies):
@@ -145,8 +155,8 @@ class Movies(object):
             movie_in_db.delete(synchronize_session=True)
 
 class MusicTrack(Base, MusicFile):
-    __tablename__ = 'MusicTrack'
-    id_track = Column('idMusicTrack', Integer, primary_key=True)
+    __tablename__ = 'musictrack'
+    id_track = Column('idmusictrack', Integer, primary_key=True)
     Column('discnumber', String)
     Column('disctotal', String)
     Column('album', String)

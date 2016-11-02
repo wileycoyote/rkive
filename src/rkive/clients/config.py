@@ -65,7 +65,6 @@ class Config:
                 if not isinstance(conns,list):
                     raise NoConnectionsError
                 for conn in conns:
-                    print(conn)
                     # Test for must have parameters first
                     if not 'type' in conn:
                         raise NoConnectionsError

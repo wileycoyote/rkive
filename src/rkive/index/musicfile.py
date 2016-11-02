@@ -46,16 +46,6 @@ class MusicTrack(object):
         '.png': u"image/png"
     }
 
-
-    @classmethod
-    def is_music_file(cls, fp):
-        log = getLogger('Rkive.MusicFile.MediaTypes')
-        log.debug("fp: {0}".format(fp))
-        for t in cls.mediatypes:
-            if (fp.endswith(t)):
-                return True
-        return False
-
     @classmethod
     def get_rkive_tags(cls):
         """A convenience method for getting the standard tag names """
@@ -263,6 +253,15 @@ class MusicFile(MusicTrack):
         '.mp3'  : MP3,
         '.flac' : Flac
     }
+
+    @classmethod
+    def is_music_file(cls, fp):
+        log = getLogger('Rkive.MusicFile')
+        log.debug("fp: {0}".format(fp))
+        for t in cls.mediatypes:
+            if (fp.endswith(t)):
+                return True
+        return False
 
     def get_media_class(self, filename):
         basename, mediatype = os.path.splitext(filename)
