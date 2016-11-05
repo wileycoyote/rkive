@@ -78,6 +78,12 @@ class Movie(Base):
         for person in people:
             self.people.append(person)
 
+class Album(Base):
+    pass
+
+class AlbumSet(Base):
+    pass
+
 class MusicTrack(Base):
     __tablename__ = 'musictrack'
     id = Column('id', Integer, primary_key=True)
@@ -96,7 +102,4 @@ class MusicTrack(Base):
 
     def __init__(self, path):
         log = getLogger('Rkive.Index')
-        attr=MusicFile.__init__(path)
-        for a in attr:
-            print( attr[a])
 
