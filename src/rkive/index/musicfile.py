@@ -255,11 +255,11 @@ class MusicFile(MusicTrack):
     }
 
     @classmethod
-    def is_music_file(cls, fp):
+    def is_music_file(cls, root, name):
         log = getLogger('Rkive.MusicFile')
-        log.debug("fp: {0}".format(fp))
+        log.debug("fp: {0}".format(name))
         for t in cls.mediatypes:
-            if (fp.endswith(t)):
+            if (name.endswith(t)):
                 return True
         return False
 

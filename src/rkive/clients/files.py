@@ -17,6 +17,7 @@ def visit_files(folder='.', funcs=[], exclude=None, include=None, recursive=Fals
     log = getLogger('Rkive.Files')
     for file in scantree(folder, recursive):
         root, name = os.path.split(file.path)
+        log.debug("Processing file: {0}".format(file.path))
         if (callable(exclude) and exclude(root, name)):
             continue
         if callable(include) and include(root,name):

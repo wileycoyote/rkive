@@ -40,6 +40,18 @@ class Moviepeople(Base):
         self.role = r
         self.person = p
 
+class Musicpeople(Base):
+    __tablename__ = 'musicpeople'
+    id = Column(Integer, primary_key=True)
+    role = Column(String)
+    people_id = Column(Integer, ForeignKey('person.id'))
+    person = relationship("Person")
+    musictrack_id = Column(Integer, ForeignKey("musictrack.id"))
+
+    def __init__(self, r, p):
+        self.role = r
+        self.person = p
+
 class Movie(Base):
     __tablename__ = 'movie'
     id = Column(Integer, primary_key=True)
@@ -62,8 +74,9 @@ class Movie(Base):
     def add_media(self, m):
         self.mediaobjects.append(m)
 
-    def add_person(self, person):
-        self.people.append(person)
+    def add_person(self, people):
+        for person in people:
+            self.people.append(person)
 
 class Movies(object):
 
@@ -82,19 +95,24 @@ class Movies(object):
         people=[]
         directors = directors.split(', ')
         for d in directors:
+            log.info("title: {0}".format(d))
             p = Person(d)
+            log.info("title: {0}".format(d))
             self.session.add(p)
-            mp = MoviePeople('director', p)
+            mp = Moviepeople('director', p)
             self.session.add(mp)
             self.session.commit()
             people.append(mp)
         t ='mkv'
-        media = MediaObject(t, fp)
+        media = Media(t, fp)
         self.session.add(media)
         self.session.commit()
         movie = Movie(title, year)
-        movie.add_people(people)
+        log.info("add_person: {0}".format(people))
+        movie.add_person(people)
+        log.info("title: {0}".format(d))
         movie.add_media(media)
+        log.info("title: {0}".format(d))
         self.session.add(movie)
         self.session.commit()
 
@@ -154,9 +172,9 @@ class Movies(object):
             movie_in_db = Movie.find_movie(title, 'mkv', year, directors)
             movie_in_db.delete(synchronize_session=True)
 
-class MusicTrack(Base, MusicFile):
+class MusicTrack(Base):
     __tablename__ = 'musictrack'
-    id_track = Column('idmusictrack', Integer, primary_key=True)
+    id = Column('id', Integer, primary_key=True)
     Column('discnumber', String)
     Column('disctotal', String)
     Column('album', String)
@@ -171,5 +189,8 @@ class MusicTrack(Base, MusicFile):
     Column('comment', String, nullable=True)
 
     def __init__(self, path):
-        MusicFile.__init__(path)
+        log = getLogger('Rkive.Index')
+        attr=MusicFile.__init__(path)
+        for a in attr:
+            print( attr[a])
 

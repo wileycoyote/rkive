@@ -45,7 +45,7 @@ class MakeIndexClient(GetOpts):
                 for source, category in self.sources.items():
                     cat=category[0].lower()
                     if cat == 'music':
-                        visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=MusicFile.is_music_file)
+                        visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=rkive.index.musicfile.MusicFile.is_music_file)
                     if cat == 'movies':
                         log.info("looking at {0}".format(source))
                         movies_on_disk = set()
@@ -68,6 +68,7 @@ class MakeIndexClient(GetOpts):
                         for m in movies_on_disk:
                             dp,midx=os.path.split(m)
                             title, directors, year=movies.parse_midx(midx) 
+                            log.info("title: {0} directors: {1} year: {2}".format(title,directors,year))
                             movies.add_movie(title, directors, year, m) 
             return
         except:
@@ -81,10 +82,12 @@ class MakeIndexClient(GetOpts):
 
     def add_music_to_index(self, fp):
         log = getLogger('Rkive.Index')
+        log.info('would index {0}'.format(fp))
         if self.dryrun:
             log.info('would index {0}'.format(fp))
             return
         log.info('indexing {0}'.format(fp))
         m = rkive.index.schema.MusicTrack(fp)
         self.session.add(m)
+        self.session.commit()
 
