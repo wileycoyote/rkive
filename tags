@@ -15,7 +15,6 @@ Base	build/lib/rkive/index/schema.py	/^Base = declarative_base()$/;"	v
 Base	src/rkive/distribution/config.py	/^Base = declarative_base()$/;"	v
 Base	src/rkive/distribution/log.py	/^Base = declarative_base()$/;"	v
 Base	src/rkive/index/mediaindex.py	/^Base = declarative_base()$/;"	v
-Base	src/rkive/index/schema.py	/^Base = declarative_base()$/;"	v
 ConvertClient	build/lib/rkive/clients/cl/converter.py	/^class ConvertClient(GetOpts):$/;"	c
 ConvertClient	src/rkive/clients/cl/converter.py	/^class ConvertClient(GetOpts):$/;"	c
 CueMap	build/lib/rkive/index/musicfile.py	/^    CueMap = {$/;"	v	class:Media
@@ -80,12 +79,9 @@ MasterDetailView	build/lib/rkive/clients/gui/kivy.py	/^class MasterDetailView(Gr
 MasterDetailView	src/rkive/clients/gui/kivy.py	/^class MasterDetailView(GridLayout):$/;"	c
 Media	build/lib/rkive/index/musicfile.py	/^class Media(object):$/;"	c
 Media	build/lib/rkive/index/schema.py	/^class Media(Base):$/;"	c
-Media	src/rkive/index/schema.py	/^class Media(Base):$/;"	c
 MediaObjectNotFound	build/lib/rkive/index/musicfile.py	/^class MediaObjectNotFound(Exception):$/;"	c
 Movie	build/lib/rkive/index/movie.py	/^class Movie(object):$/;"	c
 Movie	build/lib/rkive/index/schema.py	/^class Movie(object):$/;"	c
-Movie	src/rkive/index/movie.py	/^class Movie(object):$/;"	c
-Movie	src/rkive/index/schema.py	/^class Movie(object):$/;"	c
 MusicFile	build/lib/rkive/index/musicfile.py	/^class MusicFile(object):$/;"	c
 MusicTrack	build/lib/rkive/index/mediaindex.py	/^class MusicTrack(Base, MusicFile):$/;"	c
 MusicTrack	src/rkive/index/mediaindex.py	/^class MusicTrack(Base, MusicFile):$/;"	c
@@ -95,14 +91,12 @@ NetworkCodes	bin/test_threads.py	/^class NetworkCodes(object):$/;"	c
 NetworkCodes	src/rkive/distribution/net/common.py	/^class NetworkCodes(object):$/;"	c
 NoSuchFunction	src/rkive/distribution/net/common.py	/^class NoSuchFunction(Exception):$/;"	c
 Opus	build/lib/rkive/index/schema.py	/^class Opus(Base):$/;"	c
-Opus	src/rkive/index/schema.py	/^class Opus(Base):$/;"	c
 PUT	bin/test_client.py	/^    PUT = 'PUT'$/;"	v	class:NetworkCodes
 PUT	bin/test_threads.py	/^    PUT = 'PUT'$/;"	v	class:NetworkCodes
 PUT	src/rkive/distribution/net/common.py	/^    PUT = 'PUT'$/;"	v	class:NetworkCodes
 ParsePattern	build/lib/rkive/clients/cl/tagger.py	/^class ParsePattern(argparse.Action):$/;"	c
 ParsePattern	src/rkive/clients/cl/tagger.py	/^class ParsePattern(argparse.Action):$/;"	c
 Participant	build/lib/rkive/index/schema.py	/^class Participant(Base):$/;"	c
-Participant	src/rkive/index/schema.py	/^class Participant(Base):$/;"	c
 PathNotFound	src/rkive/distribution/net/common.py	/^class PathNotFound(Exception):$/;"	c
 RCV	bin/test_threads.py	/^    RCV = 'RCV'$/;"	v	class:NetworkCodes
 Receiver	src/rkive/distribution/config.py	/^class Receiver(Base):$/;"	c
@@ -202,11 +196,6 @@ __init__	src/rkive/distribution/log.py	/^    def __init__(self, from_fp, to_fp, 
 __init__	src/rkive/distribution/net/clients.py	/^    def __init__(self, ipaddress, port, username=None):$/;"	m	class:SocketClient
 __init__	src/rkive/distribution/net/clients.py	/^    def __init__(self, ipaddress, username):$/;"	m	class:SFTP
 __init__	src/rkive/index/mediaindex.py	/^    def __init__(self, path):$/;"	m	class:MusicTrack
-__init__	src/rkive/index/movie.py	/^    def __init__(self, m, d, y):$/;"	m	class:Movie
-__init__	src/rkive/index/schema.py	/^    def __init__(self, mfmt, yp, yr, yri):$/;"	m	class:Media
-__init__	src/rkive/index/schema.py	/^    def __init__(self, n, r):$/;"	m	class:Participant
-__init__	src/rkive/index/schema.py	/^    def __init__(self, t, c):$/;"	m	class:Opus
-__init__	src/rkive/index/schema.py	/^    def __init__(self, title, director, year):$/;"	m	class:Movie
 __setattr__	build/lib/rkive/index/musicfile.py	/^    def __setattr__(self, t, v):$/;"	m	class:MusicFile	file:
 __str__	build/lib/rkive/clients/markup.py	/^    def __str__(self):$/;"	m	class:Album	file:
 __str__	build/lib/rkive/clients/markup.py	/^    def __str__(self):$/;"	m	class:Track	file:
@@ -220,9 +209,6 @@ __tablename__	src/rkive/distribution/config.py	/^    __tablename__ = 'sender'$/;
 __tablename__	src/rkive/distribution/config.py	/^    __tablename__='receiver'$/;"	v	class:Receiver
 __tablename__	src/rkive/distribution/log.py	/^    __tablename__ = 'uploaded'$/;"	v	class:Log
 __tablename__	src/rkive/index/mediaindex.py	/^    __tablename__ = 'MusicTrack'$/;"	v	class:MusicTrack
-__tablename__	src/rkive/index/schema.py	/^    __tablename__ = 'opus'$/;"	v	class:Opus
-__tablename__	src/rkive/index/schema.py	/^    __tablename__ = 'participant'$/;"	v	class:Participant
-__tablename__	src/rkive/index/schema.py	/^    __tablename__= 'media'$/;"	v	class:Media
 _handle_request_noblock	bin/test_threads.py	/^    def _handle_request_noblock(self):$/;"	m	class:TransceiverServer
 ack	src/rkive/distribution/net/clients.py	/^    def ack(self):$/;"	m	class:SocketClient
 ack	src/rkive/distribution/net/server.py	/^    def ack(self):$/;"	m	class:UploadRequestHandler
@@ -240,7 +226,6 @@ apes	bin/backup_cue.py	/^        apes = glob.glob('*.ape')$/;"	v
 args	bin/change_file.py	/^args = parser.parse_args()$/;"	v
 args	bin/find_cue.py	/^    args = p.parse_args()$/;"	v
 association_table	build/lib/rkive/index/schema.py	/^association_table = Table('association', Base.metadata,$/;"	v
-association_table	src/rkive/index/schema.py	/^association_table = Table('association', Base.metadata,$/;"	v
 attribute_types	build/lib/rkive/clients/markup.py	/^    attribute_types = list(Media.TagMap.keys())$/;"	v	class:Track
 attribute_types	src/rkive/clients/markup.py	/^    attribute_types = list(Media.TagMap.keys())$/;"	v	class:Track
 attributes_and_units	src/kivy_ex/fixtures.py	/^attributes_and_units = dict(list(zip(fruit_data_attributes,$/;"	v
@@ -248,8 +233,6 @@ author	setup.py	/^      author='Roger Day',$/;"	v
 author_email	setup.py	/^      author_email='c.roger.day@gmail.com',$/;"	v
 back_populates	build/lib/rkive/index/schema.py	/^                    back_populates="opii",$/;"	v	class:Opus
 back_populates	build/lib/rkive/index/schema.py	/^        back_populates="participants")$/;"	v	class:Participant
-back_populates	src/rkive/index/schema.py	/^                    back_populates="opii",$/;"	v	class:Opus
-back_populates	src/rkive/index/schema.py	/^        back_populates="participants")$/;"	v	class:Participant
 base	bin/change_album_name.py	/^base = '.'$/;"	v
 base	bin/runner.py	/^    base = os.path.dirname(sys.argv[0])$/;"	v
 base	src/rkive/distribution/clients/distributer.py	/^    base = os.path.join(os.environ['HOME'],"Uploads", "data") $/;"	v	class:Distributer
@@ -261,9 +244,7 @@ bin_folder	bin/installer	/^bin_folder=os.path.join(os.environ['HOME'], 'bin')$/;
 build_target	src/rkive/distribution/clients/local.py	/^    def build_target(self, fp):$/;"	m	class:LocalDistributer
 c	bin/test_client.py	/^    c = TransceiverClient('localhost', 9000)$/;"	v	class:TransceiverClient
 cascade	build/lib/rkive/index/schema.py	/^                    cascade="all, delete")$/;"	v	class:Opus
-cascade	src/rkive/index/schema.py	/^                    cascade="all, delete")$/;"	v	class:Opus
 category	build/lib/rkive/index/schema.py	/^    category = Column(String)$/;"	v	class:Opus
-category	src/rkive/index/schema.py	/^    category = Column(String)$/;"	v	class:Opus
 cd_number	bin/retitle_mozart.py	/^        cd_number = str(int(cd[2:]))$/;"	v
 cdroot	bin/retitle_mozart.py	/^        cdroot = os.path.join(root, l[2:]) $/;"	v
 check_for_sanitisation_flag	src/rkive/distribution/manager.py	/^    def check_for_sanitisation_flag(self):$/;"	m	class:Manager
@@ -319,11 +300,9 @@ files	bin/retitle_mozart.py	/^        files=os.listdir(cdroot)$/;"	v
 files_by_track	bin/change_file.py	/^files_by_track = {}$/;"	v
 filetags	src/rkive/distribution/reporter.py	/^    def filetags(self, fp):$/;"	m	class:Report
 film_re	build/lib/rkive/index/schema.py	/^    film_re = re.compile('(.*?) \\((.*?), (\\d\\d\\d\\d)\\)')$/;"	v	class:Movie
-film_re	src/rkive/index/schema.py	/^    film_re = re.compile('(.*?) \\((.*?), (\\d\\d\\d\\d)\\)')$/;"	v	class:Movie
 fin	bin/test_client.py	/^    def fin(self):$/;"	m	class:TransceiverClient
 fin	src/rkive/distribution/net/clients.py	/^    def fin(self):$/;"	m	class:SocketClient
 find_movie	build/lib/rkive/index/schema.py	/^    def find_movie(title, fmt, year,directors=[] ):$/;"	m	class:Movie
-find_movie	src/rkive/index/schema.py	/^    def find_movie(title, fmt, year,directors=[] ):$/;"	m	class:Movie
 flacs	bin/backup_cue.py	/^        flacs = glob.glob('*.flac')$/;"	v
 fp	bin/retitle_mozart.py	/^            fp = os.path.join(cdroot, f)$/;"	v
 fruit_categories	src/kivy_ex/fixtures.py	/^fruit_categories = {$/;"	v
@@ -352,11 +331,8 @@ get_dict	build/lib/rkive/clients/log.py	/^    def get_dict(self):$/;"	m	class:Lo
 get_dict	src/rkive/clients/log.py	/^    def get_dict(self):$/;"	m	class:LogInit
 get_host	src/rkive/distribution/net/clients.py	/^    def get_host(self):$/;"	m	class:NetworkClient
 get_movie_index	build/lib/rkive/index/schema.py	/^    def get_movie_index(movie):$/;"	m	class:Movie
-get_movie_index	src/rkive/index/schema.py	/^    def get_movie_index(movie):$/;"	m	class:Movie
 get_movies	build/lib/rkive/index/schema.py	/^    def get_movies():$/;"	m	class:Movie
-get_movies	src/rkive/index/schema.py	/^    def get_movies():$/;"	m	class:Movie
 get_movies_index	build/lib/rkive/index/schema.py	/^    def get_movies_index():$/;"	m	class:Movie
-get_movies_index	src/rkive/index/schema.py	/^    def get_movies_index():$/;"	m	class:Movie
 get_object	build/lib/rkive/index/musicfile.py	/^    def get_object(self):$/;"	m	class:Flac
 get_object	build/lib/rkive/index/musicfile.py	/^    def get_object(self):$/;"	m	class:MP3
 get_parser	build/lib/rkive/clients/cl/opts.py	/^    def get_parser(self):$/;"	m	class:GetOpts
@@ -376,9 +352,6 @@ id	build/lib/rkive/index/schema.py	/^    id = Column(Integer, primary_key=True)$
 id	build/lib/rkive/index/schema.py	/^    id = Column(Integer, primary_key=True)$/;"	v	class:Participant
 id	src/rkive/distribution/config.py	/^    id = Column('id', Integer, primary_key=True)$/;"	v	class:Receiver
 id	src/rkive/distribution/log.py	/^    id        = Column('id', Integer, primary_key=True)$/;"	v	class:Log
-id	src/rkive/index/schema.py	/^    id = Column(Integer, primary_key=True)$/;"	v	class:Media
-id	src/rkive/index/schema.py	/^    id = Column(Integer, primary_key=True)$/;"	v	class:Opus
-id	src/rkive/index/schema.py	/^    id = Column(Integer, primary_key=True)$/;"	v	class:Participant
 id_track	build/lib/rkive/index/mediaindex.py	/^    id_track = Column('idMusicTrack', Integer, primary_key=True)$/;"	v	class:MusicTrack
 id_track	src/rkive/index/mediaindex.py	/^    id_track = Column('idMusicTrack', Integer, primary_key=True)$/;"	v	class:MusicTrack
 include	build/lib/rkive/clients/cl/tagger.py	/^    def include(self, root, fn):$/;"	m	class:Tagger
@@ -396,7 +369,6 @@ ipaddress	src/rkive/distribution/config.py	/^    ipaddress = Column('ipaddress',
 ipaddress	src/rkive/distribution/config.py	/^    ipaddress = Column('ipaddress', String)$/;"	v	class:Sender
 ipaddress	src/rkive/distribution/log.py	/^    ipaddress = Column('ipadress', String)$/;"	v	class:Log
 is_movie	build/lib/rkive/index/schema.py	/^    def is_movie(s):$/;"	m	class:Movie
-is_movie	src/rkive/index/schema.py	/^    def is_movie(s):$/;"	m	class:Movie
 is_music_file	src/rkive/distribution/reporter.py	/^    def is_music_file(self, fp):$/;"	m	class:Report
 j	bin/change_file.py	/^    j = int(i)$/;"	v
 j	bin/change_file.py	/^    j = int(i)+increment$/;"	v
@@ -413,10 +385,8 @@ match	src/rkive/clients/regexp.py	/^    def match(self, s):$/;"	m	class:Regexp
 max_char	src/rkive/distribution/reporter.py	/^    max_char = 126$/;"	v	class:Report
 media	bin/cuefile_splitter.py	/^    media = [$/;"	v	class:Splitter
 media_format	build/lib/rkive/index/schema.py	/^    media_format = Column(String)$/;"	v	class:Media
-media_format	src/rkive/index/schema.py	/^    media_format = Column(String)$/;"	v	class:Media
 media_server	bin/runner.py	/^    media_server = '191.168.1.155'$/;"	v
 mediaobjects	build/lib/rkive/index/schema.py	/^    mediaobjects = relationship("Media", cascade="all, delete, delete-orphan")$/;"	v	class:Opus
-mediaobjects	src/rkive/index/schema.py	/^    mediaobjects = relationship("Media", cascade="all, delete, delete-orphan")$/;"	v	class:Opus
 mf	bin/retitle_mozart.py	/^            mf = MusicFile()$/;"	v
 min_char	src/rkive/distribution/reporter.py	/^    min_char = 33$/;"	v	class:Report
 mkdir	bin/test_client.py	/^    def mkdir(self, d):$/;"	m	class:TransceiverClient
@@ -444,21 +414,15 @@ n	bin/change_file.py	/^    n = split_key.join([k,s])$/;"	v
 name	build/lib/rkive/index/schema.py	/^    name = Column(String)$/;"	v	class:Participant
 name	src/rkive/distribution/config.py	/^    name = Column('name', String)$/;"	v	class:Receiver
 name	src/rkive/distribution/config.py	/^    name = Column('name', String)$/;"	v	class:Sender
-name	src/rkive/index/schema.py	/^    name = Column(String)$/;"	v	class:Participant
 opii	build/lib/rkive/index/schema.py	/^    opii = relationship($/;"	v	class:Participant
-opii	src/rkive/index/schema.py	/^    opii = relationship($/;"	v	class:Participant
 p	bin/find_cue.py	/^    p = argparse.ArgumentParser()$/;"	v
 p	build/lib/rkive/index/movie.py	/^    def p(self):$/;"	m	class:Movie
 p	build/lib/rkive/index/schema.py	/^    def p(self):$/;"	m	class:Movie
-p	src/rkive/index/movie.py	/^    def p(self):$/;"	m	class:Movie
-p	src/rkive/index/schema.py	/^    def p(self):$/;"	m	class:Movie
 package_dir	setup.py	/^      package_dir = {$/;"	v
 packages	setup.py	/^      packages=[$/;"	v
 parent_id	build/lib/rkive/index/schema.py	/^    parent_id = Column(Integer, ForeignKey('opus.id'))$/;"	v	class:Media
-parent_id	src/rkive/index/schema.py	/^    parent_id = Column(Integer, ForeignKey('opus.id'))$/;"	v	class:Media
 parser	bin/change_file.py	/^parser = argparse.ArgumentParser()$/;"	v
 participants	build/lib/rkive/index/schema.py	/^    participants = relationship("Participant",$/;"	v	class:Opus
-participants	src/rkive/index/schema.py	/^    participants = relationship("Participant",$/;"	v	class:Opus
 path	bin/t.py	/^path = os.path.dirname(os.path.realpath(__file__)) $/;"	v
 pprint	build/lib/rkive/index/musicfile.py	/^    def pprint(self, filename):$/;"	m	class:MusicFile
 print_attrs	build/lib/rkive/index/musicfile.py	/^    def print_attrs(self):$/;"	m	class:MusicFile
@@ -488,7 +452,6 @@ relative_key	src/rkive/distribution/config.py	/^    relative_key = Column('relat
 relative_key	src/rkive/distribution/config.py	/^    relative_key = Column('relative_key', String, primary_key=True)$/;"	v	class:Sender
 remote	src/rkive/distribution/log.py	/^    remote       = Column('remote', String)$/;"	v	class:Log
 remove_movies	build/lib/rkive/index/schema.py	/^    def remove_movies(movies):$/;"	m	class:Movie
-remove_movies	src/rkive/index/schema.py	/^    def remove_movies(movies):$/;"	m	class:Movie
 rename_file	src/rkive/distribution/reporter.py	/^    def rename_file(self):$/;"	m	class:FileSanitiser
 rename_files	bin/backup_cue.py	/^def rename_files(files, src, tgt):$/;"	f
 report_badchars	src/rkive/distribution/reporter.py	/^    def report_badchars(self):$/;"	m	class:Report
@@ -499,7 +462,6 @@ reversed_index	bin/change_file.py	/^reversed_index = list(reversed(list(files_by
 role	build/lib/rkive/clients/markdown.py	/^    role = {'A':'', 'C':'', 'R':'Recording', 'P': 'Producer', 'E':'Engineer'}$/;"	v	class:MarkdownReader
 role	build/lib/rkive/index/schema.py	/^    role = Column(String)$/;"	v	class:Participant
 role	src/rkive/clients/markdown.py	/^    role = {'A':'', 'C':'', 'R':'Recording', 'P': 'Producer', 'E':'Engineer'}$/;"	v	class:MarkdownReader
-role	src/rkive/index/schema.py	/^    role = Column(String)$/;"	v	class:Participant
 root	bin/buildindex.py	/^root='\/media\/azure\/Multimedia\/Movies\/'$/;"	v
 root	bin/find_cue.py	/^    root = args.root[0]$/;"	v
 root	bin/find_unknown_files.py	/^root='\/media\/azure\/Multimedia\/Music'$/;"	v
@@ -523,7 +485,6 @@ save	build/lib/rkive/index/musicfile.py	/^    def save(self):$/;"	m	class:MP3
 save	build/lib/rkive/index/musicfile.py	/^    def save(self):$/;"	m	class:Media
 save	build/lib/rkive/index/musicfile.py	/^    def save(self):$/;"	m	class:MusicFile
 save	build/lib/rkive/index/schema.py	/^    def save(self):$/;"	m	class:Movie
-save	src/rkive/index/schema.py	/^    def save(self):$/;"	m	class:Movie
 script	bin/runner.py	/^    script =  os.path.basename(sys.argv[0])$/;"	v
 search_and_modify_files	build/lib/rkive/clients/cl/tagger.py	/^    def search_and_modify_files(self):$/;"	m	class:Tagger
 search_and_modify_files	src/rkive/clients/cl/tagger.py	/^    def search_and_modify_files(self):$/;"	m	class:Tagger
@@ -533,8 +494,6 @@ search_and_print_folder	build/lib/rkive/clients/cl/tagger.py	/^    def search_an
 search_and_print_folder	src/rkive/clients/cl/tagger.py	/^    def search_and_print_folder(self):$/;"	m	class:Tagger
 secondary	build/lib/rkive/index/schema.py	/^                    secondary=association_table,$/;"	v	class:Opus
 secondary	build/lib/rkive/index/schema.py	/^        secondary=association_table,$/;"	v	class:Participant
-secondary	src/rkive/index/schema.py	/^                    secondary=association_table,$/;"	v	class:Opus
-secondary	src/rkive/index/schema.py	/^        secondary=association_table,$/;"	v	class:Participant
 serve_forever	bin/test_threads.py	/^    def serve_forever(self, poll_interval=0.5):$/;"	m	class:TransceiverServer
 server	bin/test_threads.py	/^    server = TransceiverServer(('localhost', 9000), TransceiverHandler)$/;"	v
 server	src/rkive/distribution/log.py	/^    server    = Column('server', String)$/;"	v	class:Log
@@ -544,7 +503,6 @@ session	bin/queryindex.py	/^session = DBSession()    $/;"	v
 session	build/lib/rkive/index/schema.py	/^    session = None$/;"	v	class:Movie
 session	src/rkive/distribution/config.py	/^session = DBSession()$/;"	v
 session	src/rkive/distribution/log.py	/^session = DBSession()$/;"	v
-session	src/rkive/index/schema.py	/^    session = None$/;"	v	class:Movie
 set_debug	build/lib/rkive/clients/log.py	/^    def set_debug(self):$/;"	m	class:LogInit
 set_debug	src/rkive/clients/log.py	/^    def set_debug(self):$/;"	m	class:LogInit
 set_file_handler	build/lib/rkive/clients/log.py	/^    def set_file_handler(self, fn):$/;"	m	class:LogInit
@@ -592,7 +550,6 @@ test_quiet	tests/test_getopts.py	/^    def test_quiet(self):$/;"	m	class:TestGet
 tgt	bin/installer	/^    tgt = os.path.join(bin_folder, f)$/;"	v
 tgtdir	bin/backup_cue.py	/^        tgtdir = '\/media\/Backup\/'+'_'.join(srcdir.split('\/')[3:-1])$/;"	v
 title	build/lib/rkive/index/schema.py	/^    title = Column(String)$/;"	v	class:Opus
-title	src/rkive/index/schema.py	/^    title = Column(String)$/;"	v	class:Opus
 title_prefix	bin/retitle_mozart.py	/^title_prefix = 'Complete Mozart [Phillips], '$/;"	v
 token_exemplars	build/lib/rkive/clients/regexp.py	/^    token_exemplars = {$/;"	v	class:Regexp
 token_exemplars	src/rkive/clients/regexp.py	/^    token_exemplars = {$/;"	v	class:Regexp
@@ -613,8 +570,5 @@ write	build/lib/rkive/clients/markup.py	/^    def write(self):$/;"	m	class:Marku
 write	src/rkive/clients/markup.py	/^    def write(self):$/;"	m	class:MarkupWriter
 x	bin/get_mb_xml.py	/^x = etree.fromstring(response.read())$/;"	v
 year_produced	build/lib/rkive/index/schema.py	/^    year_produced = Column(String)$/;"	v	class:Media
-year_produced	src/rkive/index/schema.py	/^    year_produced = Column(String)$/;"	v	class:Media
 year_reissued	build/lib/rkive/index/schema.py	/^    year_reissued = Column(String)$/;"	v	class:Media
-year_reissued	src/rkive/index/schema.py	/^    year_reissued = Column(String)$/;"	v	class:Media
 year_released	build/lib/rkive/index/schema.py	/^    year_released = Column(String)$/;"	v	class:Media
-year_released	src/rkive/index/schema.py	/^    year_released = Column(String)$/;"	v	class:Media
