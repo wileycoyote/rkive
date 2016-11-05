@@ -53,7 +53,6 @@ GetOpts	src/rkive/clients/cl/opts.py	/^class GetOpts(object):$/;"	c
 HOST	bin/test_threads.py	/^    HOST = 'localhost'$/;"	v	class:TransceiverHandler
 HOST	src/rkive/distribution/net/server.py	/^    HOST = 'localhost'$/;"	v	class:UploadRequestHandler
 IndexClient	build/lib/rkive/clients/cl/makeindex.py	/^class IndexClient(GetOpts):$/;"	c
-IndexClient	src/rkive/clients/cl/makeindex.py	/^class IndexClient(GetOpts):$/;"	c
 InvalidTag	build/lib/rkive/index/musicfile.py	/^class InvalidTag(Exception): pass$/;"	c
 LocalDistributer	src/rkive/distribution/clients/local.py	/^class LocalDistributer(Distributer):$/;"	c
 Log	src/rkive/distribution/log.py	/^class Log(Base):$/;"	c
@@ -176,7 +175,6 @@ __init__	src/kivy_ex/fruit_detail_view.py	/^    def __init__(self, **kwargs):$/;
 __init__	src/kivy_ex/fruit_detail_view.py	/^    def __init__(self, **kwargs):$/;"	m	class:FruitImageDetailView
 __init__	src/kivy_ex/fruit_detail_view.py	/^    def __init__(self, **kwargs):$/;"	m	class:FruitObserverDetailView
 __init__	src/rkive/clients/cl/converter.py	/^    def __init__(self, logfolder=None):$/;"	m	class:ConvertClient
-__init__	src/rkive/clients/cl/makeindex.py	/^    def __init__(self, logloc=None, engine=engine):$/;"	m	class:IndexClient
 __init__	src/rkive/clients/cl/markup.py	/^    def __init__(self, logfolder):$/;"	m	class:MarkupClient
 __init__	src/rkive/clients/cl/opts.py	/^    def __init__(self, option_strings, dest, nargs=None, **kwargs):$/;"	m	class:FileValidation
 __init__	src/rkive/clients/cl/opts.py	/^    def __init__(self, option_strings, dest, nargs=None, **kwargs):$/;"	m	class:FolderValidation
@@ -215,7 +213,6 @@ ack	src/rkive/distribution/net/server.py	/^    def ack(self):$/;"	m	class:Upload
 add_album	build/lib/rkive/clients/markup.py	/^    def add_album(self, a):$/;"	m	class:MarkupWriter
 add_album	src/rkive/clients/markup.py	/^    def add_album(self, a):$/;"	m	class:MarkupWriter
 add_file_to_index	build/lib/rkive/clients/cl/makeindex.py	/^    def add_file_to_index(self, fp):$/;"	m	class:IndexClient
-add_file_to_index	src/rkive/clients/cl/makeindex.py	/^    def add_file_to_index(self, fp):$/;"	m	class:IndexClient
 add_track	build/lib/rkive/clients/markup.py	/^    def add_track(self, track):$/;"	m	class:Album
 add_track	src/rkive/clients/markup.py	/^    def add_track(self, track):$/;"	m	class:Album
 address_family	bin/test_threads.py	/^    address_family = socket.AF_INET$/;"	v	class:TransceiverServer

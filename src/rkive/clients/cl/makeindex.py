@@ -6,7 +6,7 @@ from logging import getLogger
 import sys
 from rkive.index.musicfile import MusicFile
 import rkive.index.schema 
-from rkive.index.schema import Movies
+from rkive.index.movie import Movies as Movies
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from rkive.clients.files import visit_files
@@ -43,6 +43,9 @@ class MakeIndexClient(GetOpts):
                 rkive.index.schema.Base.metadata.bind = engine
                 movies=Movies(self.session)
                 for source, category in self.sources.items():
+                    if not os.path.isdir(source):
+                        log.info("skipping {0}".format(source))
+                        continue
                     cat=category[0].lower()
                     if cat == 'music':
                         visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=rkive.index.musicfile.MusicFile.is_music_file)
@@ -51,7 +54,7 @@ class MakeIndexClient(GetOpts):
                         movies_on_disk = set()
                         for o in os.listdir(source):
                             fp=os.path.join(source, o)
-                            if os.path.isdir(fp) and rkive.index.schema.Movies.is_movie(source, o):
+                            if os.path.isdir(fp) and Movies.is_movie(source, o):
                                 if not fp in movies_on_disk:
                                     movies_on_disk.add(fp)
                         movies_in_db = movies.get_movies_index()

@@ -1,4 +1,9 @@
 import re
+from logging import getLogger
+from rkive.index.schema import Movie as Movie
+from rkive.index.schema import Moviepeople as Moviepeople
+from rkive.index.schema import Person as Person
+from rkive.index.schema import Media as Media
 class Movies(object):
 
     film_re = re.compile('(.+?) \((.*?), (\d\d\d\d)\)')
@@ -23,6 +28,7 @@ class Movies(object):
             self.session.commit()
             people.append(mp)
         t ='mkv'
+        log.info("add related info")
         media = Media(t, fp)
         self.session.add(media)
         self.session.commit()
@@ -41,17 +47,18 @@ class Movies(object):
         movie_info = set()
         movies = self.session.query(Movie).all()
         for movie in movies:
-            info = rkive.index.schema.Movie.get_movie_index(movie)
+            log.debug(movie)
+            info = self.get_movie_index(movie)
             movie_info.add(info)
         return movie_info
 
-    def get_movie_index(movie):
+    def get_movie_index(self, movie):
         directors = []
         for p in movie.people:
             if p.role=='director':
                 directors.append(p.name)
         year =''
-        for m in movie.mediaobjects:
+        for m in movie.media:
             if m.media_format == 'mkv':
                 year = m.year_released
         directors = ', '.join(directors)
@@ -73,6 +80,7 @@ class Movies(object):
     @classmethod
     def is_movie(cls, root, name):
         log = getLogger('Rkive.Index')
+        log.info("is_movie")
         m = cls.film_re.match(name)
         log.debug("Found: {0} {1}".format(m, name))
         if not m:
