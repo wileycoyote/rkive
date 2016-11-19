@@ -57,12 +57,12 @@ class TestGetConfig(unittest.TestCase):
         c = Config()
         c.sources='data/config/sources.yml'
         self.assertTrue(c.sources)
-        m = c.get_music()
-        self.assertIsNone(m)
-        m = c.get_movies()
-        self.assertIsNotNone(m)
-        self.assertEquals(1,len(m))
-        self.assertIn('/media/roger/Music/Collections',m)
+        music = c.music
+        self.assertIsNone(music)
+        movies = c.movies
+        self.assertIsNotNone(movies)
+        self.assertEquals(1,len(movies))
+        self.assertIn('/media/roger/Music/Collections',music)
 
     def test_live_connections(self):
         c = Config()

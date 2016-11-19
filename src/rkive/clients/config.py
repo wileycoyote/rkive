@@ -69,7 +69,6 @@ class Config:
             self._connections={}
             return
         try:
-            print(connections_cfg)
             with open(connections_cfg) as cf:
                 conns = yaml_load(cf)
                 if conns is None:
@@ -116,12 +115,14 @@ class Config:
             self._connections={}
             return 
 
-    def get_music(self):
+    @property
+    def music(self):
         if not "music" in self._sources:
             return None
         return self._sources["music"]
-
-    def get_movies(self):
+    
+    @property
+    def movies(self):
         if not "movies" in self._sources:
             return None
         return self._sources["movies"]
