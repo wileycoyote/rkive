@@ -8,48 +8,55 @@ import os, os.path
 class TestGetConfig(unittest.TestCase):
 
     def test_no_sources(self):
-        t =  tempfile.gettempdir()
-        c = Config(t)
-        self.assertRaises(NoSourcesError, c.read_sources)
+        c = Config()
+        c.sources=tempfile.gettempdir()
+        self.assertEquals({}, c.sources)
 
     def test_empty_source_file(self):
         t = tempfile.gettempdir()
         fp = os.path.join(t, 'sources.yml')
-        open(fp,'w')
-        c = Config(t)
-        self.assertRaises(NoSourcesError, c.read_sources)
+        fh = open(fp,'w')
+        fh.close()
+        c = Config()
+        c.sources=fp
+        self.assertEquals({},c.sources)
 
     def test_no_connections(self):
-        t =  tempfile.gettempdir()
-        c = Config(t)
-        self.assertRaises(NoConnectionsError, c.read_connections)
+        c = Config()
+        c.connections=tempfile.gettempdir()
+        self.assertEquals({}, c.connections)
 
     def test_empty_connections_file(self):
         t = tempfile.gettempdir()
-        c = Config(t)
         fp = os.path.join(t, 'connections.yml')
-        open(fp, 'w')
-        self.assertRaises(NoConnectionsError, c.read_connections)
+        fh=open(fp, 'w')
+        fh.close() 
+        c = Config()
+        c.connections=fp
+        self.assertEquals({}, c.connections)
 
     def test_connection_file_with_rubbish_content(self):
         t = tempfile.gettempdir()
-        c = Config(t)
         fp = os.path.join(t, 'connections.yml')
         with open(fp, 'w') as f:
             f.write("ldkfsalkknlvkn")
-        self.assertRaises(NoConnectionsError, c.read_connections)
+        c = Config()
+        c.connections=fp
+        self.assertEquals({},c.connections)
 
     def test_source_file_with_rubbish_content(self):
         t = tempfile.gettempdir()
-        c = Config(t)
         fp = os.path.join(t, 'sources.yml')
         with open(fp, 'w') as f:
             f.write("ldkfsalkknlvkn")
-        self.assertRaises(NoSourcesError, c.read_sources)
+        c = Config()
+        c.sources=fp
+        self.assertEquals({}, c.sources)
 
     def test_sources(self):
-        c = Config('data/config/')
-        self.assertTrue(c.read_sources())
+        c = Config()
+        c.sources='data/config/sources.yml'
+        self.assertTrue(c.sources)
         m = c.get_music()
         self.assertIsNone(m)
         m = c.get_movies()
@@ -58,11 +65,11 @@ class TestGetConfig(unittest.TestCase):
         self.assertIn('/media/roger/Music/Collections',m)
 
     def test_live_connections(self):
-        c = Config('data/config')
-        c.read_connections()
-        local_conns = c.get_local_live_connections()
+        c = Config()
+        c.connections='data/config/connections.yml'
+        local_conns = c.local_live_connections
         self.assertEquals(1,len(local_conns))
-        url = 'sqlite3:///tests/data/config/rkive/database'
+        url = 'sqlite3:///data/config/database.db'
         self.assertIn(url, local_conns)
-        remote_connections = c.get_remote_live_connections()
+        remote_connections = c.remote_live_connections
         self.assertEquals(0, len(remote_connections))

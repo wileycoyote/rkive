@@ -14,51 +14,63 @@ class Config:
     """Reads config files for source directories and db connection info
 
     Attributes:
-        home: directory where config files are to be found
+        connections: path for connections file
+        sources: path for sources file
     """
-    def __init__(self, base):
-        if not os.path.isdir(base):
-            raise EnvironmentError
-        self.home = os.path.join(base,'.config','rkive')
-        self.sources = {}
-        self.connections = []
-        self.local_connections = []
-        self.remote_connections = []
-        self.read_sources()
-        self.read_connections()
+    def __init__(self,sources_cfg="",connections_cfg=""):
+        self._connections_cfg = ""
+        self._sources_cfg = ""
+        self._sources = {}
+        self._connections = []
+        if sources_cfg:
+            self.sources=sources_cfg
+        if connections_cfg:
+            self.connections=connections_cfg
 
-    def read_sources(self):
-        """ read source file from designated folder
-            throw exceptions for no file found, or no data
-        """
-        source = os.path.join(self.home, 'sources.yml')
+    @property
+    def sources(self):
+        return self._sources
+
+    @sources.setter
+    def sources(self, source_cfg):
+        if self._sources:
+            return self._sources
+        if os.path.isdir(source_cfg):
+            self._sources={}
+            return
         try:
-            with open(source) as s:
+            with open(source_cfg) as s:
                 d = yaml_load(s)
                 if d is None:
+                    print("No sources in file")
                     raise NoSourcesError
                 if not isinstance(d,dict):
+                    print("Isnt a dictionary "+d)
                     raise NoSourcesError
-                for source_key, sources in d.items():
-                    for source in sources:
-                        category=source['category']
-                        source=source['folder']
-                        if not source in self.sources:
-                            self.sources[source] = []
-                        self.sources[source].append(category)
+                for source_folder, source_category in d.items():
+                    source_category = source_category.lower()
+                    if not source_folder in self._sources:
+                        self._sources[source_category] = []
+                    self._sources[source_category].append(source_folder)
         except EnvironmentError:
-            raise EnvironmentError
-        if self.sources == {}:
-            raise NoSourcesError
-        return True
+            self._sources={} 
+        except NoSourcesError:
+            self._sources={} 
 
-    def get_sources(self):
-        return self.sources
+    @property
+    def connections(self):
+        return self._connections
 
-    def read_connections(self):
-        conns_cfg = os.path.join(self.home, 'connections.yml')
+    @connections.setter
+    def connections(self, connections_cfg):
+        if self._connections:
+            return 
+        if os.path.isdir(connections_cfg):
+            self._connections={}
+            return
         try:
-            with open(conns_cfg) as cf:
+            print(connections_cfg)
+            with open(connections_cfg) as cf:
                 conns = yaml_load(cf)
                 if conns is None:
                     raise NoConnectionsError
@@ -94,28 +106,30 @@ class Config:
                     if not os.path.isfile(path):
                         fh=open(path,'w')
                         fh.close()
-                    self.connections.append((status, location, url))
-        except EnvironmentError:
-            raise EnvironmentError
-        if not self.connections:
-            raise NoConnectionsError
-        return True
+                    self._connections.append((status, location, url))
+        except EnvironmentError as e:
+            print("Environment ERror "+str(e))
+            self._connections={}
+            return
+        except NoConnectionsError:
+            print("No connections")
+            self._connections={}
+            return 
 
     def get_music(self):
-        if not "music" in self.sources:
+        if not "music" in self._sources:
             return None
-        return self.sources["music"]
+        return self._sources["music"]
 
     def get_movies(self):
-        if not "movies" in self.sources:
+        if not "movies" in self._sources:
             return None
-        return self.sources["movies"]
+        return self._sources["movies"]
 
-    def get_local_live_connections(self):
-        return([c[2] for c in self.connections if 'live' in c[0] and 'local' in c[1]])
+    @property
+    def local_live_connections(self):
+        return([c[2] for c in self._connections if 'live' in c[0] and 'local' in c[1]])
 
-    def get_remote_live_connections(self):
-        return ([c[2] for c in self.connections if 'live' in c[0] and 'remote' in c[1]])
-
-    def get_all_connections(self):
-        return self.connections
+    @property 
+    def remote_live_connections(self):
+        return ([c[2] for c in self._connections if 'live' in c[0] and 'remote' in c[1]])
