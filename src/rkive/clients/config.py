@@ -1,6 +1,6 @@
 from yaml import load as yaml_load
 import os.path
-import logging
+from logging import get_logger
 
 class NoSourcesError(Exception):
     """ Exception to be raised when no configuration data for sources found
@@ -33,26 +33,26 @@ class Config:
 
     @sources.setter
     def sources(self, source_cfg):
+        log = get_logger('Rkive.Config')
         if self._sources:
             return self._sources
-        if os.path.isdir(source_cfg):
-            self._sources={}
-            return
         try:
+            log.debug("Reading {0} source file".format(source_cfg))
             with open(source_cfg) as s:
                 d = yaml_load(s)
                 if d is None:
-                    print("No sources in file")
+                    log.warn("No sources in file {0}".format(source_cfg))
                     raise NoSourcesError
                 if not isinstance(d,dict):
-                    print("Isnt a dictionary "+d)
+                    log.warn("Invalid datastructure in file {0}".format(source_cfg))
                     raise NoSourcesError
                 for source_folder, source_category in d.items():
                     source_category = source_category.lower()
                     if not source_folder in self._sources:
                         self._sources[source_category] = []
                     self._sources[source_category].append(source_folder)
-        except EnvironmentError:
+        except EnvironmentError as e:
+            log.fatal("Environment error {0} encountered".format(str(e)))
             self._sources={} 
         except NoSourcesError:
             self._sources={} 
