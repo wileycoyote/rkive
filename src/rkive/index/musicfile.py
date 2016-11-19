@@ -340,7 +340,7 @@ class MusicFile(MusicTrack):
                 raise FileNotFound
             mediaclass=self.get_media_class(filename)
             log.debug("Tagstype : {0}".format(mediaclass))
-            self['media'] = MediaTypes.Types[mediatype](filename)
+            self['media'] = mediatypes[mediatype](filename)
         else:
             self[tag]=value
 

@@ -1,6 +1,6 @@
 from yaml import load as yaml_load
 import os.path
-from logging import get_logger
+from logging import getLogger as getLogger
 
 class NoSourcesError(Exception):
     """ Exception to be raised when no configuration data for sources found
@@ -18,8 +18,6 @@ class Config:
         sources: path for sources file
     """
     def __init__(self,sources_cfg="",connections_cfg=""):
-        self._connections_cfg = ""
-        self._sources_cfg = ""
         self._sources = {}
         self._connections = []
         if sources_cfg:
@@ -33,7 +31,7 @@ class Config:
 
     @sources.setter
     def sources(self, source_cfg):
-        log = get_logger('Rkive.Config')
+        log = getLogger('Rkive.Config')
         if self._sources:
             return self._sources
         try:
@@ -41,10 +39,8 @@ class Config:
             with open(source_cfg) as s:
                 d = yaml_load(s)
                 if d is None:
-                    log.warn("No sources in file {0}".format(source_cfg))
                     raise NoSourcesError
                 if not isinstance(d,dict):
-                    log.warn("Invalid datastructure in file {0}".format(source_cfg))
                     raise NoSourcesError
                 for source_folder, source_category in d.items():
                     source_category = source_category.lower()
@@ -54,7 +50,9 @@ class Config:
         except EnvironmentError as e:
             log.fatal("Environment error {0} encountered".format(str(e)))
             self._sources={} 
+            return
         except NoSourcesError:
+            log.warn("No sources in file {0}".format(source_cfg))
             self._sources={} 
 
     @property
@@ -63,12 +61,11 @@ class Config:
 
     @connections.setter
     def connections(self, connections_cfg):
+        log = getLogger('Rkive.Config')
         if self._connections:
             return 
-        if os.path.isdir(connections_cfg):
-            self._connections={}
-            return
         try:
+            log.debug("Reading {0} connections file".format(connections_cfg))
             with open(connections_cfg) as cf:
                 conns = yaml_load(cf)
                 if conns is None:
@@ -107,11 +104,11 @@ class Config:
                         fh.close()
                     self._connections.append((status, location, url))
         except EnvironmentError as e:
-            print("Environment ERror "+str(e))
+            log.warn("Environment Error "+str(e))
             self._connections={}
             return
         except NoConnectionsError:
-            print("No connections")
+            log.warn("No connections")
             self._connections={}
             return 
 

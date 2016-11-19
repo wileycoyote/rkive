@@ -4,8 +4,17 @@ from rkive.clients.config import NoSourcesError as NoSourcesError
 from rkive.clients.config import NoConnectionsError as NoConnectionsError
 import  tempfile
 import os, os.path
+from logging import getLogger as getLogger
+from rkive.clients.log import LogInit
 
 class TestGetConfig(unittest.TestCase):
+
+    def setup_module(self):
+        LogInit().set_logging(
+            location='logs/',
+            filename='config_tests.log',
+            debug=True,
+            console=True)
 
     def test_no_sources(self):
         c = Config()
@@ -58,11 +67,12 @@ class TestGetConfig(unittest.TestCase):
         c.sources='data/config/sources.yml'
         self.assertTrue(c.sources)
         music = c.music
-        self.assertIsNone(music)
-        movies = c.movies
-        self.assertIsNotNone(movies)
-        self.assertEquals(1,len(movies))
+        print(music)
+        self.assertIsNotNone(music)
+        self.assertEquals(1,len(music))
         self.assertIn('/media/roger/Music/Collections',music)
+        movies = c.movies
+        self.assertIsNone(movies)
 
     def test_live_connections(self):
         c = Config()
@@ -73,3 +83,6 @@ class TestGetConfig(unittest.TestCase):
         self.assertIn(url, local_conns)
         remote_connections = c.remote_live_connections
         self.assertEquals(0, len(remote_connections))
+
+    def test_multiple_live_connections(self):
+        pass
