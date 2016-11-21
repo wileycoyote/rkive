@@ -274,7 +274,7 @@ class Tagger(GetOpts):
             log.info("Dryrun: Dumping tracks for {0}".format(self.markdown))
             self.dump_tracks()
             return
-        for track in tracks:
+        for track_number, track in self._tracks.items():
             m = MusicFile()
             for tag, value in track.items():
                 setattr(m, tag, value)

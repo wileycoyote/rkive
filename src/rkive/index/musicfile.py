@@ -38,6 +38,7 @@ class MusicTrack(object):
         'albumartist':'The album artist',
         'genre':'The genres of a piece, seperated by comma',
         'picture':'Picture - just the front picture',
+        'part': 'Subtitle for CD'
     }
 
     mimetypes={
@@ -340,7 +341,7 @@ class MusicFile(MusicTrack):
                 raise FileNotFound
             mediaclass=self.get_media_class(filename)
             log.debug("Tagstype : {0}".format(mediaclass))
-            self['media'] = mediatypes[mediatype](filename)
+            self['media'] = mediaclass(filename)
         else:
             self[tag]=value
 
@@ -349,7 +350,7 @@ class MusicFile(MusicTrack):
         if not self.media:
             log.fatal("No media set")
             raise MediaObjectNotFound
-        for tag, value in self.items():
+        for tag, value in self.__dict__.items():
             if tag in self.get_rkive_tags() and value:
                 self.media[tag]=value
         self.media.save()
