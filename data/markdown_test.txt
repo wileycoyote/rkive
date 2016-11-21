@@ -1,0 +1,126 @@
+1,1,15,55
+album:Tout Satie!
+part:Orchestral Works & Ballets
+discnumber:1
+disctotal:10
+comment[1]: (lequel ne dort toujours que d’un œil), fanfare pour deux trompettes
+comment[2-3]:orchestration Claude Debussy 
+comment[4]:ragtime
+comment[5]:orchestration Francis Poulenc 
+comment[42-54]:poses plastiques en trois tableaux
+artist[1]:Marius Constant: Ensemble Ars Nova
+artist[2-14]:Michel Plasson: Orchestre du Capitole du Toulouse
+artist[15-18]:Jean-Pierre Armengaud (piano),Michel Plasson: Orchestre du Capitole clu Toulouse
+artist[19-21]:Marius Constant: Ensemble Ars Nova
+artist[43-54]:Orchestre de Paris - Pierre Dervaux
+artist[22-42]:Bernard Desgraupes: Ensemble Erwartung 
+artist[55]:Aldo Ciccolini: Orchestre des Concerts Lamoureux
+Sonnerie pour réveiller le bon gros Roi des Singes 
+Gymnopédie No. 1
+Gymnopédie No. 3
+Le Piccadilly
+Gnossienne No. 3
+En habit de cheval: Choral
+En habit de cheval: Fugue litanique
+En habit de cheval: Autre choral
+En habit de cheval: Fugue de papier
+Cinq grimaces pour «Un songe d’une nuit d’été»: Modéré
+Cinq grimaces pour «Un songe d’une nuit d’été»: Peu vite
+Cinq grimaces pour «Un songe d’une nuit d’été»: Modéré
+Cinq grimaces pour «Un songe d’une nuit d’été»: Temps de marche
+Cinq grimaces pour «Un songe d’une nuit d’été»: Modéré
+La Belle excentrique: Grande ritournelle
+La Belle excentrique: Marche franco-lunaire
+La Belle excentrique: Valse du mystérieux baiser dans l’œil
+La Belle excentrique: Cancan grand-mondain
+Musiques d‘ameublement: Tenture de cabinet préfectoral
+Musiques d‘ameublement: Tapisserie en fer forge pour l’arrivée des invités (grande reception) a jouer dans unvestibule
+Musiques d‘ameublement: Carrelage phonique (peut se jouer a un lunch ou à un contrat de mariage)
+Relâche I: Ouverturette
+Relâche I: Projectionnette
+Relâche I: Rideau - Entrée de la femme
+Relâche I: Musique
+Relâche I: Entrée de Borlin
+Relâche I: EDanse de la porte tournante
+Relâche I: Entrée cles hommes
+Relâche I: Danse cles hommes
+Relâche I: Danse de la femme
+Relâche I: Final
+Relâche II: Musique de rentrée
+Relâche II: Rentrée cles hommes
+Relâche II: Rentrée cles femmes
+Relâche II: Les hommes se dévétissent ._ 0.36
+Relâche II: Danse-de Borlin et de la femme
+Relâche II: Les hommes regagnent leur place et retrouvent leur pardessus
+Relâche II: Dame de la brouette
+Relâche II: Le danseur
+Relâche II: La femme
+Relâche II: La queue du chien
+Mercure I: Ouverture
+Mercure I: La nuit
+Mercure I: Danse de tendresse
+Mercure I: Signes du zodiaque
+Mercure I: Entrée et danse de Mercure
+Mercure II: Danse cles grâces
+Mercure II: Bain des grâces
+Mercure II: Fuite de Mercure - Colère de Cerbere
+Mercure III: Polka cles lettres
+Mercure III: Nouvelle danse
+Mercure III: Le chaos
+Mercure III: Final
+Les Pantins dansent - Presque lent
+CD01/Disc 1 - 01 - Sonnerie pour reveiller le bon gros Roi des Singes.flac
+CD01/Disc 1 - 02 - Gymnopédie No.1.flac
+CD01/Disc 1 - 03 - Gymnopédie No.3.flac
+CD01/Disc 1 - 04 - Le Picadilly.flac
+CD01/Disc 1 - 05 - Gnossienne No.3.flac
+CD01/Disc 1 - 06 - En habit de cheval: Choral.flac
+CD01/Disc 1 - 07 - En habit de cheval: Fugue litanique.flac
+CD01/Disc 1 - 08 - En habit de cheval: Autre choral.flac
+CD01/Disc 1 - 09 - En habit de cheval: Fugue de papier.flac
+CD01/Disc 1 - 10 - Cinq grimaces pour «Un songe d'une nuit d'été»: Modéré.flac
+CD01/Disc 1 - 11 - Cinq grimaces pour «Un songe d'une nuit d'été»: Peu vite.flac
+CD01/Disc 1 - 12 - Cinq grimaces pour «Un songe d'une nuit d'été»: Modéré.flac
+CD01/Disc 1 - 13 - Cinq grimaces pour «Un songe d'une nuit d'été»: Temps de marche.flac
+CD01/Disc 1 - 14 - Cinq grimaces pour «Un songe d'une nuit d'été»: Modéré.flac
+CD01/Disc 1 - 15 - La Belle excentrique: Grande ritournelle.flac
+CD01/Disc 1 - 16 - La Belle excentrique: Marche franco-lunaire.flac
+CD01/Disc 1 - 17 - La Belle excentrique: Valse du mystérieux baiser dans l'œil.flac
+CD01/Disc 1 - 18 - Track 18.flac
+CD01/Disc 1 - 19 - Track 19.flac
+CD01/Disc 1 - 20 - Track 20.flac
+CD01/Disc 1 - 21 - Track 21.flac
+CD01/Disc 1 - 22 - Track 22.flac
+CD01/Disc 1 - 23 - Track 23.flac
+CD01/Disc 1 - 24 - Track 24.flac
+CD01/Disc 1 - 25 - Track 25.flac
+CD01/Disc 1 - 26 - Track 26.flac
+CD01/Disc 1 - 27 - Track 27.flac
+CD01/Disc 1 - 28 - Track 28.flac
+CD01/Disc 1 - 29 - Track 29.flac
+CD01/Disc 1 - 30 - Track 30.flac
+CD01/Disc 1 - 31 - Track 31.flac
+CD01/Disc 1 - 32 - Track 32.flac
+CD01/Disc 1 - 33 - Track 33.flac
+CD01/Disc 1 - 34 - Track 34.flac
+CD01/Disc 1 - 35 - Track 35.flac
+CD01/Disc 1 - 36 - Track 36.flac
+CD01/Disc 1 - 37 - Track 37.flac
+CD01/Disc 1 - 38 - Track 38.flac
+CD01/Disc 1 - 39 - Track 39.flac
+CD01/Disc 1 - 40 - Track 40.flac
+CD01/Disc 1 - 41 - Track 41.flac
+CD01/Disc 1 - 42 - Track 42.flac
+CD01/Disc 1 - 43 - Track 43.flac
+CD01/Disc 1 - 44 - Track 44.flac
+CD01/Disc 1 - 45 - Track 45.flac
+CD01/Disc 1 - 46 - Track 46.flac
+CD01/Disc 1 - 47 - Track 47.flac
+CD01/Disc 1 - 48 - Track 48.flac
+CD01/Disc 1 - 49 - Track 49.flac
+CD01/Disc 1 - 50 - Track 50.flac
+CD01/Disc 1 - 51 - Track 51.flac
+CD01/Disc 1 - 52 - Track 52.flac
+CD01/Disc 1 - 53 - Track 53.flac
+CD01/Disc 1 - 54 - Track 54.flac
+CD01/Disc 1 - 55 - Track 55.flac

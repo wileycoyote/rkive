@@ -4,7 +4,7 @@ import subprocess
 from logging import getLogger
 import glob
 import re
-from rkive.index.musicfile import TypeNotSupported, FileNotFound, MusicFile
+from rkive.index.musicfile import TypeNotSupported, FileNotFound, MusicFile, MusicTrack
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 from rkive.clients.regexp import Regexp as Regexp
 from rkive.clients.files import visit_files
@@ -20,8 +20,11 @@ class ParsePattern(argparse.Action):
         setattr(namespace, self.dest, values)
 
 class Tagger(GetOpts):
-
+    
     def __init__(self, logfolder=None):
+        self.logfolder=logfolder
+
+    def set_args(self):
         try:
             p = self.get_parser()
             p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
@@ -33,13 +36,12 @@ class Tagger(GetOpts):
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
             p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
             p.add_argument('--gain', help="add gain to music files", action='store_true')
-            for t,v in Tags.Tags.items():
+            for t,v in MusicTrack.rkivetags.items():
                 option = '--'+t
-                comment = v['comment']
-                p.add_argument(option, help=comment, type=str)
+                p.add_argument(option, help=v, type=str)
             p.parse_args(namespace=self)
             LogInit().set_logging(
-                location=logfolder,
+                location=self.logfolder,
                 filename='tagger.log',
                 debug=self.debug,
                 console=self.console)
@@ -49,6 +51,7 @@ class Tagger(GetOpts):
     def run(self):
         log = getLogger('Rkive.Tagger')
         try:
+            self.set_args()
 
             if self.cuesheet:
                 self.modify_from_cuesheet()
@@ -74,7 +77,7 @@ class Tagger(GetOpts):
                 raise
 
             # check arguments for something to add tags/to
-            for t in Tags.TagMap:
+            for t in MusicTrack.rkivetags:
                 if hasattr(self, t):
                     v = getattr(self, t)
                     log.debug("t: {0} v: {1}".format(t, v))
@@ -90,11 +93,11 @@ class Tagger(GetOpts):
                 self.report_all_files()
                 return
 
-            if (not self.media.__dict__):
+            if not self.media.__dict__:
                 log.info("no attributes to apply")
                 return
 
-            if (self.filename):
+            if self.filename:
                 folder, filename = os.path.split(self.file)
                 self.modify_file_tags(folder, filename)
                 return
@@ -189,7 +192,7 @@ class Tagger(GetOpts):
             m.filename = os.path.join(folder, filename)
             m.save()
     
-    def read_markdown(self, filename):
+    def set_tracks_from_markdown(self, filename):
         """ Markdown Format:
             line 1:<number of albums>,<album count>,<number of header lines>,<nr of titles/files> 
             line 2:<tag>:<value>
@@ -204,38 +207,73 @@ class Tagger(GetOpts):
             :
             line <offset+nr of titles*2+3>:filepath
         """
+        log = getLogger('Rkive.Tagger')
+        log.info("using file {0}".format(filename))
         with open(filename) as fh:
             header=fh.readline().strip()
             album_nr, album_count, nr_hdr_recs,nr_titles=header.split(',')
-            tracks={}
-            for i in range(1,album_recs):
+            nr_hdr_recs =int(nr_hdr_recs)
+            nr_titles=int(nr_titles)
+            self._tracks={}
+            for i in range(0,nr_hdr_recs):
                 l = fh.readline().strip()
-                tag,value=l.split(':',2)
+                tag,value=l.split(':',1)
+                log.debug("tag: {0}, value: {1}".format(tag, value))
+                # these itmes belong to a subset of tracks
                 if '[' in tag:
                     sqrbrkt=tag.index('[')
                     tag_name = tag[0:sqrbrkt]
                     tag_indices = tag[sqrbrkt+1:-1]
+                    log.debug("sqrbrkt {2} tag_name: {0} tag_indices: {1}".format(tag_name, tag_indices,sqrbrkt))
                     if '-' in tag_indices:
                         start,fin=tag_indices.split('-')
-                        for k in range(start,fin):
-                            if not k in tracks:
-                                tracks[k]={}
-                            tracks[k][tag_name]=value
+                        log.debug("start: {0} fin: {1}".format(start, fin))
+                        for k in range(int(start)-1,int(fin)):
+                            if not (k in self._tracks):
+                                self._tracks[k]={}
+                            self._tracks[k][tag_name]=value
+                            log.debug("{0} {1}".format(self._tracks[k], k))
+                    else:
+                        if not (tag_indices in self._tracks):
+                            self._tracks[int(tag_indices)] = {}
+                        self._tracks[int(tag_indices)][tag_name]=value
                 else:
-                    for j in range(1,nr_titles):
-                        if not j in tracks:
-                            tracks[j]={}
-                        tracks[j][tag]=value
-            for i in range(1, nr_titles):
+                    # these items belong to all tracks
+                    for j in range(0,nr_titles):
+                        if not (j in self._tracks):
+                            self._tracks[j]={}
+                        self._tracks[j][tag]=value
+            # pick up the titles
+            for i in range(0, nr_titles):
                 l = fh.readline().strip()
-                if not i in tracks:
-                    tracks[i]={}
-                tracks[i]['title']=l
-            return tracks
-    
+                if not (i in self._tracks):
+                    self._tracks[i]={}
+                self._tracks[i]['title']=l
+                self._tracks[i]['tracknumber']=str(i+1)
+            # pick up the filenames
+            for i in range(0, nr_titles):
+                l = fh.readline().strip()
+                if not (i in self._tracks):
+                    self._tracks[i]={}
+                self._tracks[i]['filename']=l
+   
+    def dump_tracks(self):
+        log = getLogger('Rkive.Tagger')
+        log.debug("Dumping Tracks")
+        for k in sorted(self._tracks.keys()):
+            v= self._tracks[k]
+            log.debug("Dump Track {0}".format(k))
+            print(v)
+            for tag,value in v.items():
+                log.debug("tag: {0} value: {1}".format(tag,value))
+                
     def modify_from_markdown(self):
         log = getLogger('Rkive.Tagger')
-        tracks = self.read_markdown(self.markdown)
+        self.set_tracks_from_markdown(self.markdown)
+        if self.dryrun:
+            log.info("Dryrun: Dumping tracks for {0}".format(self.markdown))
+            self.dump_tracks()
+            return
         for track in tracks:
             m = MusicFile()
             for tag, value in track.items():
