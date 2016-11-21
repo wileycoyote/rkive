@@ -194,15 +194,17 @@ class Tagger(GetOpts):
     
     def set_tracks_from_markdown(self, filename):
         """ Markdown Format:
-            line 1:<number of albums>,<album count>,<number of header lines>,<nr of titles/files> 
+            line 1:<version>,<number of albums>,<album count>,<nr of titles/files> 
             line 2:<tag>:<value>
             line 3:<tag>[tracknumber]:value
             line 4:<tag>[tracknumber-tracknumber+offset]:value
             :
             line <offset>:<tag>:value
+            line ===TITLES===
             line <offset+1>: title
             :
             line <offset+1+nr of titles>:title
+            line ===FILES===
             line <offset+nr of titles+2>:filepath
             :
             line <offset+nr of titles*2+3>:filepath
