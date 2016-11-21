@@ -208,15 +208,18 @@ class Tagger(GetOpts):
             line <offset+nr of titles*2+3>:filepath
         """
         log = getLogger('Rkive.Tagger')
-        log.info("using file {0}".format(filename))
+        log.debug("using file {0}".format(filename))
         with open(filename) as fh:
             header=fh.readline().strip()
-            album_nr, album_count, nr_hdr_recs,nr_titles=header.split(',')
-            nr_hdr_recs =int(nr_hdr_recs)
+            version,album_nr, album_count, nr_titles=header.split(',')
             nr_titles=int(nr_titles)
             self._tracks={}
-            for i in range(0,nr_hdr_recs):
+            toptitles='===TITLES==='
+            topfiles='===FILES==='
+            while(1): 
                 l = fh.readline().strip()
+                if l.startswith('==='):
+                    break
                 tag,value=l.split(':',1)
                 log.debug("tag: {0}, value: {1}".format(tag, value))
                 # these itmes belong to a subset of tracks
@@ -234,28 +237,37 @@ class Tagger(GetOpts):
                             self._tracks[k][tag_name]=value
                             log.debug("{0} {1}".format(self._tracks[k], k))
                     else:
+                        tag_indices = int(tag_indices)-1
                         if not (tag_indices in self._tracks):
-                            self._tracks[int(tag_indices)] = {}
-                        self._tracks[int(tag_indices)][tag_name]=value
+                            self._tracks[tag_indices] = {}
+                        self._tracks[tag_indices][tag_name]=value
                 else:
                     # these items belong to all tracks
-                    for j in range(0,nr_titles):
+                    for j in range(0,nr_titles-1):
                         if not (j in self._tracks):
                             self._tracks[j]={}
                         self._tracks[j][tag]=value
             # pick up the titles
-            for i in range(0, nr_titles):
+            i=0
+            while(1): 
                 l = fh.readline().strip()
+                if l.startswith('==='):
+                    break
                 if not (i in self._tracks):
                     self._tracks[i]={}
                 self._tracks[i]['title']=l
                 self._tracks[i]['tracknumber']=str(i+1)
+                i=i+1
             # pick up the filenames
-            for i in range(0, nr_titles):
+            i=0
+            while(1): 
                 l = fh.readline().strip()
+                if not l:
+                    break
                 if not (i in self._tracks):
                     self._tracks[i]={}
                 self._tracks[i]['filename']=l
+                i=i+1
    
     def dump_tracks(self):
         log = getLogger('Rkive.Tagger')
@@ -263,19 +275,20 @@ class Tagger(GetOpts):
         for k in sorted(self._tracks.keys()):
             v= self._tracks[k]
             log.debug("Dump Track {0}".format(k))
-            print(v)
             for tag,value in v.items():
                 log.debug("tag: {0} value: {1}".format(tag,value))
                 
     def modify_from_markdown(self):
         log = getLogger('Rkive.Tagger')
         self.set_tracks_from_markdown(self.markdown)
+        log.info("Modifying select files from markdown {0}".format(self.markdown))
         if self.dryrun:
             log.info("Dryrun: Dumping tracks for {0}".format(self.markdown))
             self.dump_tracks()
             return
         for track_number, track in self._tracks.items():
             m = MusicFile()
+            log.info("Modifying file {0}".format(track['filename']))
             for tag, value in track.items():
                 setattr(m, tag, value)
             m.save()

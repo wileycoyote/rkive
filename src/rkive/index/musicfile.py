@@ -9,6 +9,9 @@ from PIL import Image
 from yaml import load
 
 class InvalidTag(Exception): pass
+class MediaObjectNotFound(Exception): pass
+class TypeNotSupported(Exception): pass
+class FileNotFound(Exception): pass
 
 #left in for when I remap cuemaps for the new class hierarchy
 CueMap = {
@@ -284,7 +287,7 @@ class MusicFile(MusicTrack):
     def set_media(self, filename):
         log = getLogger('Rkive.MusicFile')
         basename, ext = os.path.splitext(filename)
-        log.debug("hello: {0}".format(ext))
+        log.info("hello: {0}".format(ext))
         self.media = self.mediatypes[ext][0](filename)
         obj = self.media.get_track()
         for tag in obj:
@@ -295,8 +298,8 @@ class MusicFile(MusicTrack):
     def report_tag(self, tag):
         log = getLogger('Rkive.MusicFile')
         log.debug("tag: {0}".format(tag))
-        if tag in self:
-            value = self[tag]
+        if tag in self.__dict__:
+            value = getattr(self, tag)
             log.info("{0}: Attribute {1} has value {2}".format(self.media.filename, tag, value))
         else:
             log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
@@ -306,7 +309,7 @@ class MusicFile(MusicTrack):
         if not tags:
             return
         for tag in tags:
-            if not tag in self:
+            if not tag in self.__dict__:
                 log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
 
     def report_set_tags(self, tags):
@@ -336,22 +339,23 @@ class MusicFile(MusicTrack):
             self[tag]=value
         elif tag=='filename':
             filename = value
-            log.info("Filename: {0}".format(filename))
+            log.debug("Filename: {0}".format(filename))
             if (not os.path.exists(filename)):
                 log.warn("Path not found {0}".format(filename))
                 raise FileNotFound
             mediaclass=self.get_media_class(filename)
             log.debug("Tagstype : {0}".format(mediaclass))
             self['media'] = mediaclass(filename)
+            log.debug("Tagstype : {0}".format(self['media']))
         else:
             self[tag]=value
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')
-        if not self.media:
+        if not hasattr(self, "media"):
             log.fatal("No media set")
             raise MediaObjectNotFound
-        for tag, value in self.__dict__.items():
+        for tag, value in self:
             if tag in self.get_rkive_tags() and value:
                 self.media[tag]=value
         self.media.save()
