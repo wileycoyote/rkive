@@ -4,7 +4,6 @@ import subprocess
 from logging import getLogger
 import glob
 import re
-import xml.etree.ElementTree as ET
 from rkive.index.musicfile import TypeNotSupported, FileNotFound, MusicFile
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 from rkive.clients.regexp import Regexp as Regexp
@@ -32,7 +31,7 @@ class Tagger(GetOpts):
             p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
             p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
             p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
-            p.add_argument('--markup', type=str, help="give file containing metadata", action=FileValidation)
+            p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
             p.add_argument('--gain', help="add gain to music files", action='store_true')
             for t,v in Tags.Tags.items():
                 option = '--'+t
@@ -55,8 +54,8 @@ class Tagger(GetOpts):
                 self.modify_from_cuesheet()
                 return
 
-            if self.markup:
-                self.modify_from_markup()
+            if self.markdown:
+                self.modify_from_markdown()
                 return
 
             if self.pattern:
@@ -189,19 +188,59 @@ class Tagger(GetOpts):
             m.tracknumber = str(tracknumber)
             m.filename = os.path.join(folder, filename)
             m.save()
-
-    def modify_from_markup(self):
+    
+    def read_markdown(self, filename):
+        """ Markdown Format:
+            line 1:<number of albums>,<album count>,<number of header lines>,<nr of titles/files> 
+            line 2:<tag>:<value>
+            line 3:<tag>[tracknumber]:value
+            line 4:<tag>[tracknumber-tracknumber+offset]:value
+            :
+            line <offset>:<tag>:value
+            line <offset+1>: title
+            :
+            line <offset+1+nr of titles>:title
+            line <offset+nr of titles+2>:filepath
+            :
+            line <offset+nr of titles*2+3>:filepath
+        """
+        with open(filename) as fh:
+            header=fh.readline().strip()
+            album_nr, album_count, nr_hdr_recs,nr_titles=header.split(',')
+            tracks={}
+            for i in range(1,album_recs):
+                l = fh.readline().strip()
+                tag,value=l.split(':',2)
+                if '[' in tag:
+                    sqrbrkt=tag.index('[')
+                    tag_name = tag[0:sqrbrkt]
+                    tag_indices = tag[sqrbrkt+1:-1]
+                    if '-' in tag_indices:
+                        start,fin=tag_indices.split('-')
+                        for k in range(start,fin):
+                            if not k in tracks:
+                                tracks[k]={}
+                            tracks[k][tag_name]=value
+                else:
+                    for j in range(1,nr_titles):
+                        if not j in tracks:
+                            tracks[j]={}
+                        tracks[j][tag]=value
+            for i in range(1, nr_titles):
+                l = fh.readline().strip()
+                if not i in tracks:
+                    tracks[i]={}
+                tracks[i]['title']=l
+            return tracks
+    
+    def modify_from_markdown(self):
         log = getLogger('Rkive.Tagger')
-        tree = ET.parse(self.markup)
-        albums = tree.getroot()
-        for album in albums:
-            for track in album:
-                filename = track.attrib['filename']
-                m = MusicFile()
-                m.filename = filename
-                for tag in track:
-                    setattr(m, tag.tag, tag.text)
-                m.save()
+        tracks = self.read_markdown(self.markdown)
+        for track in tracks:
+            m = MusicFile()
+            for tag, value in track.items():
+                setattr(m, tag, value)
+            m.save()
 
     def modify_file_tags(self, root, filename):
         log = getLogger('Rkive.Tagger')
