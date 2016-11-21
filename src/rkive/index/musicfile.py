@@ -119,7 +119,8 @@ class MP3(MusicTrack):
         'disctotal' : 'TPOS',
         'discnumber':'TPOS',
         'composer':'TCOM',
-        'album':'TALB'
+        'album':'TALB',
+        'part': 'TSST'
     }
 
     def __init__(self, filename):
