@@ -2,7 +2,10 @@ import subprocess
 import os
 import re
 
-def runTests(target = None, source = None, env = None) :
+def runBuild(target=None, source=None, env=None):
+    args=['python','setupinstall','install']
+
+def runTests(target=None, source=None, env=None) :
     args=['nosetests','-vs','tests']
     tests=[fn for fn in os.listdir('tests') if any([re.match(r'^test.*\.py$', fn)])];
     for t in tests:
@@ -20,3 +23,7 @@ if 'test' in COMMAND_LINE_TARGETS:
     runTestsCmd = env.Command('runTests', None, Action(runTests, "Running tests"))
     AlwaysBuild(runTestsCmd)
     Alias('test', runTestsCmd)
+if 'build' in COMMAND_LINE_TARGETS:
+    runBuildCmd=env.Command('runBuild', None, Action(runBuild, "Run build"))
+    AlwaysBuild(runBuildCmd)
+    Alias('build', runBuildCmd)

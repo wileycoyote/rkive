@@ -220,6 +220,7 @@ class Tagger(GetOpts):
             topfiles='===FILES==='
             while(1): 
                 l = fh.readline().strip()
+                log.debug("line: {0}".format(l))
                 if l.startswith('==='):
                     break
                 tag,value=l.split(':',1)
@@ -291,7 +292,6 @@ class Tagger(GetOpts):
         for indx, track in self._tracks.items():
             m = MusicFile()
             log.info("index {0}".format(indx))
-            print(track)
             log.info("Modifying file {0}".format(track['filename']))
             for tag, value in track.items():
                 setattr(m, tag, value)
