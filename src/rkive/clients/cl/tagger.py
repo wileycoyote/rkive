@@ -288,8 +288,10 @@ class Tagger(GetOpts):
             log.info("Dryrun: Dumping tracks for {0}".format(self.markdown))
             self.dump_tracks()
             return
-        for track_number, track in self._tracks.items():
+        for indx, track in self._tracks.items():
             m = MusicFile()
+            log.info("index {0}".format(indx))
+            print(track)
             log.info("Modifying file {0}".format(track['filename']))
             for tag, value in track.items():
                 setattr(m, tag, value)
