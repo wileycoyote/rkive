@@ -27,7 +27,6 @@ DBSession	src/rkive/index/mediaindex.py	/^DBSession = sessionmaker()$/;"	v
 DEBUG	bin/change_file.py	/^DEBUG = False$/;"	v
 Distributer	src/rkive/distribution/clients/distributer.py	/^class Distributer(object):$/;"	c
 Dummy	tests/test_getopts.py	/^class Dummy(object):$/;"	c
-Dummy	tests/test_tagger.py	/^class Dummy(object):$/;"	c
 EOF	src/rkive/distribution/net/common.py	/^    EOF    = '-1'$/;"	v	class:NetworkCodes
 ERR	bin/test_client.py	/^    ERR = '401' $/;"	v	class:NetworkCodes
 ERR	bin/test_threads.py	/^    ERR = '401' $/;"	v	class:NetworkCodes
@@ -94,7 +93,6 @@ PUT	bin/test_client.py	/^    PUT = 'PUT'$/;"	v	class:NetworkCodes
 PUT	bin/test_threads.py	/^    PUT = 'PUT'$/;"	v	class:NetworkCodes
 PUT	src/rkive/distribution/net/common.py	/^    PUT = 'PUT'$/;"	v	class:NetworkCodes
 ParsePattern	build/lib/rkive/clients/cl/tagger.py	/^class ParsePattern(argparse.Action):$/;"	c
-ParsePattern	src/rkive/clients/cl/tagger.py	/^class ParsePattern(argparse.Action):$/;"	c
 Participant	build/lib/rkive/index/schema.py	/^class Participant(Base):$/;"	c
 PathNotFound	src/rkive/distribution/net/common.py	/^class PathNotFound(Exception):$/;"	c
 RCV	bin/test_threads.py	/^    RCV = 'RCV'$/;"	v	class:NetworkCodes
@@ -118,11 +116,9 @@ SocketClient	src/rkive/distribution/net/clients.py	/^class SocketClient(NetworkC
 Splitter	bin/cuefile_splitter.py	/^class Splitter(object):$/;"	c
 TagMap	build/lib/rkive/index/musicfile.py	/^    TagMap = {$/;"	v	class:Media
 Tagger	build/lib/rkive/clients/cl/tagger.py	/^class Tagger(GetOpts):$/;"	c
-Tagger	src/rkive/clients/cl/tagger.py	/^class Tagger(GetOpts):$/;"	c
 TestGetOpts	tests/test_getopts.py	/^class TestGetOpts(unittest.TestCase):$/;"	c
 TestLogInit	tests/test_log.py	/^class TestLogInit(unittest.TestCase):$/;"	c
 TestTagger	tests/test_rkiverunner.py	/^class TestTagger(unittest.TestCase):$/;"	c
-TestTagger	tests/test_tagger.py	/^class TestTagger(unittest.TestCase):$/;"	c
 Track	build/lib/rkive/clients/markup.py	/^class Track(object):$/;"	c
 Track	src/rkive/clients/markup.py	/^class Track(object):$/;"	c
 TransceiverClient	bin/test_client.py	/^class TransceiverClient(NetworkCodes):$/;"	c
@@ -147,7 +143,6 @@ __call__	build/lib/rkive/clients/cl/opts.py	/^    def __call__(self, parser, nam
 __call__	build/lib/rkive/clients/cl/tagger.py	/^    def __call__(self, parser, namespace, values, option_string=None):$/;"	m	class:ParsePattern	file:
 __call__	src/rkive/clients/cl/opts.py	/^    def __call__(self, parser, namespace, values, option_string=None):$/;"	m	class:FileValidation	file:
 __call__	src/rkive/clients/cl/opts.py	/^    def __call__(self, parser, namespace, values, option_string=None):$/;"	m	class:FolderValidation	file:
-__call__	src/rkive/clients/cl/tagger.py	/^    def __call__(self, parser, namespace, values, option_string=None):$/;"	m	class:ParsePattern	file:
 __init__	bin/test_client.py	/^    def __init__(self, ipaddress, port, username=None):$/;"	m	class:TransceiverClient
 __init__	bin/test_threads.py	/^    def __init__(self, server_address, RequestHandlerClass):$/;"	m	class:TransceiverServer
 __init__	build/lib/rkive/clients/cl/converter.py	/^    def __init__(self, logfolder=None):$/;"	m	class:ConvertClient
@@ -178,8 +173,6 @@ __init__	src/rkive/clients/cl/converter.py	/^    def __init__(self, logfolder=No
 __init__	src/rkive/clients/cl/markup.py	/^    def __init__(self, logfolder):$/;"	m	class:MarkupClient
 __init__	src/rkive/clients/cl/opts.py	/^    def __init__(self, option_strings, dest, nargs=None, **kwargs):$/;"	m	class:FileValidation
 __init__	src/rkive/clients/cl/opts.py	/^    def __init__(self, option_strings, dest, nargs=None, **kwargs):$/;"	m	class:FolderValidation
-__init__	src/rkive/clients/cl/tagger.py	/^    def __init__(self, logfolder=None):$/;"	m	class:Tagger
-__init__	src/rkive/clients/cl/tagger.py	/^    def __init__(self, option_strings, dest, nargs=None, **kwargs):$/;"	m	class:ParsePattern
 __init__	src/rkive/clients/log.py	/^    def __init__(self):$/;"	m	class:LogInit
 __init__	src/rkive/clients/markdown.py	/^    def __init__(self, filename):$/;"	m	class:MarkdownReader
 __init__	src/rkive/clients/markup.py	/^    def __init__(self):$/;"	m	class:Album
@@ -352,7 +345,6 @@ id	src/rkive/distribution/log.py	/^    id        = Column('id', Integer, primary
 id_track	build/lib/rkive/index/mediaindex.py	/^    id_track = Column('idMusicTrack', Integer, primary_key=True)$/;"	v	class:MusicTrack
 id_track	src/rkive/index/mediaindex.py	/^    id_track = Column('idMusicTrack', Integer, primary_key=True)$/;"	v	class:MusicTrack
 include	build/lib/rkive/clients/cl/tagger.py	/^    def include(self, root, fn):$/;"	m	class:Tagger
-include	src/rkive/clients/cl/tagger.py	/^    def include(self, root, fn):$/;"	m	class:Tagger
 include_convert	build/lib/rkive/clients/cl/converter.py	/^    def include_convert(self, root, fn):$/;"	m	class:ConvertClient
 include_convert	src/rkive/clients/cl/converter.py	/^    def include_convert(self, root, fn):$/;"	m	class:ConvertClient
 include_split	build/lib/rkive/clients/cl/converter.py	/^    def include_split(self, root, fn):$/;"	m	class:ConvertClient
@@ -393,17 +385,11 @@ mkdir	src/rkive/distribution/net/clients.py	/^    def mkdir(self, d):$/;"	m	clas
 mkdir	src/rkive/distribution/net/clients.py	/^    def mkdir(self, d):$/;"	m	class:SocketClient
 mkdir	src/rkive/distribution/net/server.py	/^    def mkdir(self, d):$/;"	m	class:UploadRequestHandler
 mod_filetags_from_regexp	build/lib/rkive/clients/cl/tagger.py	/^    def mod_filetags_from_regexp(self, root, filename):$/;"	m	class:Tagger
-mod_filetags_from_regexp	src/rkive/clients/cl/tagger.py	/^    def mod_filetags_from_regexp(self, root, filename):$/;"	m	class:Tagger
 modify_file_tags	build/lib/rkive/clients/cl/tagger.py	/^    def modify_file_tags(self, root, filename):$/;"	m	class:Tagger
-modify_file_tags	src/rkive/clients/cl/tagger.py	/^    def modify_file_tags(self, root, filename):$/;"	m	class:Tagger
 modify_from_cuesheet	build/lib/rkive/clients/cl/tagger.py	/^    def modify_from_cuesheet(self):$/;"	m	class:Tagger
-modify_from_cuesheet	src/rkive/clients/cl/tagger.py	/^    def modify_from_cuesheet(self):$/;"	m	class:Tagger
 modify_from_markup	build/lib/rkive/clients/cl/tagger.py	/^    def modify_from_markup(self):$/;"	m	class:Tagger
-modify_from_markup	src/rkive/clients/cl/tagger.py	/^    def modify_from_markup(self):$/;"	m	class:Tagger
 modify_from_pattern	build/lib/rkive/clients/cl/tagger.py	/^    def modify_from_pattern(self):$/;"	m	class:Tagger
-modify_from_pattern	src/rkive/clients/cl/tagger.py	/^    def modify_from_pattern(self):$/;"	m	class:Tagger
 modify_gain	build/lib/rkive/clients/cl/tagger.py	/^    def modify_gain(self, root, filename):$/;"	m	class:Tagger
-modify_gain	src/rkive/clients/cl/tagger.py	/^    def modify_gain(self, root, filename):$/;"	m	class:Tagger
 movies	bin/buildindex.py	/^movies = set()$/;"	v
 movies_in_db	bin/buildindex.py	/^movies_in_db = Movie.get_movies_index()$/;"	v
 movies_in_db_rem	bin/buildindex.py	/^movies_in_db_rem = movies_in_db-movies_in_db$/;"	v
@@ -424,7 +410,6 @@ path	bin/t.py	/^path = os.path.dirname(os.path.realpath(__file__)) $/;"	v
 pprint	build/lib/rkive/index/musicfile.py	/^    def pprint(self, filename):$/;"	m	class:MusicFile
 print_attrs	build/lib/rkive/index/musicfile.py	/^    def print_attrs(self):$/;"	m	class:MusicFile
 print_file_tags	build/lib/rkive/clients/cl/tagger.py	/^    def print_file_tags(self, root, fn):$/;"	m	class:Tagger
-print_file_tags	src/rkive/clients/cl/tagger.py	/^    def print_file_tags(self, root, fn):$/;"	m	class:Tagger
 process_title	bin/change_album_name.py	/^def process_title(fp):$/;"	f
 put	bin/test_client.py	/^    def put(self, f):$/;"	m	class:TransceiverClient
 put	bin/test_threads.py	/^    def put(self, url):$/;"	m	class:TransceiverHandler
@@ -473,7 +458,6 @@ run	src/rkive/clients/cl/converter.py	/^    def run(self):$/;"	m	class:ConvertCl
 run	src/rkive/clients/cl/markup.py	/^    def run(self, logloc=None):$/;"	m	class:MarkupClient
 run	src/rkive/clients/cl/reporter.py	/^    def run(self, log=None):$/;"	m	class:ReportClient
 run	src/rkive/clients/cl/runner.py	/^    def run(script, logs, install_path, media_server):$/;"	m	class:RkiveRunner
-run	src/rkive/clients/cl/tagger.py	/^    def run(self, logloc=None):$/;"	m	class:Tagger
 run	src/rkive/distribution/clients/distributer.py	/^    def run(self):$/;"	m	class:Distributer
 runner_files	bin/installer	/^runner_files = [$/;"	v
 sanitize_files	src/rkive/distribution/reporter.py	/^    def sanitize_files(self):$/;"	m	class:FileSanitiser
@@ -484,11 +468,8 @@ save	build/lib/rkive/index/musicfile.py	/^    def save(self):$/;"	m	class:MusicF
 save	build/lib/rkive/index/schema.py	/^    def save(self):$/;"	m	class:Movie
 script	bin/runner.py	/^    script =  os.path.basename(sys.argv[0])$/;"	v
 search_and_modify_files	build/lib/rkive/clients/cl/tagger.py	/^    def search_and_modify_files(self):$/;"	m	class:Tagger
-search_and_modify_files	src/rkive/clients/cl/tagger.py	/^    def search_and_modify_files(self):$/;"	m	class:Tagger
 search_and_modify_gain	build/lib/rkive/clients/cl/tagger.py	/^    def search_and_modify_gain(self):$/;"	m	class:Tagger
-search_and_modify_gain	src/rkive/clients/cl/tagger.py	/^    def search_and_modify_gain(self):$/;"	m	class:Tagger
 search_and_print_folder	build/lib/rkive/clients/cl/tagger.py	/^    def search_and_print_folder(self):$/;"	m	class:Tagger
-search_and_print_folder	src/rkive/clients/cl/tagger.py	/^    def search_and_print_folder(self):$/;"	m	class:Tagger
 secondary	build/lib/rkive/index/schema.py	/^                    secondary=association_table,$/;"	v	class:Opus
 secondary	build/lib/rkive/index/schema.py	/^        secondary=association_table,$/;"	v	class:Participant
 serve_forever	bin/test_threads.py	/^    def serve_forever(self, poll_interval=0.5):$/;"	m	class:TransceiverServer
@@ -542,7 +523,6 @@ test_dryrun	tests/test_getopts.py	/^    def test_dryrun(self):$/;"	m	class:TestG
 test_log_setup	tests/test_log.py	/^    def test_log_setup(self):$/;"	m	class:TestLogInit
 test_log_write	tests/test_log.py	/^    def test_log_write(self):$/;"	m	class:TestLogInit
 test_make_local_index	tests/test_rkiverunner.py	/^    def test_make_local_index(self):$/;"	m	class:TestTagger
-test_musicfile_setup	tests/test_tagger.py	/^    def test_musicfile_setup(self):$/;"	m	class:TestTagger
 test_quiet	tests/test_getopts.py	/^    def test_quiet(self):$/;"	m	class:TestGetOpts
 tgt	bin/installer	/^    tgt = os.path.join(bin_folder, f)$/;"	v
 tgtdir	bin/backup_cue.py	/^        tgtdir = '\/media\/Backup\/'+'_'.join(srcdir.split('\/')[3:-1])$/;"	v

@@ -15,6 +15,7 @@ artist[19-21]:Marius Constant: Ensemble Ars Nova
 artist[43-54]:Orchestre de Paris - Pierre Dervaux
 artist[22-42]:Bernard Desgraupes: Ensemble Erwartung 
 artist[55]:Aldo Ciccolini: Orchestre des Concerts Lamoureux
+===TITLES===
 Sonnerie pour réveiller le bon gros Roi des Singes 
 Gymnopédie No. 1
 Gymnopédie No. 3
@@ -69,6 +70,7 @@ Mercure III: Nouvelle danse
 Mercure III: Le chaos
 Mercure III: Final
 Les Pantins dansent - Presque lent
+===FILES===
 CD01/Disc 1 - 01 - Sonnerie pour reveiller le bon gros Roi des Singes.flac
 CD01/Disc 1 - 02 - Gymnopédie No.1.flac
 CD01/Disc 1 - 03 - Gymnopédie No.3.flac
