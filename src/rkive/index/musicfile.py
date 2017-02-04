@@ -41,7 +41,8 @@ class MusicTrack(object):
         'albumartist':'The album artist',
         'genre':'The genres of a piece, seperated by comma',
         'picture':'Picture - just the front picture',
-        'part': 'Subtitle for CD'
+        'part': 'Subtitle for CD',
+        'lyricist' : 'Writer of lyrics'
     }
 
     mimetypes={
@@ -123,7 +124,8 @@ class MP3(MusicTrack):
         'discnumber':'TPOS',
         'composer':'TCOM',
         'album':'TALB',
-        'part': 'TSST'
+        'part': 'TSST',
+        'lyricist': 'TEXT'
     }
 
     def __init__(self, filename):

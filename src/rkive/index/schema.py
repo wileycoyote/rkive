@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, create_engine, Table, Date
 import sqlalchemy.exc as alchemy_exceptions
 from sqlalchemy import create_engine, or_, and_
 import re
@@ -78,24 +78,54 @@ class Movie(Base):
         for person in people:
             self.people.append(person)
 
+class MoviesToMovieSet(Base):
+    __tablename__ = 'moviestomovieset'
+    movieid = Column(Integer)
+    movieboxsetid =Column(Integer)
+    movies = relationship("Movie", ForeignKey("movie.id"))
+    movieboxset = relationship("MovieBoxSet", ForeignKey("movieset.id"))
+
+class MovieSet(Base):
+    __tablename__ = 'movieset'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    year = Column(Date)
+
 class Album(Base):
-    pass
+    __tablename__ = 'album'
+    Column('title', String)
+    Column('subtitle',String)
+    Column('albumartist', String, nullable=True)
+    Column('discnumber', String)
+    id = Column(Integer, primary_key=True)
+    Column('tracktotal', String)
+
+class AlbumsToAlbumSet(Base):
+    __tablename__ = 'albumstoalbumset'
+    albumid = Column(Integer)
+    albumsetid = Column(Integer)
+    albums = relationship('Album', ForeignKey('album.id'))
+    albumset = relationship('AlbumSet', ForeignKey('albumset.id'))
 
 class AlbumSet(Base):
-    pass
+    __tablename__ = 'albumset'
+    id = Column(Integer, primary_key=True)
+    Column('disctotal', String)
+
+class AlbumTracks(Base):
+    __tablename__ = 'albumtracks'
+    albumid = Column(Integer)
+    trackid = Column(Integer)
+    album = relationship('Album', ForeignKey('album.id'))
+    track = relationship('Track', ForeignKey('MusicTrack.id'))
 
 class MusicTrack(Base):
     __tablename__ = 'musictrack'
     id = Column('id', Integer, primary_key=True)
-    Column('discnumber', String)
-    Column('disctotal', String)
-    Column('album', String)
+    Column('mediaid', Integer)
     Column('title', String)
-    Column('filepath', String)
-    Column('tracktotal', String)
     Column('tracknumber', String)
     Column('artist', String, nullable=True)
-    Column('albumartist', String, nullable=True)
     Column('genre', String, nullable=True)
     Column('composer', String, nullable=True)
     Column('comment', String, nullable=True)
