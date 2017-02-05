@@ -361,8 +361,3 @@ class MusicFile(MusicTrack):
             if tag in self.get_rkive_tags() and value:
                 self.media[tag]=value
         self.media.save()
-
-class MusicIndex(MusicFile):
-    def save(self):
-        pass
-

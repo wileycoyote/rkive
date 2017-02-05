@@ -80,10 +80,10 @@ class Movie(Base):
 
 class MoviesToMovieSet(Base):
     __tablename__ = 'moviestomovieset'
-    movieid = Column(Integer)
+    movieid = Column(Integer, primary_key=True)
     movieboxsetid =Column(Integer)
     movies = relationship("Movie", ForeignKey("movie.id"))
-    movieboxset = relationship("MovieBoxSet", ForeignKey("movieset.id"))
+    movieboxset = relationship("MovieSet", ForeignKey("movieset.id"))
 
 class MovieSet(Base):
     __tablename__ = 'movieset'
@@ -95,14 +95,13 @@ class Album(Base):
     __tablename__ = 'album'
     Column('title', String)
     Column('subtitle',String)
-    Column('albumartist', String, nullable=True)
     Column('discnumber', String)
     id = Column(Integer, primary_key=True)
     Column('tracktotal', String)
 
 class AlbumsToAlbumSet(Base):
     __tablename__ = 'albumstoalbumset'
-    albumid = Column(Integer)
+    albumid = Column(Integer, primary_key=True)
     albumsetid = Column(Integer)
     albums = relationship('Album', ForeignKey('album.id'))
     albumset = relationship('AlbumSet', ForeignKey('albumset.id'))
@@ -114,8 +113,8 @@ class AlbumSet(Base):
 
 class AlbumTracks(Base):
     __tablename__ = 'albumtracks'
-    albumid = Column(Integer)
-    trackid = Column(Integer)
+    albumid = Column(Integer, primary_key=True)
+    trackid = Column(Integer, primary_key=True)
     album = relationship('Album', ForeignKey('album.id'))
     track = relationship('Track', ForeignKey('MusicTrack.id'))
 
@@ -125,7 +124,6 @@ class MusicTrack(Base):
     Column('mediaid', Integer)
     Column('title', String)
     Column('tracknumber', String)
-    Column('artist', String, nullable=True)
     Column('genre', String, nullable=True)
     Column('composer', String, nullable=True)
     Column('comment', String, nullable=True)
