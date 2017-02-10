@@ -4,13 +4,9 @@ import os.path
 import argparse
 from logging import getLogger
 import sys
-from rkive.index.musicfile import MusicFile
-import rkive.index.schema 
-from rkive.index.movie import Movies as Movies
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from rkive.clients.files import visit_files
-from rkive.index.musicfile import MusicTrack
+from rkive.index.index import Index
 
 class MakeIndexClient(GetOpts):
 
@@ -38,41 +34,20 @@ class MakeIndexClient(GetOpts):
                 log.info("Connection: {0}".format(connection))
                 engine = create_engine(connection)
                 session = sessionmaker()
-                self.session = session(bind=engine)
+                bound_session = session(bind=engine)
                 rkive.index.schema.Base.metadata.create_all(engine)
                 rkive.index.schema.Base.metadata.bind = engine
-                movies=Movies(self.session)
+                index_type = ''
                 for source, category in self.sources.items():
                     if not os.path.isdir(source):
                         log.info("skipping {0}".format(source))
                         continue
-                    cat=category[0].lower()
-                    if cat == 'music':
-                        visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=rkive.index.musicfile.MusicFile.is_music_file)
-                    if cat == 'movies':
-                        log.info("looking at {0}".format(source))
-                        movies_on_disk = set()
-                        for o in os.listdir(source):
-                            fp=os.path.join(source, o)
-                            if os.path.isdir(fp) and Movies.is_movie(source, o):
-                                if not fp in movies_on_disk:
-                                    movies_on_disk.add(fp)
-                        movies_in_db = movies.get_movies_index()
-                        if len(movies_on_disk)==0:
-                            log.warn("No movies found on disk")
-                            break
-                        if movies_in_db == movies_on_disk:
-                            log.info("Movies in db same as movies on disk, complete")
-                            break
-                        #movies_in_db_rem = movies_in_db - self.movies
-                        #if movies_in_db_rem:
-                        #    log.debug("Remove remainder databases {0}".format(movies_in_db_rem))
-                        #    movies.remove_movies(self.movies_in_db_rem)
-                        for m in movies_on_disk:
-                            dp,midx=os.path.split(m)
-                            title, directors, year=movies.parse_midx(midx) 
-                            log.info("title: {0} directors: {1} year: {2}".format(title,directors,year))
-                            movies.add_movie(title, directors, year, m) 
+                    index = Index(source, bound_session)
+                    # now call the right function for the category to make index
+                    if getattr(index, category[0].lower()):
+                        getattr(index, category[0].lower())()
+                    else:
+                        log.info("No class for {0}".format(category))
             return
         except:
             exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -82,15 +57,3 @@ class MakeIndexClient(GetOpts):
             sys.exit()
         finally:
             self.session.close()
-
-    def add_music_to_index(self, fp):
-        log = getLogger('Rkive.Index')
-        log.info('would index {0}'.format(fp))
-        if self.dryrun:
-            log.info('would index {0}'.format(fp))
-            return
-        log.info('indexing {0}'.format(fp))
-        m = rkive.index.schema.MusicTrack(fp)
-        self.session.add(m)
-        self.session.commit()
-

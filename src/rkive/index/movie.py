@@ -4,6 +4,7 @@ from rkive.index.schema import Movie as Movie
 from rkive.index.schema import Moviepeople as Moviepeople
 from rkive.index.schema import Person as Person
 from rkive.index.schema import Media as Media
+
 class Movies(object):
 
     film_re = re.compile('(.+?) \((.*?), (\d\d\d\d)\)')
