@@ -20,26 +20,10 @@ class ConvertClient(GetOpts):
         '.mp4' : ffmpeg_mp3,
         '.opus' : ffmpeg_mp3
     }
-    def __init__(self, logfolder=None):
-        try:
-            p = self.get_parser()
-            p.add_argument(
-                '--convert',  
-                help="", 
-                action='store_true')
-            p.add_argument(
-                '--split',
-                nargs=1,
-                help="name of cue file to be split",
-                action=FileValidation)
-            p.parse_args(namespace=self)
-            LogInit().set_logging(
-                location=logfolder, 
-                filename='converter.log', 
-                debug=self.debug, 
-                console=self.console)
-        except SystemExit:
-            pass
+
+    def __init__(self):
+        self.convert = False
+        self.split = False
 
     def run(self):
         try:

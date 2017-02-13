@@ -6,7 +6,13 @@ class Index(object):
         self.base = base
         self.session = session
 
-    def movie(self):
+
+class Movies(Index):
+
+    def __init__(self, base, session):
+        super(Movies, self).__init__(base, session)
+
+    def make(self):
         movies = Movies(self.session)
         log.info("looking at {0}".format(source))
         movies_on_disk = set()
@@ -18,17 +24,22 @@ class Index(object):
         movies_in_db = movies.get_movies_index()
         if len(movies_on_disk)==0:
             log.warn("No movies found on disk")
-            break
+            return
         if movies_in_db == movies_on_disk:
             log.info("Movies in db same as movies on disk, complete")
-            break
+            return
         for m in movies_on_disk:
             dp,midx=os.path.split(m)
             title, directors, year=movies.parse_midx(midx) 
             log.info("title: {0} directors: {1} year: {2}".format(title,directors,year))
             movies.add_movie(title, directors, year, m) 
 
-    def music(self):
+class Music(Index):
+
+    def __init__(self, base, session):
+        super(Movies, self).__init__(base, session)
+
+    def make(self):
         visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=rkive.index.musicfile.MusicFile.is_music_file)
 
     def add_music_to_index(self, fp):

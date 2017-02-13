@@ -1,6 +1,6 @@
 from yaml import load as yaml_load
 import os.path
-from logging import getLogger as getLogger
+from logging import getLogger
 
 class NoSourcesError(Exception):
     """ Exception to be raised when no configuration data for sources found
@@ -17,13 +17,11 @@ class Config:
         connections: path for connections file
         sources: path for sources file
     """
-    def __init__(self,sources_cfg="",connections_cfg=""):
+    def __init__(self,root):
+        self.src_config = os.path.join(root,'.config', 'rkive', 'sources.yml')
+        self.con_config = os.path.join(root,'.config', 'rkive', 'connections.yml')
         self._sources = {}
         self._connections = []
-        if sources_cfg:
-            self.sources=sources_cfg
-        if connections_cfg:
-            self.connections=connections_cfg
 
     @property
     def sources(self):

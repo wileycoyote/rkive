@@ -1,74 +1,37 @@
 import os.path
-import argparse
 import subprocess
 from logging import getLogger
 import glob
 import re
 from rkive.index.musicfile import TypeNotSupported, FileNotFound, MusicFile, MusicTrack
-from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
 from rkive.clients.regexp import Regexp as Regexp
 from rkive.clients.files import visit_files
-from rkive.clients.log import LogInit
 
-class ParsePattern(argparse.Action):
 
-    def __init__(self, option_strings, dest, nargs=None, **kwargs):
-        super(ParsePattern, self).__init__(option_strings, dest, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        values = Regexp(values)
-        setattr(namespace, self.dest, values)
-
-class Tagger(GetOpts):
-    
-    def __init__(self, logfolder=None):
-        self.logfolder=logfolder
-
-    def set_args(self):
-        try:
-            p = self.get_parser()
-            p.add_argument('--printtags', help="print files in current folder", action='store_true',default=False)
-            p.add_argument('--tag', type=str, nargs='?', help="select tags which are set for printtag", action='append')
-            p.add_argument('--no-tag', type=str, nargs='?', help="select tag which are not set for printing", action='append')
-            p.add_argument('--all-tags', help="report all tags", action='store_true', default=False)
-            p.add_argument('--filename',  type=str, help="file to set attributes", action=FileValidation)
-            p.add_argument('--pattern', type=str, help="regex for matching patterns in filenames", action=ParsePattern)
-            p.add_argument('--cuesheet', type=str, help="give a cue file for entering metadata", action=FileValidation)
-            p.add_argument('--markdown', type=str, help="give file containing metadata", action=FileValidation)
-            p.add_argument('--gain', help="add gain to music files", action='store_true')
-            for t,v in MusicTrack.rkivetags.items():
-                option = '--'+t
-                p.add_argument(option, help=v, type=str)
-            p.parse_args(namespace=self)
-            LogInit().set_logging(
-                location=self.logfolder,
-                filename='tagger.log',
-                debug=self.debug,
-                console=self.console)
-        except SystemExit:
-            pass
+class Tagger(object):
+   
+    def __init__(self):
+        self.cuesheet = None
+        self.markdown = None
+        self.pattern = None
+        self.gain = None
+        self.media = None
 
     def run(self):
         log = getLogger('Rkive.Tagger')
         try:
-            self.set_args()
-
             if self.cuesheet:
                 self.modify_from_cuesheet()
                 return
-
             if self.markdown:
                 self.modify_from_markdown()
                 return
-
             if self.pattern:
                 self.modify_from_pattern()
                 return
-
             if self.gain:
                 self.search_and_modify_gain()
                 return
-
             #now set the attributes for the media object, if any
             self.media = MusicFile()
 

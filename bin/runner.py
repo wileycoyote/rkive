@@ -8,4 +8,8 @@ if __name__ == '__main__':
     install_path =os.path.dirname(base)
     logs = os.path.join(os.path.expanduser('~'), 'logs')
     media_server = '191.168.1.155'
-    RkiveRunner.run(script, logs, install_path, media_server)
+    RkiveRunner(
+        script=script, 
+        logfolder=logs, 
+        install_path=install_path, 
+        media_server=media_server).run()
