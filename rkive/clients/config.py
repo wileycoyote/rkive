@@ -60,6 +60,8 @@ class Config:
     @connections.setter
     def connections(self, connections_cfg):
         log = getLogger('Rkive.Config')
+        log.info("hellp")
+        print("XXXXXXXXXXX")
         if self._connections:
             return 
         try:

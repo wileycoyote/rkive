@@ -65,36 +65,23 @@ class RkiveRunner(GetOpts):
         self.set_logger('tag.log', console=tag.console, debug=tag.debug)
         tag.run()
 
-    def make_local_index(self):
-        from rkive.clients.cl.makeindex import MakeIndexClient
-        from rkive.clients.config import Config
-        p = self.get_parser()
-        p.parse_args(namespace=self)
-        self.set_logger('make_local_index.log', console=self.console, debug=self.debug)
-        log = getLogger('Rkive.MakeIndex')
-        log.info("make local index")
-        c = Config(os.environ['HOME'])
-        for connection in c.connections:
-            log.debug("connection {0}".format(connection))
-            if connection[-1] != 'live':
-                continue
-            if connection[0] == 'local':
-                MakeIndexClient(url=connection[0], sources=sources).run()
-
     def make_index(self):
         from rkive.clients.cl.makeindex import MakeIndexClient
         from rkive.clients.config import Config
         p = self.get_parser()
+        p.add_argument('--label', type=str, help="name of location")
         p.parse_args(namespace=self)
         self.set_logger('make_index.log', console=self.console, debug=self.debug)
         log = getLogger('Rkive.MakeIndex')
         log.info("make index")
         c = Config(os.environ['HOME'])
         for connection in c.connections:
-            if connection[0] != 'live':
+            log.debug("connection {0}".format(connection))
+            if self.label != connection['label']:
+                log.info("Skipping {0}".format(connection['label']))
+            if connection['status'] != 'live':
                 continue
-            if connection[2] == 'remote':
-                MakeIndexClient(url=connection[1], sources=c.sources).run()
+            MakeIndexClient(url=connection[0], sources=sources).run()
 
     def run(self):
         script = self.script

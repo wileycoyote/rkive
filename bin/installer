@@ -9,7 +9,6 @@ runner_files = [
     'rk_convert',
     'rk_markup',
     'rk_make_index',
-    'rk_make_local_index'
 ]
 root = os.path.realpath(__file__)
 print(root)

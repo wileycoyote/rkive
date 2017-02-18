@@ -3,5 +3,5 @@
   #This is empty if in-memory is to be used
   "path":"/home/roger/.config/rkive/database.db",
   "status":"live",
-  "location":"local"}
+  "label":"local"}
 ]

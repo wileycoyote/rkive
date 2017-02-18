@@ -14,12 +14,12 @@ setup(name='Rkive',
           'rkive.index',
       ],
       package_dir = {
-          'rkive' : 'src/rkive',
-          'rkive.clients' : 'src/rkive/clients',
-          'rkive.uploader' : 'src/rkive/uploader',
-          'rkive.index' : 'src/rkive/index',
-          'rkive.clients.cl': 'src/rkive/clients/cl',
-          'rkive.clients.web' : 'src/rkive/clients/web',
-          'rkive.clients.gui' : 'src/rkive/clients/gui'
+          'rkive' : 'rkive',
+          'rkive.clients' : 'rkive/clients',
+          'rkive.uploader' : 'rkive/uploader',
+          'rkive.index' : 'rkive/index',
+          'rkive.clients.cl': 'rkive/clients/cl',
+          'rkive.clients.web' : 'rkive/clients/web',
+          'rkive.clients.gui' : 'rkive/clients/gui'
       }
 )
