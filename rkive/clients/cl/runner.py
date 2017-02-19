@@ -3,6 +3,8 @@ import argparse
 from logging import getLogger
 from rkive.clients.log import LogInit
 from rkive.clients.cl.opts import GetOpts, FolderValidation, FileValidation
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 class ParsePattern(argparse.Action):
 
@@ -66,22 +68,58 @@ class RkiveRunner(GetOpts):
         tag.run()
 
     def make_index(self):
-        from rkive.clients.cl.makeindex import MakeIndexClient
+        from rkive.clients.cl.makeindex import IndexClient
         from rkive.clients.config import Config
+        index_client = IndexClient()
         p = self.get_parser()
-        p.add_argument('--label', type=str, help="name of location")
-        p.parse_args(namespace=self)
-        self.set_logger('make_index.log', console=self.console, debug=self.debug)
+        p.add_argument('--label', type=str, help="name of config element to run")
+        p.parse_args(namespace=index_client)
+        self.set_logger('make_index.log', console=index_client.console, debug=index_client.debug)
         log = getLogger('Rkive.MakeIndex')
         log.info("make index")
-        c = Config(os.environ['HOME'])
+        config_path = os.path.join(os.environ['HOME'], '.config','rkive', 'connections.yml')
+        c = Config()
+        c.connections = config_path
+        c.sources = config_path
         for connection in c.connections:
-            log.debug("connection {0}".format(connection))
             if self.label != connection['label']:
                 log.info("Skipping {0}".format(connection['label']))
             if connection['status'] != 'live':
+                log.info("Connection {0} not live".format(connection['label']))
                 continue
-            MakeIndexClient(url=connection[0], sources=sources).run()
+            try:
+                log.info("Connection: {0}".format(connection['url']))
+                engine = create_engine(connection['url'])
+                self.session = sessionmaker()
+                bound_session = self.session(bind=engine)
+                rkive.index.schema.Base.metadata.create_all(engine)
+                rkive.index.schema.Base.metadata.bind = engine
+                if self.operation == 'make':
+                    index_type = ''
+                    for source, category in self.sources.items():
+                        if not os.path.isdir(source):
+                            log.info("skipping {0}".format(source))
+                            continue
+                        log.info("making index for location {0} category {1}".format(source, category))
+                        # now call the right function for the category to make index
+                        class_name = category[0].title()
+                        index_class = getattr(rkive.clients.cl.index, class_name)
+                        if index_class:
+                            index_class(source, self.session).make(source)
+                        else:
+                            log.info("No class for {0}".format(class_name))
+                    return
+                if self.operation == 'search':
+                    return
+            except:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
+                self.session.rollback()
+                sys.exit()
+            finally:
+                self.session.close()
+            return
 
     def run(self):
         script = self.script
@@ -106,7 +144,5 @@ class RkiveRunner(GetOpts):
             MarkupClient().run()
         if script == 'rk_convert':
             self.convert()
-        if script == 'rk_make_local_index':
-            self.make_local_index()
         if script == 'rk_make_index':
             self.make_index()

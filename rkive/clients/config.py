@@ -10,16 +10,14 @@ class NoConnectionsError(Exception):
     """ Exception to be raised when no configuration data for connections found
     """
 
-class Config:
+class Config(object):
     """Reads config files for source directories and db connection info
 
     Attributes:
         connections: path for connections file
         sources: path for sources file
     """
-    def __init__(self,root):
-        self.src_config = os.path.join(root,'.config', 'rkive', 'sources.yml')
-        self.con_config = os.path.join(root,'.config', 'rkive', 'connections.yml')
+    def __init__(self):
         self._sources = {}
         self._connections = []
 
@@ -80,11 +78,11 @@ class Config:
                         raise NoConnectionsError
                     if not 'status' in conn:
                         raise NoConnectionsError
-                    if not 'location' in conn:
+                    if not 'label' in conn:
                         raise NoConnectionsError
                     dbtype = conn['type']
-                    path=conn['path']
-                    location=conn['location']
+                    path = conn['path']
+                    label = conn['label']
                     status=conn['status']
                     username = ''
                     if 'username' in conn:
@@ -102,7 +100,7 @@ class Config:
                     if not os.path.isfile(path):
                         fh=open(path,'w')
                         fh.close()
-                    self._connections.append((status, location, url))
+                    self._connections.append({'status':status, 'label': label, 'url':url})
         except EnvironmentError as e:
             log.warn("Environment Error "+str(e))
             self._connections={}
