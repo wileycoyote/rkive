@@ -1,18 +1,18 @@
-from rkive.clients.log import LogInit
-from rkive.clients.cl.opts import GetOpts
 import os.path
-import argparse
 from logging import getLogger
 import sys
+from rkive.clients.files import visit_files
+from rkive.index.musicfile.MusicFile import is_music_file
+from rkive.index.schema.music import MusicTrack
+from rkive.index.schema.movies import Movies as MovieIndex
 
 class IndexClient(object):
 
-    def __init__(self, session=''):
+    def __init__(self, session=None):
         """ Initialise class - logs, command-line parameters, urls and sources
 
         Attributes:
-            urls: A list of urls, each url describing a database target
-            sources: A dictionary of categories to folders, each folder containing music or movies
+            session: live connection to database
         """
         self.session = session
 
@@ -23,12 +23,12 @@ class Movies(IndexClient):
         super(Movies, self).__init__(session)
 
     def make(self, source):
-        movies = Movies(self.session)
+        movies = MovieIndex(session)
         log.info("looking at {0}".format(source))
         movies_on_disk = set()
         for o in os.listdir(source):
             fp=os.path.join(source, o)
-            if os.path.isdir(fp) and Movies.is_movie(source, o):
+            if os.path.isdir(fp) and MovieIndex.is_movie(source, o):
                 if not fp in movies_on_disk:
                     movies_on_disk.add(fp)
         movies_in_db = movies.get_movies_index()
@@ -47,10 +47,10 @@ class Movies(IndexClient):
 class Music(Index):
 
     def __init__(self, session):
-        super(Movies, self).__init__(session)
+        super(Music, self).__init__(session)
 
     def make(self, source):
-        visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=rkive.index.musicfile.MusicFile.is_music_file)
+        visit_files(folder=source,funcs=[self.add_music_to_index],recursive=True,include=is_music_file)
 
     def add_music_to_index(self, fp):
         log = getLogger('Rkive.Index')
@@ -59,6 +59,8 @@ class Music(Index):
             log.info('would index {0}'.format(fp))
             return
         log.info('indexing {0}'.format(fp))
-        m = rkive.index.schema.MusicTrack(fp)
-        self.session.add(m)
-        self.session.commit()
+        album = Album.get_album(album_idx)
+        if (not album):
+            album = Album(session, fp)
+        album.add_track(MusicTrack(fp))
+        album.save()

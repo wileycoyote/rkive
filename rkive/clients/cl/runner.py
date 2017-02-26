@@ -67,16 +67,15 @@ class RkiveRunner(GetOpts):
         self.set_logger('tag.log', console=tag.console, debug=tag.debug)
         tag.run()
 
-    def make_index(self):
+    def index(self):
         from rkive.clients.cl.makeindex import IndexClient
         from rkive.clients.config import Config
         index_client = IndexClient()
         p = self.get_parser()
         p.add_argument('--label', type=str, help="name of config element to run")
         p.parse_args(namespace=index_client)
-        self.set_logger('make_index.log', console=index_client.console, debug=index_client.debug)
-        log = getLogger('Rkive.MakeIndex')
-        log.info("make index")
+        self.set_logger('index.log', console=index_client.console, debug=index_client.debug)
+        log = getLogger('Rkive.Index')
         config_path = os.path.join(os.environ['HOME'], '.config','rkive', 'connections.yml')
         c = Config()
         c.connections = config_path
@@ -95,7 +94,7 @@ class RkiveRunner(GetOpts):
                 rkive.index.schema.Base.metadata.create_all(engine)
                 rkive.index.schema.Base.metadata.bind = engine
                 if self.operation == 'make':
-                    index_type = ''
+                    log.info("make index")
                     for source, category in self.sources.items():
                         if not os.path.isdir(source):
                             log.info("skipping {0}".format(source))
@@ -110,6 +109,7 @@ class RkiveRunner(GetOpts):
                             log.info("No class for {0}".format(class_name))
                     return
                 if self.operation == 'search':
+                    log.info("search index")
                     return
             except:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
@@ -145,4 +145,4 @@ class RkiveRunner(GetOpts):
         if script == 'rk_convert':
             self.convert()
         if script == 'rk_make_index':
-            self.make_index()
+            self.index()

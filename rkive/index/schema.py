@@ -91,13 +91,14 @@ class MovieSet(Base):
     name = Column(String)
     year = Column(Date)
 
-class Album(Base):
+class AlbumSchema(Base):
     __tablename__ = 'album'
     Column('title', String)
+    id = Column(Integer, primary_key=True)
     Column('subtitle',String)
     Column('discnumber', String)
-    id = Column(Integer, primary_key=True)
     Column('tracktotal', String)
+    Column('filepath', String)
 
 class AlbumsToAlbumSet(Base):
     __tablename__ = 'albumstoalbumset'
