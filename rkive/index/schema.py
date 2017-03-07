@@ -98,12 +98,18 @@ class AlbumSchema(Base):
     Column('subtitle',String)
     Column('discnumber', String)
     Column('tracktotal', String)
-    Column('filepath', String)
+    Column('index', String)
+
+    def __init__(self, title=None, subtitle=None, discnumber=None, tracktotal=None, indx=None):
+        self.title = title
+        self.subtitle = subtitle
+        self.discnumber = discnumber
+        self.tracktotal = tracktotal
+        self.indx = indx
 
 class AlbumsToAlbumSet(Base):
     __tablename__ = 'albumstoalbumset'
     albumid = Column(Integer, primary_key=True)
-    albumsetid = Column(Integer)
     albums = relationship('Album', ForeignKey('album.id'))
     albumset = relationship('AlbumSet', ForeignKey('albumset.id'))
 
@@ -111,6 +117,7 @@ class AlbumSet(Base):
     __tablename__ = 'albumset'
     id = Column(Integer, primary_key=True)
     Column('disctotal', String)
+    Column('discnumber', String)
 
 class AlbumTracks(Base):
     __tablename__ = 'albumtracks'
