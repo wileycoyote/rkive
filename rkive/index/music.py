@@ -1,6 +1,6 @@
 from logging import getLogger
 
-class MusicTrack():
+class MusicTrack(Musicfile):
 
     def __init__(self, session):
         self.session = session
@@ -11,12 +11,10 @@ class AlbumDataAccessor(AlbumSchema):
     def __init__(self, session):
         self.session = session
 
-    def is_album(self, indx):
-        return self.session.query(Album).filter(Album.index=indx)
-
     @property
     def album(self, indx, track):
-        if not self.is_album(indx):
+        album = self.session.query(Album).filter(Album.index=indx)
+        if not album:
             album = AlbumSchema(
                 index = indx,
                 title=track.title, 
@@ -25,9 +23,7 @@ class AlbumDataAccessor(AlbumSchema):
                 tracktotal=track.tracktotal, 
             )
             return album
-        else:
-           pass 
-
+        return album
 
 class Album(AlbumDataAccessor):
 
@@ -46,7 +42,7 @@ class Album(AlbumDataAccessor):
     @track.setter
     def track(self, fp):
         self.indx = fp
-        track = MusicTrack(self.session, self._album, fp)
-        self.tracks.append(track)
+        track = MusicTrack(self.session, fp)
         self._album = self.album(indx, track)
         self._albumset = AlbumSet(self.indx, self._album)
+        self.tracks.append(track)
