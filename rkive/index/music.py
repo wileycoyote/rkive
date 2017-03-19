@@ -1,9 +1,35 @@
 from logging import getLogger
+import os.path
 
 class MusicTrack(Musicfile):
 
     def __init__(self, session):
         self.session = session
+        self._index = ''
+        self._album_set = False
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, fp):
+        fields = fp.split('/')
+        artist = fields.pop(0)
+        album = fields.pop(0)
+        if fields:
+            cd = fields.pop(0)
+            self._album_set = True
+        self._file_path = fp
+
+    @property 
+    def track(self, fp):
+        self.media = self._file_path
+        self._track = MusicTrackSchema()
+        
+    @property 
+    def album_set(self):
+        return self._album_set
 
 
 class AlbumDataAccessor(AlbumSchema):

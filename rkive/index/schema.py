@@ -126,7 +126,7 @@ class AlbumTracks(Base):
     album = relationship('Album', ForeignKey('album.id'))
     track = relationship('Track', ForeignKey('MusicTrack.id'))
 
-class MusicTrack(Base):
+class MusicTrackSchema(Base):
     __tablename__ = 'musictrack'
     id = Column('id', Integer, primary_key=True)
     Column('mediaid', Integer)
@@ -135,6 +135,7 @@ class MusicTrack(Base):
     Column('genre', String, nullable=True)
     Column('composer', String, nullable=True)
     Column('comment', String, nullable=True)
+    Column('hash', String, index=True)
 
     def __init__(self, path):
         log = getLogger('Rkive.Index')
