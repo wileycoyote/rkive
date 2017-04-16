@@ -4,6 +4,7 @@ from logging import getLogger
 import mutagen
 from mutagen.id3 import ID3
 from mutagen.id3 import error as id3_error
+from mutagen import MutagenError
 from mutagen.flac import FLAC, Picture
 from PIL import Image
 from yaml import load
@@ -27,6 +28,21 @@ class MusicTags(object):
     def __init__(self):
         self._title = ""
         self._album = ""
+        self._disctotal = 0
+        self._discnumber = 0
+        self._year = 1800
+        self._track = None
+        self._tracknumber = 0
+        self._tracktotal = 0
+        self._grouping = ""
+        self._comment = ""
+        self._composer = ""
+        self._artist = ""
+        self._albumartist = ""
+        self._genre = ""
+        self._picture = ""
+        self._part = ""
+        self._lyricist = ""
 
     @property 
     def title(self):
@@ -91,18 +107,22 @@ class MusicTags(object):
     @property
     def genre(self):
         """The genres of a piece, seperated by comma"""
+        return self._genre
 
     @property
     def picture(self):
         """Picture - just the front picture"""
+        return self._picture
 
     @property
     def part(self):
         """Subtitle for CD"""
+        return self._part
 
     @property
     def lyricist(self):
         """Writer of lyrics"""
+        return self._lyricist
 
 
 class MusicTrack(MusicTags):
@@ -131,21 +151,10 @@ class MusicTrack(MusicTags):
             return cls.mimetypes[key]
         raise KeyError
 
-    def get_track(self):
-        """ Return the Mutagen object that represents the track"""
-        log = getLogger('Rkive.MusicFile')
-        log.fatal("Method get_track not implemented")
-
     def save(self):
         """ Save the tags to the related external file"""
         log = getLogger('Rkive.MusicFile')
         log.fatal("Method save not implemented")
-
-    def print_tags(self):
-        log = getLogger('Rkive.MusicFile')
-        log.info("Dump tag-value pairs")
-        for tag,value in vars(self).items():
-            log.info("Tag: {0} Value: {1}".format(tag, value))
 
     def __iter__(self):
         # first start by grabbing the Class items
@@ -175,98 +184,123 @@ class MusicTrack(MusicTags):
 
 class MP3(MusicTrack):
 
-    def __init__(self, filename):
+    def __init__(self):
         log = getLogger('Rkive.MusicFile')
-        self.filename = filename
+        self._filename = None
+        self._track = None
 
     class ID3:
     
+        @classmethod
+        def mutagenid3(cls, attr, val):
+            mutangenid3 = getattr(mutagen.id3, attr)
+            return mutagenid3(encoding=3, text=val)
+
+        @classmethod
+        def get_id3_total(cls, id3_val, total):
+            log = getLogger('Rkive.MusicFile')
+            curr_number = id3_val
+            if '/' in id3_val:
+                curr_number, curr_total = id3_val.split('/')
+            return  '/'.join([curr_number, total])
+
         @multi
-        def id3tag(self, rkive_type):
-            return rkive_type.get('id3type')
+        def id3tag(cls, rkive_type):
+            return rkive_type.get('type')
 
-        @method(tag_type, 'TALB')
-        def album(self):
-            self.add_id3_tag('TALB', self['album'])
+        @method(id3tag, 'album')
+        def tag(album):
+            return __class__.mutagenid3('TALB', album['value'])
 
-        @method(tag_type, 'part')
-        def part(self):
-            self.add_id3_tag('TSST', self['part'])
+        @method(id3tag, 'part')
+        def tag(part):
+            return __class__.mutagenid3('TSST', part['value'])
 
-        @method(tag_type, 'lyricist')
-        def lyricist(self):
-            self.add_id3_tag('TEXT', self['lyricist'])
+        @method(id3tag, 'lyricist')
+        def tag(lyricist):
+            return __class__.mutagenid3('TEXT', lyricist['value'])
 
-        @method(tag_type, 'composer')
-        def composer(self):
-            self.add_id3_tag('TCOM', self['composer'])
+        @method(id3tag, 'composer')
+        def tag(composer):
+            return __class__.mutagenid3('TCOM', composer['value'])
 
-        @method(tag_type, 'discnumber')
-        def discnumber(self):
-            discnumber = self['discnumber'] 
-            tposval = self._track['TPOS']
-            value = __class__.get_id3_total(discnumber, tposval)
-            self.add_id3_tag('TPOS', value)
+        @method(id3tag, 'discnumber')
+        def tag(disnumber):
+            given_discnumber = discnumber['value'] 
+            tposval = discnumber['parent']._track['TPOS']
+            value = __class__.get_id3_total(given_discnumber, tposval)
+            return __class__.mutagenid3('TPOS', value)
 
-        @method(tag_type, 'disctotal')
-        def disctotal(self):
-            total = self['disctotal'] 
-            tposvalue = self._track['TPOS']
+        @method(id3tag, 'disctotal')
+        def tag(parent):
+            total = parent['disctotal'] 
+            tposvalue = parent._track['TPOS']
             value = __class__.get_id3_total(tposvalue, total)
-            self.add_id3_tag('TPOS', value)
+            return __class__.mutagenid3('TPOS', value)
 
-        @method(tag_type, 'albumartist')
-        def albumartist(self):
-            self.add_id3_tag('TPE2', self['albumartist'])
+        @method(id3tag, 'albumartist')
+        def tag(aa):
+            parent.add_id3_tag('TPE2', self['albumartist'])
+            return __class__.mutagenid3('TPOS', value)
 
-        @method(tag_type, 'artist')
-        def artist(self):
-            self.add_id3_tag('TPE1', self['artist'])
+        @method(id3tag, 'artist')
+        def tag(parent):
+            parent.add_id3_tag('TPE1', self['artist'])
+            return __class__.mutagenid3('TPOS', value)
 
-        @method(tag_type, 'title')
-        def title(self):
-            self.add_id3_tag('TIT1', self['title'])
+        @method(id3tag, 'title')
+        def tag(parent):
+            parent.add_id3_tag('TIT1', self['title'])
+            return __class__.mutagenid3('TPOS', value)
 
-        @method(tag_type, 'grouping')
-        def grouping(self):
-            self.add_id3_tag('TIT2', self['grouping'])
+        @method(id3tag, 'grouping')
+        def tag(parent):
+            parent.add_id3_tag('TIT2', self['grouping'])
+            return __class__.mutagenid3('TPOS', value)
 
-        @method(tag_type, 'year')
-        def year(self):
-            self.add_id3_tag('TYER', self['year'])
+        @method(id3tag, 'year')
+        def tag(parent):
+            return __class__.mutagenid3('TYER', value)
 
-        @method(tag_type, 'comment')
-        def comment(self):
-            self.add_id3_tag('COMM', self['comment'])
+        @method(id3tag, 'comment')
+        def tag(parent):
+            return __class__.mutagenid3('COMM', parent['value'])
 
-        @method(tag_type, 'genre')
-        def genre(self):
-            self.add_id3_tag('TCON', self['genre'])
+        @method(id3tag, 'genre')
+        def tag(parent):
+            return __class__.mutagenid3('TCON', parent['value'])
 
-        @method(tag_type, 'tracktotal')
-        def tracktotal(self):
-            total = self['tracktotal'] 
-            trckvalue = self._track['TRCK']
+        @method(id3tag, 'tracktotal')
+        def tag(tracktotal):
+            total = tracktotal['value'] 
+            parent = tracktoal['']
+            trckvalue = parent._track['TRCK']
             value = __class__.get_id3_total(trckvalue, total)
-            self.add_id3_tag('TRCK', value)
+            return __class__.mutagenid3('TRCK', value)
        
-        @method(tag_type, 'tracknumber')
-        def tracknumber(self):
-            tracknumber = self['tracknumber'] 
-            trckval = self._track['TRCK']
+        @method(id3tag, 'tracknumber')
+        def tag(tracknumber):
+            value = tracknumber['value'] 
+            parent = tracknumber['parent'] 
+            trckval = parent._track['TRCK']
             value = __class__.get_id3_total(tracknumber, trckval)
-            self.add_id3_tag('TRCK', value)
+            return __class__.mutagenid3('TRCK', value)
 
-        @method(tag_type, 'APIC')
-        def picture(self): 
-            mimetype=self.get_mime_type(self.filename)
-            fh=open(self.filename).read()
-            mutangenid3 = getattr(mutagen.id3, tag)
-            self._track.add(mutagenid3(encoding=3, mime=mimetype,type=3,desc=u"cover",data=picfh))
+        @method(id3tag, 'picture')
+        def tag(picture): 
+            file = picture['value']
+            mimetype=self.get_mime_type(file)
+            picfh=open(file).read()
+            mutangenid3 = getattr(mutagen.id3, 'APIC')
+            return(mutagenid3(encoding=3, mime=mimetype,type=3,desc=u"cover",data=picfh))
 
-    def id3_tag(self, tag, val):
-        mutangenid3 = getattr(mutagen.id3, tag)
-        self._track.add(mutagenid3(encoding=3, text=value))
+    @property
+    def tag(self, t):
+        return self._track[t]
+
+    @tag.setter
+    def tag(self, t, v):
+        self._track[t] = v
 
     @property 
     def filename(self):
@@ -280,23 +314,19 @@ class MP3(MusicTrack):
     def track(self, filename):
         log=getLogger('Rkive.MusicFile')
         self._filename = filename
+        print('XXXXXXXXXXXXXXXxxx'+filename)
         try:
             mp3 = ID3(filename)
             log.debug("Return file: {0}".format(self.filename))
             self._track = mp3
         except id3_error:
+            print("YYYYYYYYYYYYYYYYYYYYY")
             log.debug("Adding default ID3 frame to {0}".format(self.filename))
             mp3 = ID3()
             mp3.save(filename)
             self._track = mp3
-
-    @classmethod
-    def get_id3_total(cls, id3_val, total):
-        log = getLogger('Rkive.MusicFile')
-        curr_number = id3_val
-        if '/' in id3_val:
-            curr_number, curr_total = id3_val.split('/')
-        return  '/'.join([curr_number, total])
+        except MutagenError:
+            log.fatal("File {0} does not exist")
 
     def save(self):
         """ Save a MP3 file
@@ -311,7 +341,9 @@ class MP3(MusicTrack):
             log.debug("cycle through tag: {0}".format(rkive_tag))
             if rkive_tag in dict(self):
                 log.debug("modifying tag {0} with value {1} ".format(id3tag, value))
-                getattr(__class__.ID3, rkive_tag)(self)
+                id3 = __class__.ID3.tag({'type': rkive_tag, 'value': self[rkive_tag], 'parent': self})
+                self._track.add(id3)
+
         self._track.save(self.filename)
 
 class Flac(MusicTrack):
@@ -328,6 +360,14 @@ class Flac(MusicTrack):
             flac = FLAC()
             flac.save(filename)
             self._track = flac
+
+    @property
+    def tag(self, t):
+        return self._track[t]
+
+    @tag.setter
+    def tag(self, t, v):
+        self._track[t] = v
 
     def save(self):
         log = getLogger('Rkive.MusicFile')
@@ -358,9 +398,43 @@ class TypeNotSupported(Exception):
 class TagsObjectNotFound(Exception):
     pass
 
+class TagReporter(object):
+    def report_tag(self, tag):
+        log = getLogger('Rkive.MusicFile')
+        log.debug("tag: {0}".format(tag))
+        if tag in self.__dict__:
+            value = getattr(self, tag)
+            log.info("{0}: Attribute {1} has value {2}".format(self.media.filename, tag, value))
+        else:
+            log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
+
+    def unset_tags(self):
+        log = getLogger('Rkive.MusicFile')
+        for tag in self.rkive_tags:
+            if not tag in self.__dict__:
+               log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
+
+    def set_tags(self, tags):
+        log = getLogger('Rkive.MusicFile')
+        log.debug("report_set_tags")
+        for tag in self.rkive_tags:
+            self.report_tag(tag)
+
+    def all_tags(self):
+        log = getLogger('Rkive.MusicFile')
+        log.debug("report_all_tags")
+        for tag in self.rkive_tags:
+            self.report_tag(tag)
+
+    def pprint(self, filename):
+        log = getLogger('Rkive.MusicFile')
+        self.filename = filename
+        c = self.media.get_track()
+        log.info(c.pprint())
+
 #
 # Proxy Object
-class MusicFile(MusicTrack):
+class MusicFile(MusicTrack, TagReporter):
 
     mediatypes = {
         '.mp3'  : MP3,
@@ -376,24 +450,6 @@ class MusicFile(MusicTrack):
                 return True
         return False
 
-    @property
-    def media_class(self, filename):
-        basename, mediatype = os.path.splitext(filename)
-        if mediatype in self.mediatypes:
-            return self.mediatypes[mediatype]
-        raise TypeNotSupported
-
-    def set_tags_from_list(self, l):
-        log = getLogger('Rkive.MusicFile')
-        log.info("Setting attributes from list for {0}".format(self.media.filename))
-        for tag,value in l.items():
-            log.info("{0}: {1}".format(tag,val))
-            setattr(self, tag, val)
-
-    @property
-    def track(self):
-        return self._media.get_track()
-
     @property 
     def media(self):
         return self._media
@@ -401,52 +457,28 @@ class MusicFile(MusicTrack):
     @media.setter
     def media(self, filename):
         log = getLogger('Rkive.MusicFile')
+        if not MusicFile.is_music_file(filename):
+            return None
         basename, ext = os.path.splitext(filename)
-        log.info("hello: {0}".format(ext))
-        self._media = self.mediatypes[ext][0](filename)
-        obj = self._media.get_track()
-        for tag in obj:
-            if tag in self.get_rkive_tags():
-                value = obj[tag]
+        self._media = self.mediatypes[ext][0]()
+        self._media.track = filename
+
+    @property 
+    def tags(self):
+        for tag in self._media:
+            if tag in self.rkive_tags():
+                value = self._media[tag]
                 self[tag]=value
+        return {x: y for x,y in self.__dict__.items() if x in self.rkive_tags}
 
-    def report_tag(self, tag):
+    @tags.setter
+    def tags(self, l):
         log = getLogger('Rkive.MusicFile')
-        log.debug("tag: {0}".format(tag))
-        if tag in self.__dict__:
-            value = getattr(self, tag)
-            log.info("{0}: Attribute {1} has value {2}".format(self.media.filename, tag, value))
-        else:
-            log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
-
-    def report_unset_tags(self, tags):
-        log = getLogger('Rkive.MusicFile')
-        if not tags:
-            return
-        for tag in tags:
-            if not tag in self.__dict__:
-                log.info("{0}: Attribute {1} has not been set".format(self.media.filename, tag))
-
-    def report_set_tags(self, tags):
-        log = getLogger('Rkive.MusicFile')
-        log.debug("report_set_tags")
-        if not tags:
-            return
-        for tag in tags:
-            self.report_tag(tag)
-
-    def report_all_tags(self):
-        log = getLogger('Rkive.MusicFile')
-        log.debug("report_all_tags")
-        for tag in self.get_rkive_tags():
-            self.report_tag(tag)
-
-    def pprint(self, filename):
-        log = getLogger('Rkive.MusicFile')
-        self.filename = filename
-        c = self.media.get_track()
-        log.info(c.pprint())
-
+        log.info("Setting attributes from list for {0}".format(self.media.filename))
+        for tag,value in l.items():
+            log.info("{0}: {1}".format(tag,val))
+            setattr(self, tag, val)
+  
     def __setattr__(self, tag, value):
         log = getLogger('Rkive.MusicFile')
         if tag in self.get_rkive_tags():
@@ -458,9 +490,7 @@ class MusicFile(MusicTrack):
             if (not os.path.exists(filename)):
                 log.warn("Path not found {0}".format(filename))
                 raise FileNotFound
-            mediaclass=self.get_media_class(filename)
-            log.debug("Tagstype : {0}".format(mediaclass))
-            self['media'] = mediaclass(filename)
+            self.media = filename
             log.debug("Tagstype : {0}".format(self['media']))
         else:
             self[tag]=value
@@ -472,5 +502,5 @@ class MusicFile(MusicTrack):
             raise MediaObjectNotFound
         for tag, value in self:
             if tag in self.get_rkive_tags() and value:
-                self.media[tag]=value
+                self.media.track.tag = (tag, value)
         self.media.save()

@@ -37,7 +37,9 @@ class TestTags(unittest.TestCase):
         'disctotal',
         'discnumber',
         'composer',
-        'album'
+        'album',
+        'lyricist',
+        'part'
     ]
 
     def test_get_tags(self):
@@ -48,12 +50,6 @@ class TestTags(unittest.TestCase):
 
 class TestMusicTrack(unittest.TestCase):
 
-    def test_get_track(self):
-        with LogCapture() as l:
-            m = MusicTrack()
-            m.get_track()
-            l.check(('Rkive.MusicFile','CRITICAL',"Method get_track not implemented"))
-
     def test_save(self):
         with LogCapture() as l:
             m = MusicTrack()
@@ -62,19 +58,13 @@ class TestMusicTrack(unittest.TestCase):
 
 class TestID3(unittest.TestCase):
 
-    def test_get_id3_number(self):
-        m=MP3('kkkk')
-        val=m.get_id3_number("3","4")
-        self.assertEqual(val,"4")
-        val=m.get_id3_number("3/10","5")
-        self.assertEqual(val,"5/10")
-
-    def test_get_id3_total(self):
-        m=MP3('kkkk')
-        val=m.get_id3_total("5","10")
-        self.assertEqual("5/10",val)
-        val=m.get_id3_total("5/7","8")
-        self.assertEqual("5/8",val)
+    def test_tracktotal(self):
+        m = MP3()
+        m.track = 'kkkk'
+        m.tracknumber = "3"
+        m.tracktotal = "5"
+        self.assertEqual(m.tracknumber, "3")
+        self.assertEqual(m.tracktotal, "5")
 
 class TestMP3(unittest.TestCase):
 
@@ -86,11 +76,9 @@ class TestMP3(unittest.TestCase):
         shutil.copy('data/mp3/test1.mp3',self.tmpfile)
 
     def test_add_frames_to_empty_mp3(self):
-        m=MP3(self.tmpfile)
-        self.assertEqual(self.tmpfile,m.filename)
+        m=MP3()
         with LogCapture() as l:
-            mp3=m.get_track()
-            mp3=m.get_track()
+            m.track = self.tmpfile
             r='Rkive.MusicFile'
             debug='DEBUG'
             l1=(r,debug,'Adding default ID3 frame to {0}'.format(self.tmpfile))
@@ -98,7 +86,8 @@ class TestMP3(unittest.TestCase):
             l.check(l1,l2)
     
     def test_set_all_params(self):
-        m=MP3(self.tmpfile)
+        m=MP3()
+        m.track = self.tmpfile
         genre=str_generator()
         m['genre']=genre
         tracktotal="10"
