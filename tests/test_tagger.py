@@ -10,11 +10,9 @@ class Dummy(object):
     pass
 
 def setup_module(module):
-    LogInit().set_logging(
-            location='logs/',
-            filename='tagger_tests.log',
-            debug=True,
-            console=True)
+    l = LogInit()
+    l.level = logging.DEBUG 
+    l.logger = 'logs/tagger_tests.log'
 
 class TestTagger(unittest.TestCase):
 

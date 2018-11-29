@@ -9,19 +9,66 @@ import tempfile
 from testfixtures import LogCapture as LogCapture
 from logging import getLogger as getLogger
 from rkive.clients.log import LogInit
-from rkive.index.musicfile import MusicTrack, MP3
+from rkive.index.musicfile import MusicTrack, MP3, MusicTags
 
 def str_generator(size=random.randrange(0, 101, 2), chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 def setup_module(module):
-    LogInit().set_logging(
-                location='logs/',
-                filename='musicfile_tests.log',
-                debug=True,
-                console=True)
+    l = LogInit()
+    l.quiet = False
+    l.level = logging.DEBUG
+    l.logger = 'logs/musicfile_tests.log'
 
-class TestTags(unittest.TestCase):
+class TestMusicTags(unittest.TestCase):
+
+    def test_title(self):
+        t = MusicTags()
+        t.title = "XXXX"
+        self.assertEquals(t.title, "XXXX")
+
+    def test_tracktotal(self):
+        t = MusicTags()
+        t.tracktotal = 12
+        self.assertEquals(t.tracktotal, 12)
+
+
+    def test_tracknumber(self):
+        t = MusicTags()
+        t.tracknumber = 10
+        self.assertEquals(t.tracknumber, 10)
+
+    def test_album(self):
+        t = MusicTags()
+        t.album = "YYY"
+        self.assertEquals(t.album, "YYY")
+
+    def test_disctotal(self):
+        t = MusicTags()
+        t.disctotal = 12
+        self.assertEquals(t.disctotal, 12)
+
+    def test_disctotal(self):
+        t = MusicTags()
+        t.disctotal = 12
+        self.assertEquals(t.disctotal, 12)
+
+    def test_discnumber(self):
+        t = MusicTags()
+        t.discnumber = 12
+        self.assertEquals(t.discnumber, 12)
+
+    def test_year(self):
+        t = MusicTags()
+        t.year = 1912
+        self.assertEquals(t.year, 1912)
+
+    def test_grouping(self):
+        t = MusicTags()
+        t.grouping = "Yellow"
+        self.assertEquals(t.grouping, "Yellow")
+
+class TestMusicTrack(unittest.TestCase):
 
     props = [
         'genre',
@@ -48,19 +95,17 @@ class TestTags(unittest.TestCase):
         for p in self.props:
             self.assertIn(p,props)
 
-class TestMusicTrack(unittest.TestCase):
-
     def test_save(self):
-        with LogCapture() as l:
+        with self.assertLogs('Rkive', level='DEBUG') as cm:
             m = MusicTrack()
             m.save()
-            l.check(('Rkive.MusicFile','CRITICAL',"Method save not implemented"))
+            self.assertEqual(cm.output, ['CRITICAL:Rkive.MusicFile:Method save not implemented'])
 
 class TestID3(unittest.TestCase):
 
     def test_tracktotal(self):
         m = MP3()
-        m.track = 'kkkk'
+        m.title = 'kkkk'
         m.tracknumber = "3"
         m.tracktotal = "5"
         self.assertEqual(m.tracknumber, "3")
@@ -82,20 +127,20 @@ class TestMP3(unittest.TestCase):
             r='Rkive.MusicFile'
             debug='DEBUG'
             l1=(r,debug,'Adding default ID3 frame to {0}'.format(self.tmpfile))
-            l2=(r,debug,'Return file: {0}'.format(self.tmpfile))
-            l.check(l1,l2)
+           # l2=(r,debug,'Return file: {0}'.format(self.tmpfile))
+            l.check(l1)
     
     def test_set_all_params(self):
         m=MP3()
         m.track = self.tmpfile
         genre=str_generator()
-        m['genre']=genre
+        m.genre = genre
         tracktotal="10"
-        m['tracktotal']=tracktotal
+        m.tracktotal = tracktotal
         tracknumber="5"
-        m['tracknumber']=tracknumber
+        m.tracknumber = tracknumber
         comment=str_generator()
-        m['comment']=comment
+        m.comment = comment
         title=str_generator()
         m['title']=title
         grouping=str_generator()
@@ -115,9 +160,9 @@ class TestMP3(unittest.TestCase):
         album=str_generator()
         m['album']=album
         m.save() 
-        t=m.get_track()
+        t=m.track
         id3vars = dict(t)
-        for rkivetag, id3tag in MP3.id3tags.items():
+        for rkivetag, id3tag in dict(MP3.__dict__):
             if not id3tag in id3vars:
                 continue
             id3val=str(id3vars[id3tag])

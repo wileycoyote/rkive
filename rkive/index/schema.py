@@ -14,7 +14,6 @@ class Media(Base):
     id = Column(Integer, primary_key=True)
     filepath = Column(String)
     format = Column(String)
-    movie_id = Column(Integer, ForeignKey("movie.id"))
 
     def __init__(self, fp, fmt):
         self.filepath = fp
@@ -35,30 +34,23 @@ class Moviepeople(Base):
     people_id = Column(Integer, ForeignKey('person.id'))
     person = relationship("Person")
     movie_id = Column(Integer, ForeignKey("movie.id"))
+    movie = relationship('Movie')
 
-    def __init__(self, r, p):
+    def __init__(self, r, p, m):
         self.role = r
         self.person = p
+        self.movie = m
 
-class Musicpeople(Base):
-    __tablename__ = 'musicpeople'
-    id = Column(Integer, primary_key=True)
-    role = Column(String)
-    people_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship("Person")
-    musictrack_id = Column(Integer, ForeignKey("musictrack.id"))
-
-    def __init__(self, r, p):
-        self.role = r
-        self.person = p
+class Moviemedia(Base):
+    __tablename__ = 'moviemedia'
 
 class Movie(Base):
     __tablename__ = 'movie'
-    id = Column(Integer, primary_key=True)
+    Column('workid', Integer, primary_key=True)
     title = Column(String)
     category = Column(String)
     year = Column(String)
-    mediaobjects = relationship("Media", backref='movie', cascade="all, delete, delete-orphan")
+    mediaobjects = relationship("Moviemedia", backref='movie', cascade="all, delete, delete-orphan")
     people = relationship("Moviepeople", backref='movie', cascade="all, delete, delete-orphan")
 
     def __init__(self, title, year):
@@ -78,64 +70,28 @@ class Movie(Base):
         for person in people:
             self.people.append(person)
 
-class MoviesToMovieSet(Base):
-    __tablename__ = 'moviestomovieset'
-    movieid = Column(Integer, primary_key=True)
-    movieboxsetid =Column(Integer)
-    movies = relationship("Movie", ForeignKey("movie.id"))
-    movieboxset = relationship("MovieSet", ForeignKey("movieset.id"))
-
-class MovieSet(Base):
-    __tablename__ = 'movieset'
+class Musicmedia(Base):
+    __tablename__ = 'musicmedia'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    year = Column(Date)
+    media_id = Column(Integer, ForeignKey('media.id'))
+    file = relationship("File")
+    musictrack_id = Column(Integer, ForeignKey("musictrack.id"))
+    musictrack = relationship('Musictrack')
 
-class AlbumSchema(Base):
-    __tablename__ = 'album'
-    Column('title', String)
-    id = Column(Integer, primary_key=True)
-    Column('subtitle',String)
-    Column('discnumber', String)
-    Column('tracktotal', String)
-    Column('index', String)
+    def __init__(self, m, f):
+        self.musictrack = m
+        self.file = f
 
-    def __init__(self, title=None, subtitle=None, discnumber=None, tracktotal=None, indx=None):
-        self.title = title
-        self.subtitle = subtitle
-        self.discnumber = discnumber
-        self.tracktotal = tracktotal
-        self.indx = indx
-
-class AlbumsToAlbumSet(Base):
-    __tablename__ = 'albumstoalbumset'
-    albumid = Column(Integer, primary_key=True)
-    albums = relationship('Album', ForeignKey('album.id'))
-    albumset = relationship('AlbumSet', ForeignKey('albumset.id'))
-
-class AlbumSet(Base):
-    __tablename__ = 'albumset'
-    id = Column(Integer, primary_key=True)
-    Column('disctotal', String)
-    Column('discnumber', String)
-
-class AlbumTracks(Base):
-    __tablename__ = 'albumtracks'
-    albumid = Column(Integer, primary_key=True)
-    trackid = Column(Integer, primary_key=True)
-    album = relationship('Album', ForeignKey('album.id'))
-    track = relationship('Track', ForeignKey('MusicTrack.id'))
-
-class MusicTrackSchema(Base):
+class Musictrack(Base):
     __tablename__ = 'musictrack'
+    people = relationship("Musicpeople", backref='musictrack', cascade="all, delete, delete-orphan")
+    mediaobjects = relationship("Musicmedia", backref='musictrack', cascade="all, delete, delete-orphan")
     id = Column('id', Integer, primary_key=True)
-    Column('mediaid', Integer)
-    Column('title', String)
-    Column('tracknumber', String)
-    Column('genre', String, nullable=True)
-    Column('composer', String, nullable=True)
-    Column('comment', String, nullable=True)
-    Column('hash', String, index=True)
+    Column('albumname', String, primary_key=True)
+    Column('series_number', Integer, primary_key=True)
+    Column('tracknumber', Integer, primary_key=True)
+    column('attrname', String)
+    Column('attrval', String)
 
     def __init__(self, path):
         log = getLogger('Rkive.Index')
