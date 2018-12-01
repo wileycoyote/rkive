@@ -4,3 +4,6 @@ isbnlib
 pyflakes
 pylint
 flake8
+pygame
+cython
+kivy
