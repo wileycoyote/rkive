@@ -72,3 +72,31 @@ class Album(AlbumDataAccessor):
         self._album = self.album(indx, track)
         self._albumset = AlbumSet(self.indx, self._album)
         self.tracks.append(track)
+
+
+class Media(Base):
+    __tablename__ = 'musicmedia'
+    id = Column(Integer, primary_key=True)
+    media_id = Column(Integer, ForeignKey('media.id'))
+    file = relationship("File")
+    musictrack_id = Column(Integer, ForeignKey("musictrack.id"))
+    musictrack = relationship('Musictrack')
+
+    def __init__(self, m, f):
+        self.musictrack = m
+        self.file = f
+
+class Musictrack(Base):
+    __tablename__ = 'musictrack'
+    people = relationship("Musicpeople", backref='musictrack', cascade="all, delete, delete-orphan")
+    mediaobjects = relationship("Musicmedia", backref='musictrack', cascade="all, delete, delete-orphan")
+    id = Column('id', Integer, primary_key=True)
+    Column('albumname', String, primary_key=True)
+    Column('series_number', Integer, primary_key=True)
+    Column('tracknumber', Integer, primary_key=True)
+    column('attrname', String)
+    Column('attrval', String)
+
+    def __init__(self, path):
+        log = getLogger('Rkive.Index')
+
