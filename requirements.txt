@@ -7,3 +7,5 @@ flake8
 pygame
 cython
 kivy
+sqlalchemy
+flask

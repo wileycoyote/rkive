@@ -5,10 +5,6 @@ from sqlalchemy import and_
 from sqlalchemy import Column, Integer, String
 
 
-class Person(object):
-    pass
-
-
 class Movies(object):
 
     film_re = r'(.+?) \((.*?), (\d\d\d\d)\)'
