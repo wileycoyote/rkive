@@ -39,7 +39,7 @@ class AlbumDataAccessor(AlbumSchema):
 
     @property
     def album(self, indx, track):
-        album = self.session.query(Album).filter(Album.index=indx)
+        album = self.session.query(Album).filter(Album.index==indx)
         if not album:
             album = AlbumSchema(
                 index = indx,

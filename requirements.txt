@@ -1,4 +1,7 @@
 zbar-py
+pyyaml
+pillow
+mutagen
 opencv-python
 isbnlib
 pyflakes
@@ -9,3 +12,5 @@ cython
 kivy
 sqlalchemy
 flask
+nose
+testfixtures
