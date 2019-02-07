@@ -2,13 +2,16 @@ from yaml import load as yaml_load
 import os.path
 from logging import getLogger
 
+
 class NoSourcesError(Exception):
     """ Exception to be raised when no configuration data for sources found
     """
 
+
 class NoConnectionsError(Exception):
     """ Exception to be raised when no configuration data for connections found
     """
+
 
 class Config(object):
     """Reads config files for source directories and db connection info
@@ -36,20 +39,20 @@ class Config(object):
                 d = yaml_load(s)
                 if d is None:
                     raise NoSourcesError
-                if not isinstance(d,dict):
+                if not isinstance(d, dict):
                     raise NoSourcesError
                 for source_folder, source_category in d.items():
                     source_category = source_category.lower()
-                    if not source_folder in self._sources:
+                    if source_folder not in self._sources:
                         self._sources[source_category] = []
                     self._sources[source_category].append(source_folder)
         except EnvironmentError as e:
             log.fatal("Environment error {0} encountered".format(str(e)))
-            self._sources={} 
+            self._sources = {}
             return
         except NoSourcesError:
             log.warn("No sources in file {0}".format(source_cfg))
-            self._sources={} 
+            self._sources = {}
 
     @property
     def connections(self):
@@ -58,32 +61,30 @@ class Config(object):
     @connections.setter
     def connections(self, connections_cfg):
         log = getLogger('Rkive.Config')
-        log.info("hellp")
-        print("XXXXXXXXXXX")
         if self._connections:
-            return 
+            return
         try:
             log.debug("Reading {0} connections file".format(connections_cfg))
             with open(connections_cfg) as cf:
                 conns = yaml_load(cf)
                 if conns is None:
                     raise NoConnectionsError
-                if not isinstance(conns,list):
+                if not isinstance(conns, list):
                     raise NoConnectionsError
                 for conn in conns:
                     # Test for must have parameters first
-                    if not 'type' in conn:
+                    if 'type' not in conn:
                         raise NoConnectionsError
-                    if not 'path' in conn:
+                    if 'path' not in conn:
                         raise NoConnectionsError
-                    if not 'status' in conn:
+                    if 'status' not in conn:
                         raise NoConnectionsError
-                    if not 'label' in conn:
+                    if 'location' not in conn:
                         raise NoConnectionsError
                     dbtype = conn['type']
                     path = conn['path']
-                    label = conn['label']
-                    status=conn['status']
+                    location = conn['location']
+                    status = conn['status']
                     username = ''
                     if 'username' in conn:
                         username = conn['username']
@@ -96,36 +97,47 @@ class Config(object):
                     port = ''
                     if 'port' in conn:
                         port = ':'+conn['port']
-                    url='{0}://{1}{2}{3}{4}/{5}'.format(dbtype,username,password,host,port,path)
+                    url = f'{dbtype}://{username}{password}{host}{port}/{path}'
                     if not os.path.isfile(path):
-                        fh=open(path,'w')
+                        fh = open(path, 'w')
                         fh.close()
-                    self._connections.append({'status':status, 'label': label, 'url':url})
+                    c = {
+                        'status': status,
+                        'url': url,
+                        'location': location
+                    }
+                    self._connections.append(c)
         except EnvironmentError as e:
             log.warn("Environment Error "+str(e))
-            self._connections={}
+            self._connections = {}
             return
         except NoConnectionsError:
             log.warn("No connections")
-            self._connections={}
-            return 
+            self._connections = {}
+            return
 
     @property
     def music(self):
-        if not "music" in self._sources:
+        if "music" not in self._sources:
             return None
         return self._sources["music"]
-    
+
     @property
     def movies(self):
-        if not "movies" in self._sources:
+        if "movies" not in self._sources:
             return None
         return self._sources["movies"]
 
-    @property
     def local_live_connections(self):
-        return([c[2] for c in self._connections if 'live' in c[0] and 'local' in c[1]])
+        conns = []
+        for c in self._connections:
+            if c['status'] == 'live' and c['location'] == 'local':
+                conns.append(c)
+        return conns
 
-    @property 
     def remote_live_connections(self):
-        return ([c[2] for c in self._connections if 'live' in c[0] and 'remote' in c[1]])
+        conns = []
+        for c in self._connections:
+            if c['status'] == 'live' and c['location'] == 'remote':
+                conns.append(c)
+        return conns

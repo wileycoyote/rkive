@@ -1,7 +1,9 @@
 [
-  {"type":"sqlite3",
-  #This is empty if in-memory is to be used
-  "path":"data/config/database.db",
-  "status":"live",
-  "location":"local"}
+  {
+    "type":"sqlite3",
+    "path":"data/config/database.db",
+    "status":"live",
+    "location":"local",
+    "label": "test"
+  }
 ]
