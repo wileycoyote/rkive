@@ -38,6 +38,10 @@ CUEMAP = {
 class MusicTags:
     """ Interface for mutagen object """
 
+    def __init__(self):
+        self._composer = ""
+        self._album = ""
+
     @property
     def title(self):
         """Title of track"""
@@ -216,38 +220,16 @@ class MusicTrack(MusicTags):
         log = getLogger('Rkive.MusicFile')
         log.fatal("Method save not implemented")
 
-    def __iter__(self):
-        # first start by grabbing the Class items
-        iters = dict((x, y)
-                     for x, y in MusicTags.__dict__.items() if x[:2] != '__')
-
-        # then update the class items with the instance items
-        iters.update(self.__dict__)
-
-        # now 'yield' through the items
-        for x, y in iters.items():
-            yield x, y
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __getitem__(self, key):
-        if key in self.__dict__:
-            return self.__dict__[key]
-        raise KeyError
-
-    def __delitem__(self, key):
-        if key in self.__dict__:
-            del self.__dict__[key]
-            return
-        raise KeyError
-
 
 class MP3(MusicTrack):
 
     def __init__(self):
         self._filename = None
         self._track = None
+
+    @property
+    def filename(self):
+        return self._filename
 
     @classmethod
     def mutagenid3(cls, attr, val):
@@ -401,11 +383,12 @@ class MP3(MusicTrack):
         picfh = open(f).read()
         mutagenid3 = getattr(__class__.mutagenid3, 'APIC')
         m = mutagenid3(
-            encoding=3,
-            mime=mimetype,
-            type=3,
-            desc=u"cover",
-            data=picfh)
+                encoding=3,
+                mime=mimetype,
+                type=3,
+                desc=u"cover",
+                data=picfh
+            )
         self._picture = m
 
     @property
@@ -420,27 +403,6 @@ class MP3(MusicTrack):
     def media(self):
         return self._media
 
-    @property
-    def track(self):
-        return self._track
-
-    @track.setter
-    def track(self, filename):
-        log = getLogger('Rkive.MusicFile')
-        self._filename = filename
-
-        try:
-            mp3 = mutagen.mp3.MP3(filename)
-            log.debug("Return file: %s" % self.filename)
-            self._track = mp3
-        except id3_error:
-            log.debug("Adding default ID3 frame to %s" % self.filename)
-            mp3 = mutagen.mp3.MP3(filename)
-            mp3.save(filename)
-            self._track = mp3
-        except MutagenError:
-            log.fatal("File %s does not exist" % self.filename)
-
     def save(self):
         """ Save a MP3 file
         ID3 format has TRCK=Tracknumber/Tracktotal, IPOS=DiscNumber/Disctotal
@@ -450,25 +412,29 @@ class MP3(MusicTrack):
         """
         log = getLogger('Rkive.MusicFile')
         log.info("save file {0}".format(self.filename))
+        try:
+            mp3 = mutagen.mp3.MP3(self.filename)
+            log.debug("Return file: %s" % self.filename)
+        except id3_error:
+            log.debug("Adding default ID3 frame to %s" % self.filename)
+            mp3 = mutagen.mp3.MP3(self.filename)
+            mp3.save(self.filename)
+        except MutagenError:
+            log.fatal("File %s does not exist" % self.filename)
         for rkive_tag in MusicTrack.get_rkive_tags():
             log.debug("cycle through tag: {0}".format(rkive_tag))
-            if rkive_tag in list(self):
+            if rkive_tag in self._dict__:
                 log.debug("modifying tag {0} with ".format(rkive_tag))
-                prop = getattr(self, rkive_tag)
+                prop = self.__dict__[rkive_tag]
                 self._track.add(prop)
 
-        self._track.save()
+        mp3.save()
 
 
 class Flac(MusicTrack):
 
-    def __init__(self, filename):
-        try:
-            self._track = FLAC(filename)
-        except mutagen.flac.error:
-            flac = FLAC()
-            flac.save(filename)
-            self._track = flac
+    def __init__(self, f):
+        self._filename = f
 
     @property
     def tag(self, t):
@@ -479,8 +445,13 @@ class Flac(MusicTrack):
         self._track[t] = v
 
     def save(self):
-        flac = self._track
-        if 'picture' in self:
+        filename = self._filename
+        try:
+            flac = FLAC(filename)
+        except mutagen.flac.error:
+            flac = FLAC()
+            flac.save(filename)
+        if 'picture' in self.__dict__:
             flac.clear_pictures()
             pic = Picture()
             with open(self.picture, "rb") as f:
@@ -493,8 +464,8 @@ class Flac(MusicTrack):
             flac.add_picture(pic)
             del self['picture']
         for rkive_tag in self.get_rkive_tags():
-            if hasattr(self, rkive_tag):
-                flac[rkive_tag] = self[rkive_tag]
+            if rkive_tag in self.__dict__:
+                flac[rkive_tag] = self.__dict__[rkive_tag]
         flac.save()
 
 
@@ -536,7 +507,7 @@ class TagReporter(object):
         log.info(c.pprint())
 
 
-class MusicFile(MusicTrack, TagReporter):
+class MusicFile(TagReporter):
 
     mediatypes = {
         '.mp3': MP3,
@@ -562,15 +533,15 @@ class MusicFile(MusicTrack, TagReporter):
         if not MusicFile.is_music_file(filename):
             return None
         basename, ext = os.path.splitext(filename)
-        self.filename = filename
+        self._filename = filename
         self._media = self.mediatypes[ext](filename)
 
     @property
     def tags(self):
         for tag in self._media:
             if tag in self.rkive_tags():
-                value = self._media[tag]
-                self[tag] = value
+                val = self._media.__dict__[tag]
+                self.__dict__[tag] = val
         return {x: y for x, y in self.__dict__.items() if x in self.rkive_tags}
 
     @tags.setter
@@ -580,18 +551,18 @@ class MusicFile(MusicTrack, TagReporter):
         for tag, val in l.items():
             if tag in self.rkive_tags():
                 log.info(f"{tag}: {val}")
-                setattr(self, tag, val)
+                self.__dict__[tag] = val
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')
         if not hasattr(self, "_media"):
             log.fatal("No media set")
             raise MediaObjectNotFound
-        for tag, value in self:
-            if tag == 'filename':
+        for tag, value in self.__dict__.items():
+            if tag == '_filename':
                 continue
             if tag.startswith('_'):
                 continue
-            if tag in self.get_rkive_tags() and value:
-                self.media[tag] = value
+            if tag in MusicTrack.get_rkive_tags() and value:
+                self._media.__dict__[tag] = value
         self._media.save()
