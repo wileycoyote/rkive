@@ -38,25 +38,6 @@ CUEMAP = {
 class MusicTags:
     """ Interface for mutagen object """
 
-    def __init__(self):
-        self._title = ""
-        self._album = ""
-        self._disctotal = 0
-        self._discnumber = 0
-        self._year = 1800
-        self._track = None
-        self._tracknumber = 0
-        self._tracktotal = 0
-        self._grouping = ""
-        self._comment = ""
-        self._composer = ""
-        self._artist = ""
-        self._albumartist = ""
-        self._genre = ""
-        self._picture = ""
-        self._part = ""
-        self._lyricist = ""
-
     @property
     def title(self):
         """Title of track"""
@@ -201,7 +182,7 @@ class MusicTags:
 
     @lyricist.setter
     def lyricist(self, l):
-        self.lyricist = l
+        self._lyricist = l
 
 
 class MusicTrack(MusicTags):
@@ -436,8 +417,8 @@ class MP3(MusicTrack):
         self._track[t] = v
 
     @property
-    def filename(self):
-        return self._filename
+    def media(self):
+        return self._media
 
     @property
     def track(self):
@@ -481,12 +462,7 @@ class MP3(MusicTrack):
 
 class Flac(MusicTrack):
 
-    @property
-    def track(self):
-        return self._track
-
-    @track.setter
-    def track(self, filename):
+    def __init__(self, filename):
         try:
             self._track = FLAC(filename)
         except mutagen.flac.error:
@@ -568,11 +544,11 @@ class MusicFile(MusicTrack, TagReporter):
     }
 
     @classmethod
-    def is_music_file(cls, root, name):
+    def is_music_file(cls, fp):
         log = getLogger('Rkive.MusicFile')
-        log.debug("fp: {0}".format(name))
+        log.debug("fp: {0}".format(fp))
         for t in cls.mediatypes:
-            if (name.endswith(t)):
+            if (fp.endswith(t)):
                 return True
         return False
 
@@ -582,11 +558,12 @@ class MusicFile(MusicTrack, TagReporter):
 
     @media.setter
     def media(self, filename):
+        print(filename)
         if not MusicFile.is_music_file(filename):
             return None
         basename, ext = os.path.splitext(filename)
-        self._media = self.mediatypes[ext][0]()
-        self._media.track = filename
+        self.filename = filename
+        self._media = self.mediatypes[ext](filename)
 
     @property
     def tags(self):
@@ -601,31 +578,20 @@ class MusicFile(MusicTrack, TagReporter):
         log = getLogger('Rkive.MusicFile')
         log.info(f"Setting attributes from list for {self.media.filename}")
         for tag, val in l.items():
-            log.info(f"{tag}: {val}")
-            setattr(self, tag, val)
-
-    def __setattr__(self, tag, value):
-        log = getLogger('Rkive.MusicFile')
-        if tag in self.get_rkive_tags():
-            log.debug("{tag}: {value}")
-            self[tag] = value
-        elif tag == 'filename':
-            filename = value
-            log.debug("Filename: {0}".format(filename))
-            if (not os.path.exists(filename)):
-                log.warn("Path not found {0}".format(filename))
-                raise FileNotFound
-            self.media = filename
-            log.debug("Tagstype : {0}".format(self['media']))
-        else:
-            self[tag] = value
+            if tag in self.rkive_tags():
+                log.info(f"{tag}: {val}")
+                setattr(self, tag, val)
 
     def save(self):
         log = getLogger('Rkive.MusicFiles')
-        if not hasattr(self, "media"):
+        if not hasattr(self, "_media"):
             log.fatal("No media set")
             raise MediaObjectNotFound
         for tag, value in self:
+            if tag == 'filename':
+                continue
+            if tag.startswith('_'):
+                continue
             if tag in self.get_rkive_tags() and value:
-                self.media.track.tag = (tag, value)
-        self.media.save()
+                self.media[tag] = value
+        self._media.save()
