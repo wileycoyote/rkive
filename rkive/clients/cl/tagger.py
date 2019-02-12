@@ -16,6 +16,7 @@ class Tagger(object):
         self.pattern = None
         self.gain = None
         self.media = None
+        self.recursive = False
 
     def run(self):
         log = getLogger('Rkive.Tagger')

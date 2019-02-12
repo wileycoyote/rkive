@@ -1,6 +1,20 @@
 import argparse
 import os.path
 
+
+class Regexp(argparse.Action):
+
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        super(FolderValidation, self).__init__(option_strings, dest, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        p = os.path.expanduser(values)
+        values = p
+        if not os.path.isdir(values):
+            raise Exception("No valid base folder")
+        setattr(namespace, self.dest, values)
+
+
 class FolderValidation(argparse.Action):
 
     def __init__(self, option_strings, dest, nargs=None, **kwargs):
