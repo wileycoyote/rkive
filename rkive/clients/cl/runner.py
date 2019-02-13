@@ -7,7 +7,8 @@ from rkive.clients.cl.opts import GetOpts, FileValidation, Regexp
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from rkive.index.musicfile import MusicTrack
-import rkive.index.schema.Base.metadata
+from rkive.index.schema import Base
+import rkive.clients.cl.index
 
 
 class ParsePattern(argparse.Action):
@@ -149,8 +150,8 @@ class RkiveRunner(GetOpts):
                 log.info("Connection: {0}".format(connection['url']))
                 engine = create_engine(connection['url'])
                 self.session = sessionmaker()
-                rkive.index.schema.Base.metadata.create_all(engine)
-                rkive.index.schema.Base.metadata.bind = engine
+                Base.metadata.create_all(engine)
+                Base.metadata.bind = engine
                 if self.operation == 'make':
                     log.info("make index")
                     for s, c in self.sources.items():
