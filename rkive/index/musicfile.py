@@ -206,6 +206,14 @@ class MusicTrack(MusicTags):
         return [n for n in MusicTags.__dict__.keys() if not n.startswith('__')]
 
     @classmethod
+    def get_tag_comments(cls):
+        """ A convenience method for getting the tags and comments"""
+        return {
+            k: getattr(MusicTags, k).__doc__
+            for k in MusicTags.__dict__.keys() if not k.startswith('__')
+        }
+
+    @classmethod
     def get_mime_type(cls, filename):
         """A convenience method for defining mime type"""
         log = getLogger('Rkive.MusicFile')
@@ -223,13 +231,8 @@ class MusicTrack(MusicTags):
 
 class MP3(MusicTrack):
 
-    def __init__(self):
-        self._filename = None
-        self._track = None
-
-    @property
-    def filename(self):
-        return self._filename
+    def __init__(self, filename=None):
+        self.filename = filename
 
     @classmethod
     def mutagenid3(cls, attr, val):
@@ -265,7 +268,7 @@ class MP3(MusicTrack):
 
     @lyricist.setter
     def lyricist(self, l):
-        self._lyricist = __class__.mutagenid3('TEXT', l)
+        self._lyricist = __class__.mutagenid3('AUT', l)
 
     @property
     def composer(self):
@@ -283,7 +286,8 @@ class MP3(MusicTrack):
     def discnumber(self, d):
         value = d
         if hasattr(self, '_disctotal'):
-            value = __class__.get_id3_total(d, self._disctotal)
+            disctotal = self.disctotal.text[0]
+            value = __class__.get_id3_total(d, disctotal)
         self._discnumber = __class__.mutagenid3('TPOS', value)
 
     @property
@@ -294,7 +298,8 @@ class MP3(MusicTrack):
     def disctotal(self, d):
         value = d
         if hasattr(self, '_discnumber'):
-            value = __class__.get_id3_total(d, self._discnumber)
+            discnumber = self._discnumber.text[0]
+            value = __class__.get_id3_total(d, discnumber)
         self._disctotal = __class__.mutagenid3('TCON', value)
 
     @property
@@ -302,7 +307,7 @@ class MP3(MusicTrack):
         return self._albumartist
 
     @albumartist.setter
-    def album(self, a):
+    def albumartist(self, a):
         self._albumartist = __class__.mutagenid3('TPE2', a)
 
     @property
@@ -411,7 +416,6 @@ class MP3(MusicTrack):
         do that disctotal or discnumber never reach the save loop
         """
         log = getLogger('Rkive.MusicFile')
-        log.info("save file {0}".format(self.filename))
         try:
             mp3 = mutagen.mp3.MP3(self.filename)
             log.debug("Return file: %s" % self.filename)
@@ -422,8 +426,7 @@ class MP3(MusicTrack):
         except MutagenError:
             log.fatal("File %s does not exist" % self.filename)
         for rkive_tag in MusicTrack.get_rkive_tags():
-            log.debug("cycle through tag: {0}".format(rkive_tag))
-            if rkive_tag in self._dict__:
+            if rkive_tag in self.__dict__:
                 log.debug("modifying tag {0} with ".format(rkive_tag))
                 prop = self.__dict__[rkive_tag]
                 self._track.add(prop)

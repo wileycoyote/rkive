@@ -3,13 +3,13 @@ import subprocess
 from logging import getLogger
 import glob
 import re
-from rkive.index.musicfile import TypeNotSupported, FileNotFound, MusicFile, MusicTrack
-from rkive.clients.regexp import Regexp as Regexp
+from rkive.index.musicfile import TypeNotSupported, FileNotFound
+from rkive.index.musicfile import MusicFile, MusicTrack
 from rkive.clients.files import visit_files
 
 
 class Tagger(object):
-   
+
     def __init__(self):
         self.cuesheet = None
         self.markdown = None
@@ -33,7 +33,7 @@ class Tagger(object):
             if self.gain:
                 self.search_and_modify_gain()
                 return
-            #now set the attributes for the media object, if any
+            # now set the attributes for the media object
             self.media = MusicFile()
 
             if not self.media:
@@ -47,11 +47,11 @@ class Tagger(object):
                     log.debug("t: {0} v: {1}".format(t, v))
                     if v:
                         log.debug("t: {0} v: {1}".format(t, v))
-                        setattr(self.media, t,v)
+                        setattr(self.media, t, v)
 
             if self.printtags:
                 if self.filename:
-                    self.media.set_media(filename)
+                    self.media.set_media(self.filename)
                     self.report_file_tags()
                     return
                 self.report_all_files()
@@ -68,15 +68,15 @@ class Tagger(object):
 
             self.search_and_modify_files()
             return
-        except TypeNotSupported as e:
+        except TypeNotSupported:
             log.fatal("Type not supported")
-        except FileNotFound as e:
+        except FileNotFound:
             log.fatal("Type not supported")
 
     def report_file_tags(self, base, filename):
         log = getLogger('Rkive.Tagger')
         fp = os.path.join(base, filename)
-        musicfile=MusicFile()
+        musicfile = MusicFile()
         musicfile.set_media(fp)
         if self.all_tags:
             log.info("Music Attributes for {0}".format(fp))
@@ -93,18 +93,17 @@ class Tagger(object):
         visit_files(
             folder=self.base,
             funcs=[self.report_file_tags],
-            include=is_music_file,
+            include=self.is_music_file,
             recursive=self.recursive)
 
     def search_and_modify_gain(self):
         visit_files(
             folder=self.base,
             funcs=[self.modify_gain],
-            include=is_music_file)
+            include=self.is_music_file)
 
     def modify_gain(self, root, filename):
-        log = getLogger('Rkive.Tagger')
-        cmd = ['metaflac','--add-replay-gain', filename]
+        cmd = ['metaflac', '--add-replay-gain', filename]
         if filename.endswith('.mp3'):
             cmd = ['mp3gain', '-r', filename]
         subprocess.call(cmd, cwd=root)
@@ -151,14 +150,15 @@ class Tagger(object):
                 setattr(m, a[0], a[1])
             # tags unique to track
             for f in cue.track(tracknumber).get_metadata().filled_fields():
-                setattr(m,f[0], f[1])
+                setattr(m, f[0], f[1])
             m.tracknumber = str(tracknumber)
             m.filename = os.path.join(folder, filename)
             m.save()
-    
+
     def set_tracks_from_markdown(self, filename):
         """ Markdown Format:
-            line 1:<version>,<number of albums>,<album count>,<nr of titles/files> 
+            line 1:<version>,<number of albums>,<album count>,
+                <nr of titles/files>
             line 2:<tag>:<value>
             line 3:<tag>[tracknumber]:value
             line 4:<tag>[tracknumber-tracknumber+offset]:value

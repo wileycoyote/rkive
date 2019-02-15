@@ -1,8 +1,7 @@
-from rkive.index.music import MusicFile
-
+from rkive.index.musicfile import MusicFile
 from sqlalchemy.ext.declarative import declarative_base
-
-from sqlalchemy import Column, Integer, String, ForeignKey, relationship
+from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, ForeignKey
 
 MusicBase = declarative_base()
 

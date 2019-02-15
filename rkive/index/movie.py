@@ -1,7 +1,6 @@
 from logging import getLogger
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy import and_
 from sqlalchemy import Column, Integer, String
 
 
@@ -57,18 +56,12 @@ class Movies(object):
 
     def find_movie(self, title, year):
         movie = None
-        try:
-            movie = self.session.query(Movie, Media).\
-                filter_by(title=title).\
-                filter(
-                    Movie.year == year,
-                    Movie.id == Media.id).\
-                filter(and_(
-                    Movie.people.any(Person.role == role),
-                    Person.name.in_(directors))).\
-                one()
-        except alchemy_exceptions.SQLAlchemyError:
-            return movie
+        movie = self.session.query(Movie, Media).\
+            filter_by(title=title).\
+            filter(
+                Movie.year == year,
+                Movie.id == Media.id).\
+            one()
         return movie
 
     @classmethod
@@ -91,10 +84,11 @@ class Movies(object):
             movie_in_db.delete(synchronize_session=True)
 
 
-Base = declarative_base()
+MovieBase = declarative_base()
 
-class Media(Base):
-    __tablename__='media'
+
+class Media(MovieBase):
+    __tablename__ = 'media'
     id = Column(Integer, primary_key=True)
     filepath = Column(String)
     format = Column(String)
@@ -104,9 +98,9 @@ class Media(Base):
         self.format = fmt
 
 
-class Movie(Base):
+class Movie(MovieBase):
     __tablename__ = 'movie'
-    Column('workid', Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
     title = Column(String)
     category = Column(String)
     year = Column(String)

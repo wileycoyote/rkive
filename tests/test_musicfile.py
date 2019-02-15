@@ -125,15 +125,15 @@ class TestMP3(unittest.TestCase):
     def test_add_frames_to_empty_mp3(self):
         m = MP3()
         with LogCapture() as x:
-            m.track = self.tmpfile
+            m.filename = self.tmpfile
+            m.save()
             r = 'Rkive.MusicFile'
             debug = 'DEBUG'
             l1 = (r, debug, f'Return file: {self.tmpfile}')
             x.check(l1)
 
     def test_set_all_params(self):
-        m = MP3()
-        m.track = self.tmpfile
+        m = MP3(self.tmpfile)
         genre = str_generator()
         m.genre = genre
         tracktotal = "10"
@@ -143,26 +143,25 @@ class TestMP3(unittest.TestCase):
         comment = str_generator()
         m.comment = comment
         title = str_generator()
-        m['title'] = title
+        m.title = title
         grouping = str_generator()
-        m['grouping'] = grouping
+        m.grouping = grouping
         artist = str_generator()
-        m['artist'] = artist
+        m.artist = artist
         year = "1910"
-        m['year'] = year
+        m.year = year
         albumartist = str_generator()
-        m['albumartist'] = albumartist
+        m.albumartist = albumartist
         disctotal = "11"
-        m['disctotal'] = disctotal
+        m.disctotal = disctotal
         discnumber = "4"
-        m['discnumber'] = discnumber
+        m.discnumber = discnumber
         composer = str_generator()
-        m['composer'] = composer
+        m.composer = composer
         album = str_generator()
-        m['album'] = album
+        m.album = album
         m.save()
-        t = m.track
-        id3vars = dict(t)
+        id3vars = dict(m.__dict__)
         for rkivetag, id3tag in dict(MP3.__dict__).items():
             if id3tag not in id3vars:
                 continue

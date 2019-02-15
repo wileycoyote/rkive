@@ -7,8 +7,8 @@ from rkive.clients.cl.opts import GetOpts, FileValidation, Regexp
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from rkive.index.musicfile import MusicTrack
-from rkive.index.schema import Base
-import rkive.clients.cl.index
+from rkive.index.music import MusicBase
+import rkive.clients.index
 
 
 class ParsePattern(argparse.Action):
@@ -106,7 +106,7 @@ class RkiveRunner(GetOpts):
             '--gain',
             help="add gain to music files",
             action='store_true')
-        for t, v in MusicTrack.rkivetags.items():
+        for t, v in MusicTrack.get_tag_comments().items():
             option = '--'+t
             p.add_argument(option, help=v, type=str)
         from rkive.clients.cl.tagger import Tagger
@@ -150,8 +150,8 @@ class RkiveRunner(GetOpts):
                 log.info("Connection: {0}".format(connection['url']))
                 engine = create_engine(connection['url'])
                 self.session = sessionmaker()
-                Base.metadata.create_all(engine)
-                Base.metadata.bind = engine
+                MusicBase.metadata.create_all(engine)
+                MusicBase.metadata.bind = engine
                 if self.operation == 'make':
                     log.info("make index")
                     for s, c in self.sources.items():
@@ -161,7 +161,7 @@ class RkiveRunner(GetOpts):
                         log.info(f"index for location {s} category {c}")
                         class_name = c[0].title()
                         index_class = getattr(
-                            rkive.clients.cl.index,
+                            rkive.clients.index,
                             class_name
                         )
                         if index_class:
@@ -184,7 +184,7 @@ class RkiveRunner(GetOpts):
 
     def run(self):
         script = self.script
-        if script == 'rktag':
+        if script == 'rk_tag':
             self.tagger()
         if script == 'rk_local_index_gui':
             from rkive.clients.cl.index import IndexClient
