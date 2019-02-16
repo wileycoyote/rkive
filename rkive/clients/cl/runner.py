@@ -34,12 +34,14 @@ class RkiveRunner(GetOpts):
         self.install_path = install_path
         self.media_server = media_server
 
-    def set_logger(self, filename='', debug=False, console=False):
-        LogInit().set_logging(
-            location=self.logfolder,
-            filename=filename,
-            debug=debug,
-            console=console)
+    def logger(self, filename='', debug=False, console=False):
+        fp = os.path.join(self.logfolder, filename)
+        x = LogInit()
+        x.filepath = fp
+        x.console = console
+        if debug:
+            x.debug()
+        x.setup()
 
     def convert(self):
         from rkive.clients.cl.converter import ConvertClient
@@ -112,7 +114,7 @@ class RkiveRunner(GetOpts):
         from rkive.clients.cl.tagger import Tagger
         tag = Tagger()
         p.parse_args(namespace=tag)
-        self.set_logger('tag.log', console=tag.console, debug=tag.debug)
+        self.logger('tag.log', console=tag.console, debug=tag.debug)
         tag.run()
 
     def index(self):

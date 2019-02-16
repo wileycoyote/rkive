@@ -41,7 +41,7 @@ class Tagger(object):
                 raise
 
             # check arguments for something to add tags/to
-            for t in MusicTrack.rkivetags:
+            for t in MusicTrack.get_rkive_tags():
                 if hasattr(self, t):
                     v = getattr(self, t)
                     log.debug("t: {0} v: {1}".format(t, v))
@@ -110,18 +110,16 @@ class Tagger(object):
 
     # assume that one pattern matches all the files under examination
     def modify_from_pattern(self):
-        log = getLogger('Rkive.Tagger')
         visit_files(
             folder=self.base,
             funcs=[self.mod_filetags_from_regexp],
-            include=is_music_file,
+            include=MusicFile.is_music_file,
             recursive=self.recursive)
 
     def mod_filetags_from_regexp(self, root, filename):
-        log = getLogger('Rkive.Tagger')
         (fn, ext) = os.path.splitext(filename)
         self.media = MusicFile()
-        for t,v in self.pattern.match(fn).items():
+        for t, v in self.pattern.match(fn).items():
             setattr(self.media, t, v)
         self.modify_file_tags(root, filename)
 
@@ -129,18 +127,18 @@ class Tagger(object):
         log = getLogger('Rkive.Tagger')
         import audiotools.cue
         cue = audiotools.cue.read_cuesheet(self.cuesheet)
-        (folder, base) = os.path.split(sheet)
-        if (folder ==''):
+        (folder, base) = os.path.split(self.cuesheet)
+        if (folder == ''):
             folder = os.getcwd()
         log.info("Using cuesheet {0} in folder {1}".format(base, folder))
         os.chdir(folder)
         files = glob.glob('*.flac')
         for filename in files:
             # shntool gives us this nice %t-%name filename
-            file_number = re.search('(\d\d)', filename)
+            file_number = re.search(r'(\d\d)', filename)
             if (not file_number):
                 continue
-            log.info("Setting attributes from cuesheet for file {0}".format(filename))
+            log.info(f"Setting attributes from cuesheet for file {filename}")
             tracknumber = int(file_number.group(0))
             # build the tag list
             # standard tags
@@ -176,79 +174,76 @@ class Tagger(object):
         log = getLogger('Rkive.Tagger')
         log.debug("using file {0}".format(filename))
         with open(filename) as fh:
-            header=fh.readline().strip()
-            version,album_nr, album_count, nr_titles=header.split(',')
-            nr_titles=int(nr_titles)
-            self._tracks={}
-            toptitles='===TITLES==='
-            topfiles='===FILES==='
-            while(1): 
-                l = fh.readline().strip()
-                log.debug("line: {0}".format(l))
-                if l.startswith('==='):
+            header = fh.readline().strip()
+            version, album_nr, album_count, nr_titles = header.split(',')
+            nr_titles = int(nr_titles)
+            self._tracks = {}
+            while(1):
+                x = fh.readline().strip()
+                log.debug("line: {0}".format(x))
+                if x.startswith('==='):
                     break
-                tag,value=l.split(':',1)
+                tag, value = x.split(':', 1)
                 log.debug("tag: {0}, value: {1}".format(tag, value))
                 # these itmes belong to a subset of tracks
                 if '[' in tag:
-                    sqrbrkt=tag.index('[')
+                    sqrbrkt = tag.index('[')
                     tag_name = tag[0:sqrbrkt]
                     tag_indices = tag[sqrbrkt+1:-1]
-                    log.debug("sqrbrkt {2} tag_name: {0} tag_indices: {1}".format(tag_name, tag_indices,sqrbrkt))
                     if '-' in tag_indices:
-                        start,fin=tag_indices.split('-')
+                        start, fin = tag_indices.split('-')
                         log.debug("start: {0} fin: {1}".format(start, fin))
-                        for k in range(int(start)-1,int(fin)):
+                        for k in range(int(start)-1, int(fin)):
                             if not (k in self._tracks):
-                                self._tracks[k]={}
-                            self._tracks[k][tag_name]=value
+                                self._tracks[k] = {}
+                            self._tracks[k][tag_name] = value
                             log.debug("{0} {1}".format(self._tracks[k], k))
                     else:
                         tag_indices = int(tag_indices)-1
                         if not (tag_indices in self._tracks):
                             self._tracks[tag_indices] = {}
-                        self._tracks[tag_indices][tag_name]=value
+                        self._tracks[tag_indices][tag_name] = value
                 else:
                     # these items belong to all tracks
-                    for j in range(0,nr_titles-1):
+                    for j in range(0, nr_titles-1):
                         if not (j in self._tracks):
-                            self._tracks[j]={}
-                        self._tracks[j][tag]=value
+                            self._tracks[j] = {}
+                        self._tracks[j][tag] = value
             # pick up the titles
-            i=0
-            while(1): 
-                l = fh.readline().strip()
-                if l.startswith('==='):
+            i = 0
+            while(1):
+                x = fh.readline().strip()
+                if x.startswith('==='):
                     break
                 if not (i in self._tracks):
-                    self._tracks[i]={}
-                self._tracks[i]['title']=l
-                self._tracks[i]['tracknumber']=str(i+1)
-                i=i+1
+                    self._tracks[i] = {}
+                self._tracks[i]['title'] = x
+                self._tracks[i]['tracknumber'] = str(i+1)
+                i = i+1
             # pick up the filenames
-            i=0
-            while(1): 
-                l = fh.readline().strip()
-                if not l:
+            i = 0
+            while(1):
+                x = fh.readline().strip()
+                if not x:
                     break
                 if not (i in self._tracks):
-                    self._tracks[i]={}
-                self._tracks[i]['filename']=l
-                i=i+1
-   
+                    self._tracks[i] = {}
+                self._tracks[i]['filename'] = x
+                i = i+1
+
     def dump_tracks(self):
         log = getLogger('Rkive.Tagger')
         log.debug("Dumping Tracks")
         for k in sorted(self._tracks.keys()):
-            v= self._tracks[k]
+            v = self._tracks[k]
             log.debug("Dump Track {0}".format(k))
-            for tag,value in v.items():
-                log.debug("tag: {0} value: {1}".format(tag,value))
+            for tag, value in v.items():
+                log.debug("tag: {0} value: {1}".format(tag, value))
                 
     def modify_from_markdown(self):
         log = getLogger('Rkive.Tagger')
         self.set_tracks_from_markdown(self.markdown)
-        log.info("Modifying select files from markdown {0}".format(self.markdown))
+        log.info("Modifying select files markdown {0}".format(self.markdown))
         if self.dryrun:
             log.info("Dryrun: Dumping tracks for {0}".format(self.markdown))
             self.dump_tracks()
@@ -266,7 +261,7 @@ class Tagger(object):
         fp = os.path.join(root, filename)
         if self.dryrun:
             log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
-            for t,v in self.media.__dict__.items():
+            for t, v in self.media.__dict__.items():
                 log.info("Tag to set: {0} Value: {1}".format(t, v))
             return
         log.info("modifying tags of file {0}".format(fp))
@@ -286,8 +281,9 @@ class Tagger(object):
         visit_files(
             folder=self.base,
             funcs=[self.modify_file_tags],
-            include=is_music_file,
+            include=MusicTrack.is_music_file,
             recursive=self.recursive)
+
 
 if __name__ == '__main__':
     Tagger().run()
