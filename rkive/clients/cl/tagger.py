@@ -34,10 +34,10 @@ class Tagger(object):
                 self.search_and_modify_gain()
                 return
             # now set the attributes for the media object
-            self.media = MusicFile()
-
-            if not self.media:
-                log.fatal("No media object instanciated")
+            try:
+                self.musicfile = MusicFile()
+            except Exception:
+                log.fatal("No musicfile instanciated")
                 raise
 
             # check arguments for something to add tags/to
@@ -47,17 +47,17 @@ class Tagger(object):
                     log.debug("t: {0} v: {1}".format(t, v))
                     if v:
                         log.debug("t: {0} v: {1}".format(t, v))
-                        setattr(self.media, t, v)
+                        setattr(self.musicfile, t, v)
 
             if self.printtags:
+                self.all_tags = True
                 if self.filename:
-                    self.media.set_media(self.filename)
                     self.report_file_tags()
                     return
                 self.report_all_files()
                 return
 
-            if not self.media.__dict__:
+            if not self.musicfile.__dict__:
                 log.info("no attributes to apply")
                 return
 
@@ -73,19 +73,17 @@ class Tagger(object):
         except FileNotFound:
             log.fatal("Type not supported")
 
-    def report_file_tags(self, base, filename):
+    def report_file_tags(self, fp):
         log = getLogger('Rkive.Tagger')
-        fp = os.path.join(base, filename)
-        musicfile = MusicFile()
-        musicfile.set_media(fp)
+        log.info("Music Attributes for {0}".format(self.all_tags))
         if self.all_tags:
             log.info("Music Attributes for {0}".format(fp))
-            musicfile.report_all_tags()
+            self.musicfile.all_tags()
             return
         if self.no_tag:
-            musicfile.report_unset_tags(self.no_tag)
+            self.musicfile.unset_tags(self.no_tag)
         if self.tag:
-            musicfile.report_set_tags(self.tag)
+            self.musicfile.set_tags(self.tag)
 
     def report_all_files(self):
         log = getLogger('Rkive.Tagger')
@@ -93,14 +91,14 @@ class Tagger(object):
         visit_files(
             folder=self.base,
             funcs=[self.report_file_tags],
-            include=self.is_music_file,
+            include=MusicFile.is_music_file,
             recursive=self.recursive)
 
     def search_and_modify_gain(self):
         visit_files(
             folder=self.base,
             funcs=[self.modify_gain],
-            include=self.is_music_file)
+            include=MusicFile.is_music_file)
 
     def modify_gain(self, root, filename):
         cmd = ['metaflac', '--add-replay-gain', filename]
@@ -239,7 +237,7 @@ class Tagger(object):
             log.debug("Dump Track {0}".format(k))
             for tag, value in v.items():
                 log.debug("tag: {0} value: {1}".format(tag, value))
-                
+
     def modify_from_markdown(self):
         log = getLogger('Rkive.Tagger')
         self.set_tracks_from_markdown(self.markdown)
@@ -261,7 +259,7 @@ class Tagger(object):
         fp = os.path.join(root, filename)
         if self.dryrun:
             log.info("Dryrun: Proposed tags to modify on file {0}".format(fp))
-            for t, v in self.media.__dict__.items():
+            for t, v in self.media.tags():
                 log.info("Tag to set: {0} Value: {1}".format(t, v))
             return
         log.info("modifying tags of file {0}".format(fp))
@@ -281,7 +279,7 @@ class Tagger(object):
         visit_files(
             folder=self.base,
             funcs=[self.modify_file_tags],
-            include=MusicTrack.is_music_file,
+            include=MusicFile.is_music_file,
             recursive=self.recursive)
 
 

@@ -437,7 +437,13 @@ class MP3(MusicTrack):
 class Flac(MusicTrack):
 
     def __init__(self, f):
-        self._filename = f
+        self.filename = f
+        try:
+            flac = FLAC(f)
+        except mutagen.flac.error:
+            flac = FLAC()
+            flac.save(f)
+        self.media = flac
 
     @property
     def tag(self, t):
@@ -448,14 +454,8 @@ class Flac(MusicTrack):
         self._track[t] = v
 
     def save(self):
-        filename = self._filename
-        try:
-            flac = FLAC(filename)
-        except mutagen.flac.error:
-            flac = FLAC()
-            flac.save(filename)
         if 'picture' in self.__dict__:
-            flac.clear_pictures()
+            self.media.clear_pictures()
             pic = Picture()
             with open(self.picture, "rb") as f:
                 pic.data = f.read()
@@ -464,12 +464,12 @@ class Flac(MusicTrack):
             pic.mime = self.get_mime_type(self.picture)
             pic.width = im.size[0]
             pic.height = im.size[1]
-            flac.add_picture(pic)
-            del self['picture']
+            self.add_picture(pic)
+            del self.media['picture']
         for rkive_tag in self.get_rkive_tags():
             if rkive_tag in self.__dict__:
-                flac[rkive_tag] = self.__dict__[rkive_tag]
-        flac.save()
+                self.media[rkive_tag] = self.__dict__[rkive_tag]
+        self.media.save()
 
 
 class TagReporter(object):
@@ -477,8 +477,8 @@ class TagReporter(object):
     def report_tag(self, tag):
         log = getLogger('Rkive.MusicFile')
         log.debug("tag: {0}".format(tag))
-        filename = self.media.filename
-        if tag in self.__dict__:
+        filename = self.media
+        if tag in self.__dict__['_media'].__dict__['media']:
             v = getattr(self, tag)
             log.info(f"{filename}: Attribute {tag} has value {v}")
         else:
@@ -494,13 +494,13 @@ class TagReporter(object):
     def set_tags(self, tags):
         log = getLogger('Rkive.MusicFile')
         log.debug("report_set_tags")
-        for tag in self.rkive_tags:
+        for tag in self.get_rkive_tags():
             self.report_tag(tag)
 
     def all_tags(self):
         log = getLogger('Rkive.MusicFile')
-        log.debug("report_all_tags")
-        for tag in self.rkive_tags:
+        log.debug("all_tags")
+        for tag in MusicTrack.get_rkive_tags():
             self.report_tag(tag)
 
     def pprint(self, filename):
