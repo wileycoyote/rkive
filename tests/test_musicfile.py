@@ -175,7 +175,7 @@ class TestMP3(unittest.TestCase):
             a = getattr(m, rkivetag)
             test_all = True
             if rkivetag in attrs:
-                self.assertEquals(a.text[0], attrs[rkivetag])
+                self.assertEquals(a, attrs[rkivetag])
         self.assertTrue(test_all, "We've not tested any attribute")
 
     def tearDown(self):
