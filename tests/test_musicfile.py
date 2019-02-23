@@ -5,10 +5,10 @@ import string
 import random
 import shutil
 import tempfile
-from testfixtures import LogCapture as LogCapture
 from logging import getLogger as getLogger
 from rkive.clients.log import LogInit
 from rkive.index.musicfile import MusicTrack, MP3, MusicTags
+from rkive.index.musicfile import Flac
 
 
 def str_generator(
@@ -102,17 +102,6 @@ class TestMusicTrack(unittest.TestCase):
             self.assertEqual(cm.output, e)
 
 
-class TestID3(unittest.TestCase):
-
-    def test_tracktotal(self):
-        m = MP3()
-        m.title = 'kkkk'
-        m.tracknumber = "3"
-        m.tracktotal = "5"
-        self.assertEqual(m.tracknumber, "3")
-        self.assertEqual(m.tracktotal, "5")
-
-
 class TestMP3(unittest.TestCase):
 
     def setUp(self):
@@ -122,68 +111,72 @@ class TestMP3(unittest.TestCase):
         log.debug("Creating file for testing: {0}".format(self.tmpfile))
         shutil.copy('data/mp3/test1.mp3', self.tmpfile)
 
-    def test_add_frames_to_empty_mp3(self):
-        m = MP3()
-        with LogCapture() as x:
-            m.filename = self.tmpfile
-            m.save()
-            r = 'Rkive.MusicFile'
-            debug = 'DEBUG'
-            l1 = (r, debug, f'Return file: {self.tmpfile}')
-            x.check(l1)
-
     def test_set_all_params(self):
-        m = MP3(self.tmpfile)
+        m = MP3()
+        m.media = self.tmpfile
+        attrs = {}
         genre = str_generator()
         m.genre = genre
+        attrs['genre'] = genre
+
         tracktotal = "10"
         m.tracktotal = tracktotal
+        attrs['tracktotal'] = tracktotal
+
         tracknumber = "5"
         m.tracknumber = tracknumber
+        attrs['tracknumber'] = tracknumber
+
         comment = str_generator()
         m.comment = comment
+        attrs['comment'] = comment
+
         title = str_generator()
         m.title = title
+        attrs['title'] = title
+
         grouping = str_generator()
         m.grouping = grouping
+        attrs['grouping'] = grouping
+
         artist = str_generator()
         m.artist = artist
+        attrs['artist'] = artist
+
         year = "1910"
         m.year = year
+        attrs['year'] = year
+
         albumartist = str_generator()
         m.albumartist = albumartist
+        attrs['albumartist'] = albumartist
+
         disctotal = "11"
         m.disctotal = disctotal
+        attrs['disctotal'] = disctotal
+
         discnumber = "4"
         m.discnumber = discnumber
+        attrs['discnumber'] = discnumber
+
         composer = str_generator()
         m.composer = composer
+        attrs['composer'] = composer
+
         album = str_generator()
         m.album = album
+        attrs['album'] = album
+
         m.save()
-        id3vars = dict(m.__dict__)
-        for rkivetag, id3tag in dict(MP3.__dict__).items():
-            if id3tag not in id3vars:
+        test_all = False
+        for rkivetag in MusicTrack.get_rkive_tags():
+            if not hasattr(m, rkivetag):
                 continue
-            id3val = str(id3vars[id3tag])
-            if rkivetag == 'tracktotal':
-                tracknumber, tracktotal = str(id3vars['TRCK']).split('/')
-                self.assertEqual(tracktotal, "10")
-                continue
-            if rkivetag == 'tracknumber':
-                tracknumber, tracktotal = str(id3vars['TRCK']).split('/')
-                self.assertEqual(tracknumber, "5")
-                continue
-            if rkivetag == 'disctotal':
-                discnumber, disctotal = str(id3vars['TPOS']).split('/')
-                self.assertEqual(disctotal, "11")
-                continue
-            if rkivetag == 'discnumber':
-                discnumber, disctotal = str(id3vars['TPOS']).split('/')
-                self.assertEqual(discnumber, "4")
-                continue
-            rkiveval = m[rkivetag]
-            self.assertEqual(id3val, rkiveval)
+            a = getattr(m, rkivetag)
+            test_all = True
+            if rkivetag in attrs:
+                self.assertEquals(a.text[0], attrs[rkivetag])
+        self.assertTrue(test_all, "We've not tested any attribute")
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)
@@ -191,6 +184,80 @@ class TestMP3(unittest.TestCase):
 
 class TestFLAC(unittest.TestCase):
     """ This to contain tests specific to FLAC files"""
+
+    def setUp(self):
+        log = getLogger('Rkive.MusicFile.Tests')
+        self.tmpdir = tempfile.mkdtemp()
+        self.tmpfile = os.path.join(self.tmpdir, 'test1.flac')
+        log.debug("Creating file for testing: {0}".format(self.tmpfile))
+        shutil.copy('data/flac/test.flac', self.tmpfile)
+
+    def test_set_all_params(self):
+        m = Flac()
+        m.media = self.tmpfile
+        attrs = {}
+
+        genre = str_generator()
+        m.genre = genre
+        attrs['genre'] = genre
+
+        tracktotal = "10"
+        m.tracktotal = tracktotal
+        attrs['tracktotal'] = tracktotal
+
+        tracknumber = "5"
+        m.tracknumber = tracknumber
+        attrs['tracknumber'] = tracknumber
+
+        comment = str_generator()
+        m.comment = comment
+        attrs['comment'] = comment
+
+        title = str_generator()
+        m.title = title
+        attrs['title'] = title
+
+        grouping = str_generator()
+        m.grouping = grouping
+        attrs['grouping'] = grouping
+
+        artist = str_generator()
+        m.artist = artist
+        attrs['artist'] = artist
+
+        year = "1910"
+        m.year = year
+        attrs['year'] = year
+
+        albumartist = str_generator()
+        m.albumartist = albumartist
+        attrs['albumartist'] = albumartist
+
+        disctotal = "11"
+        m.disctotal = disctotal
+        attrs['disctotal'] = disctotal
+
+        discnumber = "4"
+        m.discnumber = discnumber
+        attrs['discnumber'] = discnumber
+
+        composer = str_generator()
+        m.composer = composer
+        attrs['composer'] = composer
+
+        album = str_generator()
+        m.album = album
+        attrs['album'] = album
+
+        m.save()
+        for t in MusicTrack.get_rkive_tags():
+            if hasattr(m, t):
+                a = getattr(m, t)
+                test_val = attrs[t]
+                self.assertEquals(a, test_val)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmpdir)
 
 
 class TestMusicFile(unittest.TestCase):

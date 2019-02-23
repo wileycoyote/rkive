@@ -4,10 +4,9 @@ import os.path
 from logging import getLogger
 import mutagen
 import mutagen.mp3
-from mutagen.id3 import error as id3_error
-from mutagen import MutagenError
 from mutagen.flac import FLAC, Picture
 from PIL import Image
+from mutagen.id3 import ID3NoHeaderError
 
 
 class InvalidTag(Exception):
@@ -231,9 +230,6 @@ class MusicTrack(MusicTags):
 
 class MP3(MusicTrack):
 
-    def __init__(self, filename=None):
-        self.filename = filename
-
     @classmethod
     def mutagenid3(cls, attr, val):
         mutagenid3 = getattr(mutagen.id3, attr)
@@ -247,166 +243,106 @@ class MP3(MusicTrack):
         return '/'.join([curr_number, total])
 
     @property
-    def album(self):
-        return self._album
-
-    @album.setter
-    def album(self, a):
-        self._album = __class__.mutagenid3('TALB', a)
-
-    @property
-    def part(self):
-        return self._part
-
-    @part.setter
-    def part(self, p):
-        self._part = __class__.mutagenid3('TSST', p)
-
-    @property
-    def lyricist(self):
-        return self._lyricist
-
-    @lyricist.setter
-    def lyricist(self, l):
-        self._lyricist = __class__.mutagenid3('AUT', l)
-
-    @property
-    def composer(self):
-        return self._composer
-
-    @composer.setter
-    def composer(self, c):
-        self._composer = __class__.mutagenid3('TCOM', c)
-
-    @property
-    def discnumber(self):
-        return self._discnumber
-
-    @discnumber.setter
-    def discnumber(self, d):
-        value = d
-        if hasattr(self, '_disctotal'):
-            disctotal = self.disctotal.text[0]
-            value = __class__.get_id3_total(d, disctotal)
-        self._discnumber = __class__.mutagenid3('TPOS', value)
-
-    @property
-    def disctotal(self):
-        return self._disctotal
-
-    @disctotal.setter
-    def disctotal(self, d):
-        value = d
-        if hasattr(self, '_discnumber'):
-            discnumber = self._discnumber.text[0]
-            value = __class__.get_id3_total(d, discnumber)
-        self._disctotal = __class__.mutagenid3('TCON', value)
-
-    @property
-    def albumartist(self):
-        return self._albumartist
-
-    @albumartist.setter
-    def albumartist(self, a):
-        self._albumartist = __class__.mutagenid3('TPE2', a)
-
-    @property
-    def artist(self):
-        return self._artist
-
-    @artist.setter
-    def artist(self, a):
-        self._artist = __class__.mutagenid3('TPE1', a)
-
-    @property
-    def album(self):
-        return self._album
-
-    @album.setter
-    def album(self, a):
-        self._album = __class__.mutagenid3('TIT1', a)
-
-    @property
-    def grouping(self):
-        return self._grouping
-
-    @grouping.setter
-    def grouping(self, g):
-        self._grouping = __class__.mutagenid3('TIT2', g)
-
-    @property
-    def year(self):
-        return self._year
-
-    @year.setter
-    def year(self, y):
-        self._year = __class__.mutagenid3('TYER', y)
-
-    @property
-    def comment(self):
-        return self._comment
-
-    @comment.setter
-    def comment(self, c):
-        self._comment = __class__.mutagenid3('COMM', c)
-
-    @property
-    def genre(self):
-        return self._genre
-
-    @genre.setter
-    def genre(self, g):
-        self._genre = __class__.mutagenid3('TCON', g)
-
-    @property
-    def tracktotal(self):
-        return self._tracktotal
-
-    @tracktotal.setter
-    def tracktotal(self, t):
-        self._tracktotal = t
-
-    @property
-    def tracknumber(self):
-        return self._tracknumber
-
-    @tracknumber.setter
-    def tracknumber(self, n):
-        if hasattr(self, '_tracktotal'):
-            value = __class__.get_id3_total(n, self._tracktotal)
-        else:
-            value = n
-        self._tracknumber = __class__.mutagenid3('TRCK', value)
-
-    @property
-    def picture(self):
-        return self._picture
-
-    @picture.setter
-    def picture(self, f):
-        mimetype = self.get_mime_type(f)
-        picfh = open(f).read()
-        mutagenid3 = getattr(__class__.mutagenid3, 'APIC')
-        m = mutagenid3(
-                encoding=3,
-                mime=mimetype,
-                type=3,
-                desc=u"cover",
-                data=picfh
-            )
-        self._picture = m
-
-    @property
-    def tag(self, t):
-        return self._track[t]
-
-    @tag.setter
-    def tag(self, t, v):
-        self._track[t] = v
-
-    @property
     def media(self):
         return self._media
+
+    @media.setter
+    def media(self, f):
+        try:
+            mp3 = mutagen.mp3.MP3(f)
+        except ID3NoHeaderError:
+            mp3 = mutagen.mp3.MP3(f)
+            mp3.save()
+        except Exception as e:
+            print(e)
+        self._media = mp3
+
+    @property
+    def TALB(self):
+        if hasattr(self, 'album'):
+            self._TALB = __class__.mutagenid3('TALB', self.album)
+        return self._TALB
+
+    @property
+    def TSST(self):
+        if hasattr(self, 'part'):
+            self._TSST = __class__.mutagenid3('TSST', self.part)
+        return self._TSST
+
+    @property
+    def AUT(self):
+        if hasattr(self, 'lyricist'):
+            self._AUT = __class__.mutagenid3('AUT', self.lyricist)
+        return self._AUT
+
+    @property
+    def TCOM(self):
+        if hasattr(self, 'COMPOSER'):
+            self._TCOM = __class__.mutagenid3('TCOM', self.composer)
+        return self._TCOM
+
+    @property
+    def TPOS(self):
+        value = __class__.get_id3_total(self.discnumber, self.disctotal)
+        self._TPOS = __class__.mutagenid3('TPOS', value)
+        return self._TPOS
+
+    @property
+    def TPE2(self):
+        self._TPE2 = __class__.mutagenid3('TPE2', self.albumartist)
+        return self._TPE2
+
+    @property
+    def TPE1(self):
+        self._TPE1 = __class__.mutagenid3('TPE1', self.artist)
+        return self._TPE1
+
+    @property
+    def TIT1(self):
+        self._TIT1 = __class__.mutagenid3('TIT1', self.grouping)
+        return self._TIT1
+
+    @property
+    def TYER(self):
+        self._TYER = __class__.mutagenid3('TYER', self.year)
+        return self._TYER
+
+    @property
+    def COMM(self):
+        self._COMM = __class__.mutagenid3('COMM', self.comment)
+        return self._COMM
+
+    @property
+    def TCON(self):
+        self._TCON = __class__.mutagenid3('TCON', self.genre)
+        return self._TCON
+
+    @property
+    def TRCK(self):
+        value = __class__.get_id3_total(self.tracknumber, self.tracktotal)
+        self._TRCK = __class__.mutagenid3('TRCK', value)
+        return self._TRCK
+
+    @property
+    def APIC(self):
+        """ picture """
+        mimetype = self.get_mime_type(self.picture)
+        picfh = open(self.picture).read()
+        mutagenid3 = getattr(__class__.mutagenid3, 'APIC')
+        m = mutagenid3(
+            encoding=3,
+            mime=mimetype,
+            type=3,
+            desc=u"cover",
+            data=picfh
+        )
+        self._APIC = m
+        return self._APIC
+
+    @property
+    def TIT2(self):
+        self._TIT2 = __class__.mutagenid3('TIT2', self.title)
+        return self._TIT2
 
     def save(self):
         """ Save a MP3 file
@@ -415,47 +351,32 @@ class MP3(MusicTrack):
         we need to do come work to reduce two variables to one, if need be
         do that disctotal or discnumber never reach the save loop
         """
-        log = getLogger('Rkive.MusicFile')
-        try:
-            mp3 = mutagen.mp3.MP3(self.filename)
-            log.debug("Return file: %s" % self.filename)
-        except id3_error:
-            log.debug("Adding default ID3 frame to %s" % self.filename)
-            mp3 = mutagen.mp3.MP3(self.filename)
-            mp3.save(self.filename)
-        except MutagenError:
-            log.fatal("File %s does not exist" % self.filename)
-        for rkive_tag in MusicTrack.get_rkive_tags():
-            if rkive_tag in self.__dict__:
-                log.debug("modifying tag {0} with ".format(rkive_tag))
-                prop = self.__dict__[rkive_tag]
-                self._track.add(prop)
 
-        mp3.save()
+        for t in self.__dict__:
+            id3t = t[1:]
+            if id3t.isupper():
+                self._media[id3t] = getattr(self, id3t)
+        self._media.save()
 
 
 class Flac(MusicTrack):
 
-    def __init__(self, f):
-        self.filename = f
+    @property
+    def media(self):
+        return self._media
+
+    @media.setter
+    def media(self, f):
         try:
             flac = FLAC(f)
         except mutagen.flac.error:
             flac = FLAC()
             flac.save(f)
-        self.media = flac
-
-    @property
-    def tag(self, t):
-        return self._track[t]
-
-    @tag.setter
-    def tag(self, t, v):
-        self._track[t] = v
+        self._media = flac
 
     def save(self):
         if 'picture' in self.__dict__:
-            self.media.clear_pictures()
+            self._media.clear_pictures()
             pic = Picture()
             with open(self.picture, "rb") as f:
                 pic.data = f.read()
@@ -464,12 +385,12 @@ class Flac(MusicTrack):
             pic.mime = self.get_mime_type(self.picture)
             pic.width = im.size[0]
             pic.height = im.size[1]
-            self.add_picture(pic)
-            del self.media['picture']
+            self._media.add_picture(pic)
         for rkive_tag in self.get_rkive_tags():
-            if rkive_tag in self.__dict__:
-                self.media[rkive_tag] = self.__dict__[rkive_tag]
-        self.media.save()
+            a = getattr(self, rkive_tag, False)
+            if a:
+                self._media[rkive_tag] = a
+        self._media.save()
 
 
 class TagReporter(object):
