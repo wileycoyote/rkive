@@ -4,9 +4,9 @@ import os.path
 from logging import getLogger
 import mutagen
 import mutagen.mp3
+from mutagen.id3 import ID3NoHeaderError
 from mutagen.flac import FLAC, Picture
 from PIL import Image
-from mutagen.id3 import ID3NoHeaderError
 
 
 class InvalidTag(Exception):
@@ -36,10 +36,6 @@ CUEMAP = {
 
 class MusicTags:
     """ Interface for mutagen object """
-
-    def __init__(self):
-        self._composer = ""
-        self._album = ""
 
     @property
     def title(self):

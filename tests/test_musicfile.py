@@ -168,11 +168,14 @@ class TestMP3(unittest.TestCase):
         attrs['album'] = album
 
         m.save()
+
+        n = MP3()
+        n.media = self.tmpfile
         test_all = False
         for rkivetag in MusicTrack.get_rkive_tags():
-            if not hasattr(m, rkivetag):
+            if not hasattr(n, rkivetag):
                 continue
-            a = getattr(m, rkivetag)
+            a = getattr(n, rkivetag)
             test_all = True
             if rkivetag in attrs:
                 self.assertEquals(a, attrs[rkivetag])
@@ -250,9 +253,12 @@ class TestFLAC(unittest.TestCase):
         attrs['album'] = album
 
         m.save()
+
+        n = Flac()
+        n.media = self.tmpfile
         for t in MusicTrack.get_rkive_tags():
             if hasattr(m, t):
-                a = getattr(m, t)
+                a = getattr(n, t)
                 test_val = attrs[t]
                 self.assertEquals(a, test_val)
 
