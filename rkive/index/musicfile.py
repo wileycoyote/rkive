@@ -246,6 +246,8 @@ class MP3(MusicTrack):
     def media(self, f):
         try:
             mp3 = mutagen.mp3.MP3(f)
+            for t, v in mp3.items():
+                setattr(self, t, v)
         except ID3NoHeaderError:
             mp3 = mutagen.mp3.MP3(f)
             mp3.save()
@@ -255,69 +257,185 @@ class MP3(MusicTrack):
 
     @property
     def TALB(self):
-        if hasattr(self, 'album'):
-            self._TALB = __class__.mutagenid3('TALB', self.album)
         return self._TALB
+
+    @TALB.setter
+    def TALB(self, a):
+        if type(a) == 'string':
+            self.album = a
+            self._TALB = __class__.mutagenid3('TALB', a)
+        else:
+            self.album = str(a)
+            self._TALB = a
 
     @property
     def TSST(self):
-        if hasattr(self, 'part'):
-            self._TSST = __class__.mutagenid3('TSST', self.part)
         return self._TSST
+
+    @TSST.setter
+    def TSST(self, p):
+        if type(p) == 'string':
+            self.part = p
+            self._TSST = __class__.mutagenid3('TSST', p)
+        else:
+            self.part = str(p)
+            self._TSST = p
 
     @property
     def AUT(self):
-        if hasattr(self, 'lyricist'):
-            self._AUT = __class__.mutagenid3('AUT', self.lyricist)
         return self._AUT
+
+    @AUT.setter
+    def AUT(self, l):
+        if type(l) == 'string':
+            self._lyricist = l
+            self._AUT = __class__.mutagenid3('AUT', l)
+        else:
+            self._lyricist = str(l)
+            self._AUT = l
 
     @property
     def TCOM(self):
-        if hasattr(self, 'COMPOSER'):
-            self._TCOM = __class__.mutagenid3('TCOM', self.composer)
         return self._TCOM
+
+    @TCOM.setter
+    def TCOM(self, c):
+        if type(c) == 'string':
+            self.composer = c
+            self._TCOM = __class__.mutagenid3('TCOM', c)
+        else:
+            self.composer = str(c)
+            self._TCOM = c
 
     @property
     def TPOS(self):
-        value = __class__.get_id3_total(self.discnumber, self.disctotal)
-        self._TPOS = __class__.mutagenid3('TPOS', value)
         return self._TPOS
+
+    @TPOS.setter
+    def TPOS(self, d):
+        if type(d) == 'string':
+            if '/' in d:
+                self.discnumber, self.disctotal = d.split('/')
+            else:
+                self.disctotal = '1'
+                self.discnumber = d
+            value = __class__.get_id3_total(self.discnumber, self.disctotal)
+            self._TPOS = __class__.mutagenid3('TPOS', value)
+        else:
+            tpos = str(d)
+            if '/' in tpos:
+                self.discnumber, self.disctotal = tpos.split('/')
+            else:
+                self.discnumber = tpos
+            self._TPOS = d
 
     @property
     def TPE2(self):
-        self._TPE2 = __class__.mutagenid3('TPE2', self.albumartist)
         return self._TPE2
+
+    @TPE2.setter
+    def TPE2(self, a):
+        if type(a) == 'string':
+            self.albumartist = a
+            self._TPE2 = __class__.mutagenid3('TPE2', a)
+        else:
+            self._albumartist = str(a)
+            self._TPE2 = a
 
     @property
     def TPE1(self):
-        self._TPE1 = __class__.mutagenid3('TPE1', self.artist)
         return self._TPE1
+
+    @TPE1.setter
+    def TPE1(self, a):
+        if type(a) == 'string':
+            self.artist = a
+            self._TPE1 = __class__.mutagenid3('TPE1', a)
+        else:
+            self.artist = str(a)
+            self._TPE1 = a
 
     @property
     def TIT1(self):
-        self._TIT1 = __class__.mutagenid3('TIT1', self.grouping)
         return self._TIT1
+
+    @TIT1.setter
+    def TIT1(self, g):
+        if type(g) == 'string':
+            self.grouping = g
+            self._TIT1 = __class__.mutagenid3('TIT1', g)
+        else:
+            self.grouping = str(g)
+            self._TIT1 = g
+
+    @property
+    def TIT2(self):
+        return self._TIT2
+
+    @TIT2.setter
+    def TIT2(self, t):
+        if type(t) == 'string':
+            self.title = t
+            self._TIT2 = __class__.mutagenid3('TIT2', t)
+        else:
+            self.title = str(t)
+            self._TIT2 = t
 
     @property
     def TYER(self):
-        self._TYER = __class__.mutagenid3('TYER', self.year)
         return self._TYER
+
+    @TYER.setter
+    def TYER(self, y):
+        if type(y) == 'string':
+            self.year = y
+            self._TYER = __class__.mutagenid3('TYER', y)
+        else:
+            self.year = str(y)
+            self._TYER = y
 
     @property
     def COMM(self):
-        self._COMM = __class__.mutagenid3('COMM', self.comment)
         return self._COMM
+
+    @COMM.setter
+    def COMM(self, c):
+        if type(c) == 'string':
+            self.comment = c
+            self._COMM = __class__.mutagenid3('COMM', self.comment)
+        else:
+            self.comment = str(c)
+            self._COMM = c
 
     @property
     def TCON(self):
-        self._TCON = __class__.mutagenid3('TCON', self.genre)
         return self._TCON
+
+    @TCON.setter
+    def TCON(self, g):
+        if type(g) == 'string':
+            self.genre = g
+            self._TCON = __class__.mutagenid3('TCON', g)
+        else:
+            self.genre = str(g)
+            self._TCON = g
 
     @property
     def TRCK(self):
-        value = __class__.get_id3_total(self.tracknumber, self.tracktotal)
-        self._TRCK = __class__.mutagenid3('TRCK', value)
         return self._TRCK
+
+    @TRCK.setter
+    def TRCK(self, n):
+        if type(n) == 'string':
+            self.tracknumber = n
+            if self.tracktotal is None:
+                self._TRCK = __class__.mutagenid3('TRCK', n)
+            else:
+                value = __class__.get_id3_total(n, self.tracktotal)
+                self._TRCK = __class__.mutagenid3('TRCK', value)
+        else:
+            self.tracknumber = str(n)
+            self._TRCK = n
 
     @property
     def APIC(self):
@@ -334,11 +452,6 @@ class MP3(MusicTrack):
         )
         self._APIC = m
         return self._APIC
-
-    @property
-    def TIT2(self):
-        self._TIT2 = __class__.mutagenid3('TIT2', self.title)
-        return self._TIT2
 
     def save(self):
         """ Save a MP3 file
