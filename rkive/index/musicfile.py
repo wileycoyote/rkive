@@ -374,7 +374,7 @@ class MP3(MusicTrack):
 
     @TIT2.setter
     def TIT2(self, t):
-        if type(t) == 'string':
+        if t == 'string':
             self.title = t
             self._TIT2 = __class__.mutagenid3('TIT2', t)
         else:
@@ -383,75 +383,24 @@ class MP3(MusicTrack):
 
     @property
     def TYER(self):
+        self._TYER = __class__.mutagenid3('TYER', self.year)
         return self._TYER
-
-    @TYER.setter
-    def TYER(self, y):
-        if type(y) == 'string':
-            self.year = y
-            self._TYER = __class__.mutagenid3('TYER', y)
-        else:
-            self.year = str(y)
-            self._TYER = y
 
     @property
     def COMM(self):
+        self._COMM = __class__.mutagenid3('COMM', self.comment)
         return self._COMM
-
-    @COMM.setter
-    def COMM(self, c):
-        if type(c) == 'string':
-            self.comment = c
-            self._COMM = __class__.mutagenid3('COMM', self.comment)
-        else:
-            self.comment = str(c)
-            self._COMM = c
 
     @property
     def TCON(self):
+        self._TCON = __class__.mutagenid3('TCON', self.genre)
         return self._TCON
-
-    @TCON.setter
-    def TCON(self, g):
-        if type(g) == 'string':
-            self.genre = g
-            self._TCON = __class__.mutagenid3('TCON', g)
-        else:
-            self.genre = str(g)
-            self._TCON = g
 
     @property
     def TRCK(self):
+        value = __class__.get_id3_total(self.tracknumber, self.tracktotal)
+        self._TRCK = __class__.mutagenid3('TRCK', value)
         return self._TRCK
-
-    @TRCK.setter
-    def TRCK(self, n):
-        if type(n) == 'string':
-            self.tracknumber = n
-            if self.tracktotal is None:
-                self._TRCK = __class__.mutagenid3('TRCK', n)
-            else:
-                value = __class__.get_id3_total(n, self.tracktotal)
-                self._TRCK = __class__.mutagenid3('TRCK', value)
-        else:
-            self.tracknumber = str(n)
-            self._TRCK = n
-
-    @property
-    def APIC(self):
-        """ picture """
-        mimetype = self.get_mime_type(self.picture)
-        picfh = open(self.picture).read()
-        mutagenid3 = getattr(__class__.mutagenid3, 'APIC')
-        m = mutagenid3(
-            encoding=3,
-            mime=mimetype,
-            type=3,
-            desc=u"cover",
-            data=picfh
-        )
-        self._APIC = m
-        return self._APIC
 
     def save(self):
         """ Save a MP3 file
@@ -461,8 +410,22 @@ class MP3(MusicTrack):
         do that disctotal or discnumber never reach the save loop
         """
 
+        if hasattr(self, 'picture'):
+            mimetype = self.get_mime_type(self.picture)
+            picfh = open(self.picture).read()
+            mutagenid3 = getattr(__class__.mutagenid3, 'APIC')
+            mutagenid3(
+                encoding=2,
+                mime=mimetype,
+                type=2,
+                desc=u"cover",
+                data=picfh
+            )
+
         for t in self.__dict__:
             id3t = t[1:]
+            if id3t == 'APIC':
+                continue
             if id3t.isupper():
                 self._media[id3t] = getattr(self, id3t)
         self._media.save()
@@ -478,6 +441,8 @@ class Flac(MusicTrack):
     def media(self, f):
         try:
             flac = FLAC(f)
+            for t, v in flac.items():
+                setattr(self, t, v)
         except mutagen.flac.error:
             flac = FLAC()
             flac.save(f)
@@ -495,6 +460,7 @@ class Flac(MusicTrack):
             pic.width = im.size[0]
             pic.height = im.size[1]
             self._media.add_picture(pic)
+            del self.__dict__['picture']
         for rkive_tag in self.get_rkive_tags():
             a = getattr(self, rkive_tag, False)
             if a:
