@@ -321,6 +321,17 @@ class MP3(MusicTrack):
     def disctotal(self):
         return 'TPOS'
 
+    @disctotal.setter
+    def disctotal(self, d):
+        tpos = str(self._TPOS)
+        self._disctotal = d
+        if '/' in tpos:
+            self._discnumber, _ = d.split('/')
+        else:
+            self._discnumber = tpos
+        value = __class__.get_id3_total(self._discnumber, self._disctotal)
+        self._TPOS = __class__.mutagenid3('TPOS', value)
+
     @property
     def discnumber(self):
         return 'TPOS'
@@ -329,16 +340,16 @@ class MP3(MusicTrack):
     def discnumber(self, d):
         if type(d) == str:
             if '/' in d:
-                self._discnumber, self.disctotal = d.split('/')
+                self._discnumber, self._disctotal = d.split('/')
             else:
                 self.disctotal = '1'
                 self._discnumber = d
-            value = __class__.get_id3_total(self._discnumber, self.disctotal)
+            value = __class__.get_id3_total(self._discnumber, self._disctotal)
             self._TPOS = __class__.mutagenid3('TPOS', value)
         else:
             tpos = str(d)
             if '/' in tpos:
-                self._discnumber, self.disctotal = tpos.split('/')
+                self._discnumber, self._disctotal = tpos.split('/')
             else:
                 self._discnumber = tpos
             self._TPOS = d
