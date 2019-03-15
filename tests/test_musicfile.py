@@ -173,7 +173,7 @@ class TestMP3(unittest.TestCase):
         n.media = self.tmpfile
         test_all = False
         for rkivetag in MusicTrack.get_rkive_tags():
-            if not hasattr(n, rkivetag):
+            if not hasattr(m, rkivetag):
                 continue
             a = getattr(n, rkivetag)
             test_all = True
@@ -260,7 +260,7 @@ class TestFLAC(unittest.TestCase):
             if hasattr(m, t):
                 a = getattr(n, t)
                 test_val = attrs[t]
-                self.assertEquals(a, test_val)
+                self.assertEquals(a[0], test_val)
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)

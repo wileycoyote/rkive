@@ -238,6 +238,16 @@ class MP3(MusicTrack):
             curr_number, curr_total = id3_val.split('/')
         return '/'.join([curr_number, total])
 
+    @classmethod
+    def xparameters(cls, t, x):
+        if type(x) == str:
+            r1 = x
+            r2 = __class__.mutagenid3(t, x)
+        else:
+            r1 = str(x)
+            r2 = x
+        return (r1, r2)
+
     @property
     def media(self):
         return self._media
@@ -259,148 +269,189 @@ class MP3(MusicTrack):
     def TALB(self):
         return self._TALB
 
-    @TALB.setter
-    def TALB(self, a):
-        if type(a) == 'string':
-            self.album = a
-            self._TALB = __class__.mutagenid3('TALB', a)
-        else:
-            self.album = str(a)
-            self._TALB = a
+    @property
+    def album(self):
+        return 'TALB'
+
+    @album.setter
+    def album(self, a):
+        self._album, self._TALB = __class__.xparameters('TALB', a)
 
     @property
     def TSST(self):
         return self._TSST
 
-    @TSST.setter
-    def TSST(self, p):
-        if type(p) == 'string':
-            self.part = p
-            self._TSST = __class__.mutagenid3('TSST', p)
-        else:
-            self.part = str(p)
-            self._TSST = p
+    @property
+    def part(self):
+        return 'TSST'
+
+    @part.setter
+    def part(self, p):
+        self._part, self._TSST = __class__.xparameters('TSST', p)
 
     @property
     def AUT(self):
         return self._AUT
 
-    @AUT.setter
-    def AUT(self, l):
-        if type(l) == 'string':
-            self._lyricist = l
-            self._AUT = __class__.mutagenid3('AUT', l)
-        else:
-            self._lyricist = str(l)
-            self._AUT = l
+    @property
+    def lyricist(self):
+        return 'AUT'
+
+    @lyricist.setter
+    def lyricist(self, l):
+        self._lyricist, self._AUT = __class__.xparameters('AUT', l)
 
     @property
     def TCOM(self):
         return self._TCOM
 
-    @TCOM.setter
-    def TCOM(self, c):
-        if type(c) == 'string':
-            self.composer = c
-            self._TCOM = __class__.mutagenid3('TCOM', c)
-        else:
-            self.composer = str(c)
-            self._TCOM = c
+    @property
+    def composer(self):
+        return 'TCOM'
+
+    @composer.setter
+    def composer(self, c):
+        self._composer, self._TCOM = __class__.xparameters('TCOM', c)
 
     @property
     def TPOS(self):
         return self._TPOS
 
-    @TPOS.setter
-    def TPOS(self, d):
-        if type(d) == 'string':
+    @property
+    def disctotal(self):
+        return 'TPOS'
+
+    @property
+    def discnumber(self):
+        return 'TPOS'
+
+    @discnumber.setter
+    def discnumber(self, d):
+        if type(d) == str:
             if '/' in d:
-                self.discnumber, self.disctotal = d.split('/')
+                self._discnumber, self.disctotal = d.split('/')
             else:
                 self.disctotal = '1'
-                self.discnumber = d
-            value = __class__.get_id3_total(self.discnumber, self.disctotal)
+                self._discnumber = d
+            value = __class__.get_id3_total(self._discnumber, self.disctotal)
             self._TPOS = __class__.mutagenid3('TPOS', value)
         else:
             tpos = str(d)
             if '/' in tpos:
-                self.discnumber, self.disctotal = tpos.split('/')
+                self._discnumber, self.disctotal = tpos.split('/')
             else:
-                self.discnumber = tpos
+                self._discnumber = tpos
             self._TPOS = d
 
     @property
     def TPE2(self):
         return self._TPE2
 
-    @TPE2.setter
-    def TPE2(self, a):
-        if type(a) == 'string':
-            self.albumartist = a
-            self._TPE2 = __class__.mutagenid3('TPE2', a)
-        else:
-            self._albumartist = str(a)
-            self._TPE2 = a
+    @property
+    def albumartist(self):
+        return 'TPE2'
+
+    @albumartist.setter
+    def albumartist(self, a):
+        self._albumartist, self._TPE2 = __class__.xparameters('TPE2', a)
 
     @property
     def TPE1(self):
         return self._TPE1
 
-    @TPE1.setter
-    def TPE1(self, a):
-        if type(a) == 'string':
-            self.artist = a
-            self._TPE1 = __class__.mutagenid3('TPE1', a)
-        else:
-            self.artist = str(a)
-            self._TPE1 = a
+    @property
+    def artist(self):
+        return 'TPE1'
+
+    @artist.setter
+    def artist(self, a):
+        self._artist, self._TPE1 = __class__.xparameters('TPE1', a)
 
     @property
     def TIT1(self):
         return self._TIT1
 
-    @TIT1.setter
-    def TIT1(self, g):
-        if type(g) == 'string':
-            self.grouping = g
-            self._TIT1 = __class__.mutagenid3('TIT1', g)
-        else:
-            self.grouping = str(g)
-            self._TIT1 = g
+    @property
+    def grouping(self):
+        return 'TIT1'
+
+    @grouping.setter
+    def grouping(self, g):
+        self._grouping, self._TIT1 = __class__.xparameters('TIT1', g)
 
     @property
     def TIT2(self):
         return self._TIT2
 
-    @TIT2.setter
-    def TIT2(self, t):
-        if t == 'string':
-            self.title = t
-            self._TIT2 = __class__.mutagenid3('TIT2', t)
-        else:
-            self.title = str(t)
-            self._TIT2 = t
+    @property
+    def title(self):
+        return 'TIT2'
+
+    @title.setter
+    def title(self, t):
+        self._title, self._TIT2 = __class__.xparameters('TIT2', t)
 
     @property
     def TYER(self):
-        self._TYER = __class__.mutagenid3('TYER', self.year)
         return self._TYER
 
     @property
+    def year(self):
+        return 'TYER'
+
+    @year.setter
+    def year(self, y):
+        self._year, self._TYER = __class__.xparameters('TYER', y)
+
+    @property
     def COMM(self):
-        self._COMM = __class__.mutagenid3('COMM', self.comment)
         return self._COMM
 
     @property
+    def comment(self):
+        return 'COMM'
+
+    @comment.setter
+    def comment(self, c):
+        self._comment, self._COMM = __class__.xparameters('COMM', c)
+
+    @property
     def TCON(self):
-        self._TCON = __class__.mutagenid3('TCON', self.genre)
         return self._TCON
 
     @property
+    def genre(self):
+        return 'TCON'
+
+    @genre.setter
+    def genre(self, g):
+        self._genre, self._TCON = __class__.xparameters('TCON', g)
+
+    @property
     def TRCK(self):
-        value = __class__.get_id3_total(self.tracknumber, self.tracktotal)
-        self._TRCK = __class__.mutagenid3('TRCK', value)
         return self._TRCK
+
+    @property
+    def tracknumber(self):
+        return 'TRCK'
+
+    @tracknumber.setter
+    def tracknumber(self, n):
+        if type(n) == str:
+            if '/' in n:
+                self._tracknumber, self.tracktotal = n.split('/')
+            else:
+                self._tracktotal = '1'
+                self._tracknumber = n
+            value = __class__.get_id3_total(self._tracknumber, self.tracktotal)
+            self._TRCK = __class__.mutagenid3('TRCK', value)
+        else:
+            trck = str(n)
+            if '/' in trck:
+                self._tracknumber, self.tracktotal = trck.split('/')
+            else:
+                self._tracknumber = trck
+            self._TRCK = n
 
     def save(self):
         """ Save a MP3 file
@@ -410,24 +461,25 @@ class MP3(MusicTrack):
         do that disctotal or discnumber never reach the save loop
         """
 
-        if hasattr(self, 'picture'):
+        if 'picture' in self.__dict__:
             mimetype = self.get_mime_type(self.picture)
             picfh = open(self.picture).read()
             mutagenid3 = getattr(__class__.mutagenid3, 'APIC')
-            mutagenid3(
+            m = mutagenid3(
                 encoding=2,
                 mime=mimetype,
                 type=2,
                 desc=u"cover",
                 data=picfh
             )
+            self._APIC = m
 
-        for t in self.__dict__:
-            id3t = t[1:]
-            if id3t == 'APIC':
-                continue
-            if id3t.isupper():
-                self._media[id3t] = getattr(self, id3t)
+        for rkive_tag in self.get_rkive_tags():
+            id3_tag = getattr(self, rkive_tag, False)
+            print(rkive_tag)
+            print(id3_tag)
+            if id3_tag:
+                self._media['_' + id3_tag] = getattr(self, id3_tag)
         self._media.save()
 
 
