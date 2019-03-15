@@ -323,10 +323,13 @@ class MP3(MusicTrack):
 
     @disctotal.setter
     def disctotal(self, d):
-        tpos = str(self._TPOS)
+        if hasattr(self, '_TPOS'):
+            tpos = str(self._TPOS)
+        else:
+            tpos = f'1/{d}'
         self._disctotal = d
         if '/' in tpos:
-            self._discnumber, _ = d.split('/')
+            self._discnumber, _ = tpos.split('/')
         else:
             self._discnumber = tpos
         value = __class__.get_id3_total(self._discnumber, self._disctotal)
@@ -446,6 +449,24 @@ class MP3(MusicTrack):
     def tracknumber(self):
         return 'TRCK'
 
+    @property
+    def tracktotal(self):
+        return 'TRCK'
+
+    @tracktotal.setter
+    def tracktotal(self, d):
+        if hasattr(self, '_TRCK'):
+            trck = str(self._TRCK)
+        else:
+            trck = f'1/{d}'
+        self._tracktotal = d
+        if '/' in trck:
+            self._tracknumber, _ = trck.split('/')
+        else:
+            self._tracknumber = trck
+        value = __class__.get_id3_total(self._tracknumber, self._tracktotal)
+        self._TRCK = __class__.mutagenid3('TRCK', value)
+
     @tracknumber.setter
     def tracknumber(self, n):
         if type(n) == str:
@@ -484,12 +505,11 @@ class MP3(MusicTrack):
                 data=picfh
             )
             self._APIC = m
-
         for rkive_tag in self.get_rkive_tags():
             id3_tag = getattr(self, rkive_tag, False)
-            print(rkive_tag)
-            print(id3_tag)
-            if id3_tag:
+            if not id3_tag:
+                continue
+            if '_' + id3_tag in self.__dict__:
                 self._media['_' + id3_tag] = getattr(self, id3_tag)
         self._media.save()
 
