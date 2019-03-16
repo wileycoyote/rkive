@@ -126,13 +126,11 @@ class TestMP3(unittest.TestCase):
         self.assertEquals(m.part, p)
 
     def test_set_part_and_reread(self):
-        import pdb; pdb.set_trace()
         m = MP3()
         m.media = self.tmpfile
         p = str_generator()
         m.part = p
         m.save()
-
         n = MP3()
         n.media = self.tmpfile
         self.assertEquals(n.part, p)
@@ -153,10 +151,6 @@ class TestMP3(unittest.TestCase):
         m.tracknumber = tracknumber
         attrs['tracknumber'] = tracknumber
 
-        comment = str_generator()
-        m.comment = comment
-        attrs['comment'] = comment
-
         title = str_generator()
         m.title = title
         attrs['title'] = title
@@ -168,10 +162,6 @@ class TestMP3(unittest.TestCase):
         artist = str_generator()
         m.artist = artist
         attrs['artist'] = artist
-
-        year = "1910"
-        m.year = year
-        attrs['year'] = year
 
         albumartist = str_generator()
         m.albumartist = albumartist
@@ -194,7 +184,6 @@ class TestMP3(unittest.TestCase):
         attrs['album'] = album
 
         m.save()
-
         n = MP3()
         n.media = self.tmpfile
         test_all = False
@@ -254,10 +243,6 @@ class TestFLAC(unittest.TestCase):
         m.artist = artist
         attrs['artist'] = artist
 
-        year = "1910"
-        m.year = year
-        attrs['year'] = year
-
         albumartist = str_generator()
         m.albumartist = albumartist
         attrs['albumartist'] = albumartist
@@ -277,7 +262,6 @@ class TestFLAC(unittest.TestCase):
         album = str_generator()
         m.album = album
         attrs['album'] = album
-
         m.save()
 
         n = Flac()

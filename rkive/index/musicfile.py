@@ -235,10 +235,9 @@ class MP3(MusicTrack):
         'artist': 'TPE1',
         'grouping': 'TIT1',
         'title': 'TIT2',
-        'year': 'TYER',
-        'comment': 'COMM',
         'genre': 'TCON'
     }
+    inv_map = {v: k for k, v in mapping.items()}
 
     @classmethod
     def mutagenid3(cls, attr, val):
@@ -261,8 +260,27 @@ class MP3(MusicTrack):
         try:
             mp3 = mutagen.mp3.MP3(f)
             for t, v in mp3.items():
-                print(t, v)
-                setattr(self, t, v)
+                if t == 'TPOS':
+                    v = str(v)
+                    if '/' in v:
+                        discnumber, disctotal = v.split('/')
+                        setattr(self, 'disctotal', disctotal)
+                    else:
+                        discnumber = v
+                    setattr(self, 'discnumber', discnumber)
+                    continue
+                if t == 'TRCK':
+                    v = str(v)
+                    if '/' in v:
+                        tracknumber, tracktotal = v.split('/')
+                        setattr(self, 'tracktotal', tracktotal)
+                    else:
+                        tracknumber = v
+                    setattr(self, 'tracknumber', tracknumber)
+                    continue
+                if t in self.inv_map:
+                    rkive_tag = self.inv_map[t]
+                    setattr(self, rkive_tag, str(v))
         except ID3NoHeaderError:
             mp3 = mutagen.mp3.MP3(f)
             mp3.save()
@@ -290,34 +308,38 @@ class MP3(MusicTrack):
                 data=picfh
             )
             self._media['APIC'] = m
-        ttt = all((
-            'tracknumber' not in self.__dict__,
-            'tracktotal' in self.__dict__
+        has_tracknumber = hasattr(self, 'tracknumber')
+        has_tracktotal = hasattr(self, 'tracktotal')
+        ttt = any((
+            not has_tracknumber,
+            has_tracktotal
         ))
         if not ttt:
             raise("Track number and track total have to be set")
-        if 'tracknumber' in self.__dict__:
-            value = self.__dict__['tracknumber']
-            if 'tracktotal' in self.__dict__:
-                tt = self.__dict__['tracktotal']
+        if has_tracknumber:
+            value = getattr(self, 'tracknumber')
+            if has_tracktotal:
+                tt = getattr(self, 'tracktotal')
                 value = __class__.get_id3_total(value, tt)
             self._media['TRCK'] = __class__.mutagenid3('TRCK', value)
-        dtt = all((
-            'discnumber' not in self.__dict__,
-            'disctotal' in self.__dict__
+        has_discnumber = hasattr(self, 'discnumber')
+        has_disctotal = hasattr(self, 'disctotal')
+        dtt = any((
+            not has_discnumber,
+            has_disctotal
         ))
         if not dtt:
             raise("Discnumber and disc total have to be set")
-        if 'discnumber' in self.__dict__:
-            value = self.__dict__['discnumber']
-            if 'disctotal' in self.__dict__:
-                dt = self.__dict__['disctotal']
+        if has_discnumber:
+            value = getattr(self, 'discnumber')
+            if has_disctotal:
+                dt = getattr(self, 'disctotal')
                 value = __class__.get_id3_total(value, dt)
             self._media['TPOS'] = __class__.mutagenid3('TPOS', value)
-        for rkive_tag in self.mapping.values():
-            if rkive_tag not in self.__dict__:
+        for rkive_tag in self.mapping:
+            tag_value = getattr(self, rkive_tag, False)
+            if not tag_value:
                 continue
-            tag_value = self.__dict__[rkive_tag]
             id3_tag = self.mapping[rkive_tag]
             self._media[id3_tag] = __class__.mutagenid3(id3_tag, tag_value)
         self._media.save()
