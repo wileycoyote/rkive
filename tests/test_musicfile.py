@@ -111,6 +111,32 @@ class TestMP3(unittest.TestCase):
         log.debug("Creating file for testing: {0}".format(self.tmpfile))
         shutil.copy('data/mp3/test1.mp3', self.tmpfile)
 
+    def test_set_genre(self):
+        m = MP3()
+        m.media = self.tmpfile
+        g = str_generator()
+        m.genre = g
+        self.assertEquals(m.genre, g)
+
+    def test_set_part(self):
+        m = MP3()
+        m.media = self.tmpfile
+        p = str_generator()
+        m.part = p
+        self.assertEquals(m.part, p)
+
+    def test_set_part_and_reread(self):
+        import pdb; pdb.set_trace()
+        m = MP3()
+        m.media = self.tmpfile
+        p = str_generator()
+        m.part = p
+        m.save()
+
+        n = MP3()
+        n.media = self.tmpfile
+        self.assertEquals(n.part, p)
+
     def test_set_all_params(self):
         m = MP3()
         m.media = self.tmpfile

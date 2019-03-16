@@ -226,6 +226,20 @@ class MusicTrack(MusicTags):
 
 class MP3(MusicTrack):
 
+    mapping = {
+        'part': 'TSST',
+        'album': 'TALB',
+        'lyricist': 'AUT',
+        'composer': 'TCOM',
+        'albumartist': 'TPE2',
+        'artist': 'TPE1',
+        'grouping': 'TIT1',
+        'title': 'TIT2',
+        'year': 'TYER',
+        'comment': 'COMM',
+        'genre': 'TCON'
+    }
+
     @classmethod
     def mutagenid3(cls, attr, val):
         mutagenid3 = getattr(mutagen.id3, attr)
@@ -238,16 +252,6 @@ class MP3(MusicTrack):
             curr_number, curr_total = id3_val.split('/')
         return '/'.join([curr_number, total])
 
-    @classmethod
-    def xparameters(cls, t, x):
-        if type(x) == str:
-            r1 = x
-            r2 = __class__.mutagenid3(t, x)
-        else:
-            r1 = str(x)
-            r2 = x
-        return (r1, r2)
-
     @property
     def media(self):
         return self._media
@@ -257,6 +261,7 @@ class MP3(MusicTrack):
         try:
             mp3 = mutagen.mp3.MP3(f)
             for t, v in mp3.items():
+                print(t, v)
                 setattr(self, t, v)
         except ID3NoHeaderError:
             mp3 = mutagen.mp3.MP3(f)
@@ -264,226 +269,6 @@ class MP3(MusicTrack):
         except Exception as e:
             print(e)
         self._media = mp3
-
-    @property
-    def TALB(self):
-        return self._TALB
-
-    @property
-    def album(self):
-        return 'TALB'
-
-    @album.setter
-    def album(self, a):
-        self._album, self._TALB = __class__.xparameters('TALB', a)
-
-    @property
-    def TSST(self):
-        return self._TSST
-
-    @property
-    def part(self):
-        return 'TSST'
-
-    @part.setter
-    def part(self, p):
-        self._part, self._TSST = __class__.xparameters('TSST', p)
-
-    @property
-    def AUT(self):
-        return self._AUT
-
-    @property
-    def lyricist(self):
-        return 'AUT'
-
-    @lyricist.setter
-    def lyricist(self, l):
-        self._lyricist, self._AUT = __class__.xparameters('AUT', l)
-
-    @property
-    def TCOM(self):
-        return self._TCOM
-
-    @property
-    def composer(self):
-        return 'TCOM'
-
-    @composer.setter
-    def composer(self, c):
-        self._composer, self._TCOM = __class__.xparameters('TCOM', c)
-
-    @property
-    def TPOS(self):
-        return self._TPOS
-
-    @property
-    def disctotal(self):
-        return 'TPOS'
-
-    @disctotal.setter
-    def disctotal(self, d):
-        if hasattr(self, '_TPOS'):
-            tpos = str(self._TPOS)
-        else:
-            tpos = f'1/{d}'
-        self._disctotal = d
-        if '/' in tpos:
-            self._discnumber, _ = tpos.split('/')
-        else:
-            self._discnumber = tpos
-        value = __class__.get_id3_total(self._discnumber, self._disctotal)
-        self._TPOS = __class__.mutagenid3('TPOS', value)
-
-    @property
-    def discnumber(self):
-        return 'TPOS'
-
-    @discnumber.setter
-    def discnumber(self, d):
-        if type(d) == str:
-            if '/' in d:
-                self._discnumber, self._disctotal = d.split('/')
-            else:
-                self.disctotal = '1'
-                self._discnumber = d
-            value = __class__.get_id3_total(self._discnumber, self._disctotal)
-            self._TPOS = __class__.mutagenid3('TPOS', value)
-        else:
-            tpos = str(d)
-            if '/' in tpos:
-                self._discnumber, self._disctotal = tpos.split('/')
-            else:
-                self._discnumber = tpos
-            self._TPOS = d
-
-    @property
-    def TPE2(self):
-        return self._TPE2
-
-    @property
-    def albumartist(self):
-        return 'TPE2'
-
-    @albumartist.setter
-    def albumartist(self, a):
-        self._albumartist, self._TPE2 = __class__.xparameters('TPE2', a)
-
-    @property
-    def TPE1(self):
-        return self._TPE1
-
-    @property
-    def artist(self):
-        return 'TPE1'
-
-    @artist.setter
-    def artist(self, a):
-        self._artist, self._TPE1 = __class__.xparameters('TPE1', a)
-
-    @property
-    def TIT1(self):
-        return self._TIT1
-
-    @property
-    def grouping(self):
-        return 'TIT1'
-
-    @grouping.setter
-    def grouping(self, g):
-        self._grouping, self._TIT1 = __class__.xparameters('TIT1', g)
-
-    @property
-    def TIT2(self):
-        return self._TIT2
-
-    @property
-    def title(self):
-        return 'TIT2'
-
-    @title.setter
-    def title(self, t):
-        self._title, self._TIT2 = __class__.xparameters('TIT2', t)
-
-    @property
-    def TYER(self):
-        return self._TYER
-
-    @property
-    def year(self):
-        return 'TYER'
-
-    @year.setter
-    def year(self, y):
-        self._year, self._TYER = __class__.xparameters('TYER', y)
-
-    @property
-    def COMM(self):
-        return self._COMM
-
-    @property
-    def comment(self):
-        return 'COMM'
-
-    @comment.setter
-    def comment(self, c):
-        self._comment, self._COMM = __class__.xparameters('COMM', c)
-
-    @property
-    def TCON(self):
-        return self._TCON
-
-    @property
-    def genre(self):
-        return 'TCON'
-
-    @genre.setter
-    def genre(self, g):
-        self._genre, self._TCON = __class__.xparameters('TCON', g)
-
-    @property
-    def TRCK(self):
-        return self._TRCK
-
-    @property
-    def tracknumber(self):
-        return 'TRCK'
-
-    @property
-    def tracktotal(self):
-        return 'TRCK'
-
-    @tracktotal.setter
-    def tracktotal(self, d):
-        if hasattr(self, '_TRCK'):
-            trck = str(self._TRCK)
-        else:
-            trck = f'1/{d}'
-        self._tracktotal = d
-        if '/' in trck:
-            self._tracknumber, _ = trck.split('/')
-        else:
-            self._tracknumber = trck
-        value = __class__.get_id3_total(self._tracknumber, self._tracktotal)
-        self._TRCK = __class__.mutagenid3('TRCK', value)
-
-    @tracknumber.setter
-    def tracknumber(self, n):
-        if type(n) == str:
-            if '/' in n:
-                self._tracknumber, self.tracktotal = n.split('/')
-            else:
-                self._tracktotal = '1'
-                self._tracknumber = n
-            value = __class__.get_id3_total(self._tracknumber, self.tracktotal)
-            self._TRCK = __class__.mutagenid3('TRCK', value)
-        else:
-            trck = str(n)
-            if '/' in trck:
-                self._tracknumber, self.tracktotal = trck.split('/')
-            else:
-                self._tracknumber = trck
-            self._TRCK = n
 
     def save(self):
         """ Save a MP3 file
@@ -504,13 +289,37 @@ class MP3(MusicTrack):
                 desc=u"cover",
                 data=picfh
             )
-            self._APIC = m
-        for rkive_tag in self.get_rkive_tags():
-            id3_tag = getattr(self, rkive_tag, False)
-            if not id3_tag:
+            self._media['APIC'] = m
+        ttt = all((
+            'tracknumber' not in self.__dict__,
+            'tracktotal' in self.__dict__
+        ))
+        if not ttt:
+            raise("Track number and track total have to be set")
+        if 'tracknumber' in self.__dict__:
+            value = self.__dict__['tracknumber']
+            if 'tracktotal' in self.__dict__:
+                tt = self.__dict__['tracktotal']
+                value = __class__.get_id3_total(value, tt)
+            self._media['TRCK'] = __class__.mutagenid3('TRCK', value)
+        dtt = all((
+            'discnumber' not in self.__dict__,
+            'disctotal' in self.__dict__
+        ))
+        if not dtt:
+            raise("Discnumber and disc total have to be set")
+        if 'discnumber' in self.__dict__:
+            value = self.__dict__['discnumber']
+            if 'disctotal' in self.__dict__:
+                dt = self.__dict__['disctotal']
+                value = __class__.get_id3_total(value, dt)
+            self._media['TPOS'] = __class__.mutagenid3('TPOS', value)
+        for rkive_tag in self.mapping.values():
+            if rkive_tag not in self.__dict__:
                 continue
-            if '_' + id3_tag in self.__dict__:
-                self._media['_' + id3_tag] = getattr(self, id3_tag)
+            tag_value = self.__dict__[rkive_tag]
+            id3_tag = self.mapping[rkive_tag]
+            self._media[id3_tag] = __class__.mutagenid3(id3_tag, tag_value)
         self._media.save()
 
 
